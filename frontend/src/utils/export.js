@@ -42,11 +42,9 @@ export const exportToCSV = (measurements, summary, settings) => {
     'YHTEENVETO',
     `Työtunnit yhteensä;${formatNumber(summary.totalLaborHours)}`,
     `Työkustannukset;${formatNumber(summary.totalLaborCost)} €`,
-    `Materiaalikustannukset;${formatNumber(summary.totalMaterialCost)} €`,
-    `Yleiskustannukset;${formatNumber(summary.overheadCost)} €`,
-    `Kate;${formatNumber(summary.marginAmount)} €`,
-    `Myyntihinta (ALV 0%);${formatNumber(summary.sellingPriceNoVat)} €`,
-    `Myyntihinta (sis. ALV ${settings.vatPercentage}%);${formatNumber(summary.sellingPriceWithVat)} €`
+    `Materiaali;${formatNumber(summary.totalMaterialCost)} €`,
+    `Hind kokku (ALV 0%);${formatNumber(summary.totalPrice)} €`,
+    `Hind kokku (sis. ALV ${settings.vatPercentage}%);${formatNumber(summary.totalPriceWithVat)} €`
   ].join('\n');
 
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
