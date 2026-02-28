@@ -47,6 +47,11 @@ function App() {
       setRightPanelOpen(savedPanelState === 'true');
     }
 
+    const savedLeftSidebarState = localStorage.getItem('rakenna_left_sidebar_open');
+    if (savedLeftSidebarState !== null) {
+      setLeftSidebarOpen(savedLeftSidebarState === 'true');
+    }
+
     const demoMeasurements = [
       {
         id: 'demo-1',
