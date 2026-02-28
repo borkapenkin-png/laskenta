@@ -136,13 +136,32 @@ export const MeasurementOverlay = ({
     }
   };
 
-  const handleCanvasClick = (e) => {
-    if (!currentTool || !scale) return;
+  // Use pointer events for better touch/mouse compatibility
+  const getCanvasCoordinates = (event) => {
+    if (!canvasRef.current) return null;
+    
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Map screen coordinates to canvas coordinates
+    const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // Debug logging
+    console.log('Pointer event detected:', { x, y, clientX: event.clientX, clientY: event.clientY });
+    
+    return { x, y };
+  };
 
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    let point = { x, y };
+  const handlePointerDown = (e) => {
+    if (!currentTool || !scale) return;
+    
+    e.target.setPointerCapture(e.pointerId);
+    
+    const coords = getCanvasCoordinates(e);
+    if (!coords) return;
+
+    let point = coords;
 
     if (snapEnabled && points.length > 0) {
       point = snapToAngle(points[points.length - 1], point, 45);
@@ -227,13 +246,11 @@ export const MeasurementOverlay = ({
     }
   };
 
-  const handleMouseMove = (e) => {
-    if (!canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    setMousePos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
+  const handlePointerMove = (e) => {
+    const coords = getCanvasCoordinates(e);
+    if (coords) {
+      setMousePos(coords);
+    }
   };
 
   if (!canvasSize) return null;
@@ -243,12 +260,17 @@ export const MeasurementOverlay = ({
       ref={canvasRef}
       width={canvasSize.width}
       height={canvasSize.height}
-      onClick={handleCanvasClick}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => setMousePos(null)}
       onDoubleClick={handleDoubleClick}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => setMousePos(null)}
-      className="absolute top-0 left-0 cursor-crosshair"
-      style={{ pointerEvents: currentTool ? 'auto' : 'none' }}
+      className="absolute top-0 left-0"
+      style={{ 
+        pointerEvents: 'auto',
+        cursor: currentTool ? 'crosshair' : 'default',
+        zIndex: 10,
+        touchAction: 'none'
+      }}
     />
   );
 };
