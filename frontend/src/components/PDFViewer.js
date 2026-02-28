@@ -1,9 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.entry';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
 export const PDFViewer = ({ 
   pdfFile, 
