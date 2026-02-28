@@ -115,6 +115,8 @@ function App() {
     setUndoStack([]);
     setRedoStack([]);
     
+    // Demo measurements - note: these have no points so they can't be selected on canvas
+    // Real measurements from drawing tools will have points
     const demoMeasurements = [
       {
         id: 'demo-1',
