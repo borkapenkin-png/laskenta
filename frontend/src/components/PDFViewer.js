@@ -131,56 +131,6 @@ export const PDFViewer = ({
 
   return (
     <div className="flex flex-col h-full bg-[#E5E5E5]">
-      <div className="flex items-center justify-between p-3 bg-white border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <Button
-            data-testid="pdf-previous-page"
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1 || !pdfDocument}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-gray-600 font-mono">
-            {currentPage} / {numPages}
-          </span>
-          <Button
-            data-testid="pdf-next-page"
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange(Math.min(numPages, currentPage + 1))}
-            disabled={currentPage === numPages || !pdfDocument}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button
-            data-testid="pdf-zoom-out"
-            variant="outline"
-            size="sm"
-            onClick={handleZoomOut}
-            disabled={zoom <= 0.5}
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-gray-600 font-mono w-16 text-center">
-            {Math.round(zoom * 100)}%
-          </span>
-          <Button
-            data-testid="pdf-zoom-in"
-            variant="outline"
-            size="sm"
-            onClick={handleZoomIn}
-            disabled={zoom >= 3}
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
       <div 
         ref={containerRef}
         className="flex-1 overflow-auto relative"
