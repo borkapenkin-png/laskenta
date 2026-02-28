@@ -31,11 +31,10 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
       let totalLaborHours = 0;
       let totalLaborCost = 0;
       let totalMaterialCost = 0;
+      const defaultProductivity = 8; // Fixed productivity
 
       measurements.forEach(m => {
-        const waste = (m.waste || 0) / 100;
         const layers = m.layers || 1;
-        const productivity = m.productivity || 1;
         const materialCost = m.materialCostPerUnit || 0;
         const hourlyRate = settings?.hourlyRate || 45;
 
@@ -63,10 +62,10 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
           totalKpl += effectiveQuantity;
         }
 
-        const quantityWithWaste = effectiveQuantity * (1 + waste) * layers;
-        const laborHours = quantityWithWaste / productivity;
+        const totalQuantity = effectiveQuantity * layers;
+        const laborHours = totalQuantity / defaultProductivity;
         const laborCost = laborHours * hourlyRate;
-        const matCost = quantityWithWaste * materialCost;
+        const matCost = totalQuantity * materialCost;
 
         totalLaborHours += laborHours;
         totalLaborCost += laborCost;
