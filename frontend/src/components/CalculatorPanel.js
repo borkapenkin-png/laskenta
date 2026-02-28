@@ -9,6 +9,7 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
   const [summary, setSummary] = useState({
     totalWalls: 0,
     totalCeilings: 0,
+    totalFloors: 0,
     totalFacade: 0,
     totalJm: 0,
     totalKpl: 0,
