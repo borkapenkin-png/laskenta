@@ -412,10 +412,14 @@ function App() {
             onZoomChange={setZoom}
             calibrationMode={currentTool === 'calibrate'}
             calibrationDistance={calibrationDistance}
+            onRenderInfoChange={setPdfRenderInfo}
             onCalibrationComplete={(pixelDistance) => {
               if (calibrationDistance && pixelDistance > 0) {
                 const pixelsPerMeter = pixelDistance / calibrationDistance;
-                const estimatedScale = Math.round(100 / (pixelsPerMeter / 37.8));
+                // Calculate estimated scale based on current zoom
+                const actualDPI = pdfRenderInfo?.actualDPI || 72;
+                const pixelsPerCm = actualDPI / 2.54;
+                const estimatedScale = Math.round((pixelsPerCm * 100) / pixelsPerMeter);
                 setScale({
                   pixelsPerMeter: pixelsPerMeter,
                   ratio: `~1:${estimatedScale}`,
