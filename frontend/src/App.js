@@ -167,10 +167,8 @@ function App() {
     const newMeasurement = {
       ...measurement,
       id: `measurement-${Date.now()}`,
-      category: 'Määrittelemätön',
-      subcategory: 'Määrittelemätön',
-      layers: 1,
-      materialCostPerUnit: 2.5,
+      label: '', // User can set name later
+      pricePerUnit: 0, // User can set price later
       wallHeight: measurement.type === 'wall' ? (settings?.defaultWallHeight || 2.6) : null,
       bothSides: false,
       openings: 0,
