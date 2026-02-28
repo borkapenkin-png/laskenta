@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   FileUp, 
   Ruler, 
@@ -15,22 +15,15 @@ import {
   Redo,
   Hand,
   ZoomIn,
-  ZoomOut,
-  Settings
+  ZoomOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 export const Toolbar = ({ 
   onOpenPdf, 
