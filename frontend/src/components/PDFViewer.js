@@ -71,10 +71,18 @@ export const PDFViewer = ({
         canvas.width = viewport.width;
         canvas.height = viewport.height;
 
-        // Update canvas size for overlay
+        // Calculate actual DPI and store for scale calculations
+        // PDF points are 72 per inch by default
+        // viewport.scale tells us pixels per point
+        const baseViewport = page.getViewport({ scale: 1 });
+        const actualDPI = (viewport.width / baseViewport.width) * 72;
+        
+        // Update canvas size for overlay with DPI info
         setCanvasSize({
           width: viewport.width,
-          height: viewport.height
+          height: viewport.height,
+          actualDPI: actualDPI,
+          zoom: zoom
         });
 
         await page.render({
@@ -82,10 +90,6 @@ export const PDFViewer = ({
           viewport: viewport
         }).promise;
         
-        if (onScaleChange && !scale) {
-          const baseScale = viewport.width / page.getViewport({ scale: 1 }).width;
-          onScaleChange({ pixelsPerMeter: baseScale * 100, detected: false });
-        }
       } catch (error) {
         console.error('Error rendering page:', error);
       } finally {
