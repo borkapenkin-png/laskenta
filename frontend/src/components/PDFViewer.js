@@ -95,16 +95,6 @@ export const PDFViewer = ({
     renderPage();
   }, [pdfDocument, currentPage, zoom, scale, onScaleChange]);
 
-  const handleZoomIn = () => {
-    const newZoom = Math.min(zoom + 0.25, 3);
-    setZoom(newZoom);
-  };
-  
-  const handleZoomOut = () => {
-    const newZoom = Math.max(zoom - 0.25, 0.5);
-    setZoom(newZoom);
-  };
-
   const handleMouseDown = (e) => {
     // Pan with: middle mouse, right mouse, OR left mouse when no tool is selected
     const canPan = e.button === 1 || e.button === 2 || (e.button === 0 && !currentTool);
@@ -133,7 +123,9 @@ export const PDFViewer = ({
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       const delta = e.deltaY > 0 ? -0.1 : 0.1;
-      setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
+      if (onZoomChange) {
+        onZoomChange(prev => Math.max(0.5, Math.min(3, prev + delta)));
+      }
     }
   };
 
