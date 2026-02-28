@@ -436,6 +436,8 @@ function App() {
             onPdfLoad={setPdfDocument}
             onMeasurementComplete={handleMeasurementComplete}
             measurements={measurements}
+            selectedMeasurementId={selectedMeasurementId}
+            onMeasurementSelect={setSelectedMeasurementId}
           />
         </div>
 
