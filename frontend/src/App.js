@@ -300,6 +300,12 @@ function App() {
     localStorage.setItem('rakenna_right_panel_open', newState.toString());
   };
 
+  const toggleLeftSidebar = () => {
+    const newState = !leftSidebarOpen;
+    setLeftSidebarOpen(newState);
+    localStorage.setItem('rakenna_left_sidebar_open', newState.toString());
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB]">
       <Toolbar
@@ -314,6 +320,15 @@ function App() {
       />
 
       <div className="flex flex-1 overflow-hidden relative">
+        {/* Left Sidebar with Thumbnails */}
+        <LeftSidebar
+          pdfDocument={pdfDocument}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          isOpen={leftSidebarOpen}
+          onToggle={toggleLeftSidebar}
+        />
+
         <div className="flex-1 relative">
           <PDFViewer
             pdfFile={pdfFile}
@@ -322,6 +337,9 @@ function App() {
             scale={scale}
             onScaleChange={setScale}
             currentTool={currentTool}
+            onPdfLoad={setPdfDocument}
+            onMeasurementComplete={handleMeasurementComplete}
+            measurements={measurements}
           />
         </div>
 
