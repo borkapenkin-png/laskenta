@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Trash2, Edit2, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +12,30 @@ const subcategories = [
   'Kaiteet', 'Ovet', 'Ikkunat', 'Muu'
 ];
 
-export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings }) => {
+export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selectedMeasurementId, onMeasurementSelect }) => {
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  // ResizeObserver to handle panel expand/collapse
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        setContainerWidth(width);
+        console.log('TakeoffPanel width changed:', width);
+      }
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   const startEdit = (measurement) => {
     setEditingId(measurement.id);
