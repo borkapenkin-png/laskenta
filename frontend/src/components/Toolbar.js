@@ -64,6 +64,31 @@ export const Toolbar = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TooltipProvider>
+            {tools.map(tool => {
+              const Icon = tool.icon;
+              const isActive = currentTool === tool.id;
+              return (
+                <Tooltip key={tool.id}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      data-testid={tool.testId}
+                      variant={isActive ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => onToolSelect(tool.id)}
+                      className={isActive ? 'bg-[#0052CC] text-white' : ''}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{tool.label}</TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </TooltipProvider>
+          
+          <div className="mx-2 h-6 w-px bg-gray-300"></div>
+          
+          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -93,31 +118,6 @@ export const Toolbar = ({
               </TooltipTrigger>
               <TooltipContent>Kalibroi mittakaava</TooltipContent>
             </Tooltip>
-          </TooltipProvider>
-          
-          <div className="mx-2 h-6 w-px bg-gray-300"></div>
-          
-          <TooltipProvider>
-            {tools.map(tool => {
-              const Icon = tool.icon;
-              const isActive = currentTool === tool.id;
-              return (
-                <Tooltip key={tool.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid={tool.testId}
-                      variant={isActive ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => onToolSelect(tool.id)}
-                      className={isActive ? 'bg-[#0052CC] text-white' : ''}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{tool.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
           </TooltipProvider>
         </div>
 
