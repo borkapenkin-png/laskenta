@@ -1,7 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { MeasurementOverlay } from '@/components/MeasurementOverlay';
 
 // Set worker source to use local file
