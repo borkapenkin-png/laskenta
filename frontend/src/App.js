@@ -128,9 +128,7 @@ function App() {
         wallHeight: 2.6,
         bothSides: false,
         openings: 2.1,
-        waste: 5,
         layers: 2,
-        productivity: 8,
         materialCostPerUnit: 2.5,
         notes: 'Olohuoneen seinät',
         points: []
@@ -142,9 +140,7 @@ function App() {
         subcategory: 'Katot',
         unit: 'm²',
         quantity: 25.5,
-        waste: 5,
         layers: 2,
-        productivity: 6,
         materialCostPerUnit: 3.0,
         notes: 'Olohuoneen katto',
         points: []
@@ -156,9 +152,7 @@ function App() {
         subcategory: 'Seinät',
         unit: 'm²',
         quantity: 18.3,
-        waste: 10,
         layers: 1,
-        productivity: 5,
         materialCostPerUnit: 4.0,
         notes: 'Keittiön tasoitus',
         points: []
