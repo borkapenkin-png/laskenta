@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const categories = ['Tasoitus', 'Maalaus', 'Rappaus', 'Muut'];
-const subcategories = ['Seinät', 'Katot', 'Julkisivu', 'Metalli', 'Kaiteet', 'Ovet', 'Ikkunat', 'Muu'];
+const subcategories = ['Seinät', 'Katot', 'Lattiat', 'Julkisivu', 'Metalli', 'Kaiteet', 'Ovet', 'Ikkunat', 'Muu'];
 const units = ['m²', 'jm', 'kpl'];
 
 export const PresetPanel = ({ presets, onSave, onDelete, onApply }) => {
