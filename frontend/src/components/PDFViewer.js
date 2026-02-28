@@ -28,6 +28,9 @@ export const PDFViewer = ({
   const [rendering, setRendering] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [canvasSize, setCanvasSize] = useState(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (!pdfFile) return;
