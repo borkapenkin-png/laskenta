@@ -12,7 +12,8 @@ export const PDFViewer = ({
   onPageChange, 
   scale, 
   onScaleChange,
-  onPdfLoad
+  onPdfLoad,
+  currentTool
 }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
