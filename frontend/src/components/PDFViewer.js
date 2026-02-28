@@ -165,7 +165,7 @@ export const PDFViewer = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
+        style={{ cursor: isPanning ? 'grabbing' : (currentTool ? 'crosshair' : 'grab') }}
       >
         <div className="flex items-center justify-center min-h-full p-4">
           {!pdfFile ? (
