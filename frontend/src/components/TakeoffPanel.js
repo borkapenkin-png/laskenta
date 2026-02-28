@@ -85,7 +85,7 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div ref={containerRef} className="h-full flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Manrope, sans-serif' }}>
           Määrälaskenta
@@ -104,6 +104,7 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
           ) : (
             measurements.map((measurement) => {
               const isEditing = editingId === measurement.id;
+              const isSelected = selectedMeasurementId === measurement.id;
               const data = isEditing ? editData : measurement;
               const calculated = calculateRow(data);
 
@@ -111,7 +112,10 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
                 <div
                   key={measurement.id}
                   data-testid={`measurement-row-${measurement.id}`}
-                  className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow"
+                  onClick={() => !isEditing && onMeasurementSelect && onMeasurementSelect(measurement.id)}
+                  className={`border rounded-lg p-3 hover:shadow-md transition-all cursor-pointer ${
+                    isSelected ? 'bg-orange-50 border-orange-400 border-2' : 'bg-white border-gray-200'
+                  }`}
                 >
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {isEditing ? (
