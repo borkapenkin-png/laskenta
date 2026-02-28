@@ -481,8 +481,15 @@ function App() {
       <CalibrateDialog
         open={calibrateDialogOpen}
         onClose={() => setCalibrateDialogOpen(false)}
-        onCalibrate={(distance) => {
-          toast.success(`Mittakaava kalibroitu: ${distance}m`);
+        onCalibrate={(newScale) => {
+          setScale(newScale);
+          toast.success(`Mittakaava asetettu: ${newScale.ratio}`);
+        }}
+        onStartCalibration={(knownDistance) => {
+          // Start two-point calibration mode
+          setCalibrationDistance(knownDistance);
+          setCurrentTool('calibrate');
+          toast.info('Klikkaa kaksi pistettä PDF:stä');
         }}
       />
 
