@@ -104,6 +104,28 @@ export const PDFViewer = ({
     setZoom(newZoom);
   };
 
+  const handleMouseDown = (e) => {
+    // Pan with right mouse button or space + left mouse when no tool
+    if (e.button === 2 || (e.button === 0 && e.shiftKey && !currentTool)) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      e.preventDefault();
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isPanning) {
+      setPan({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#E5E5E5]">
       <div className="flex items-center justify-between p-3 bg-white border-b border-gray-200">
@@ -159,6 +181,12 @@ export const PDFViewer = ({
       <div 
         ref={containerRef}
         className="flex-1 overflow-auto relative"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onContextMenu={(e) => e.preventDefault()}
+        style={{ cursor: isPanning ? 'grabbing' : 'default' }}
       >
         <div className="flex items-center justify-center min-h-full p-4">
           {!pdfFile ? (
@@ -169,7 +197,8 @@ export const PDFViewer = ({
               className="relative"
               style={{
                 width: canvasSize ? `${canvasSize.width}px` : 'auto',
-                height: canvasSize ? `${canvasSize.height}px` : 'auto'
+                height: canvasSize ? `${canvasSize.height}px` : 'auto',
+                transform: `translate(${pan.x}px, ${pan.y}px)`
               }}
             >
               {/* PDF Canvas - z-index: 1 */}
