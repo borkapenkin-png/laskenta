@@ -379,6 +379,8 @@ function App() {
         zoom={zoom}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
+        scale={scale}
+        onScaleChange={setScale}
       />
 
       <div className="flex flex-1 relative" style={{ overflow: 'hidden' }}>
