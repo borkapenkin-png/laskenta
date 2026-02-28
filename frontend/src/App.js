@@ -448,11 +448,11 @@ function App() {
           />
         </div>
 
-        {/* Toggle button */}
+        {/* Toggle button for right panel */}
         <Button
           data-testid="toggle-right-panel"
           onClick={toggleRightPanel}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-30 h-20 w-6 rounded-l-lg rounded-r-none bg-[#0052CC] hover:bg-[#0043A8] p-0 shadow-lg"
+          className="absolute top-1/2 -translate-y-1/2 z-30 h-20 w-6 rounded-l-lg rounded-r-none bg-[#0052CC] hover:bg-[#0043A8] p-0 shadow-lg"
           style={{ 
             right: rightPanelOpen ? '384px' : '0px',
             transition: 'right 300ms cubic-bezier(0.16, 1, 0.3, 1)'
