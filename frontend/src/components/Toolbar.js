@@ -184,50 +184,24 @@ export const Toolbar = ({
 
         <div className="h-6 w-px bg-gray-300"></div>
 
-        {/* Scale display and edit */}
+        {/* Scale display - clicking opens calibration dialog */}
         <div className="flex items-center gap-2">
           <TooltipProvider>
-            <Popover>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button
-                      data-testid="scale-button"
-                      variant="outline"
-                      size="sm"
-                      className="font-mono text-xs"
-                    >
-                      <Ruler className="h-4 w-4 mr-2" />
-                      {currentScaleDisplay}
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent>Mittakaava - klikkaa muuttaaksesi</TooltipContent>
-              </Tooltip>
-              <PopoverContent className="w-64 p-3">
-                <div className="space-y-3">
-                  <div className="text-sm font-medium">Aseta mittakaava</div>
-                  <div className="text-xs text-gray-500">
-                    Anna pikseleitä per metri (esim. 100 = 1:100)
-                  </div>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      placeholder="px/m"
-                      value={scaleInput}
-                      onChange={(e) => setScaleInput(e.target.value)}
-                      className="h-8"
-                    />
-                    <Button size="sm" onClick={handleScaleSubmit}>
-                      Aseta
-                    </Button>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    Tai käytä kalibrointityökalua tarkempaan asetukseen
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="scale-button"
+                  variant="outline"
+                  size="sm"
+                  className="font-mono text-xs"
+                  onClick={onCalibrate}
+                >
+                  <Ruler className="h-4 w-4 mr-2" />
+                  {currentScaleDisplay}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Mittakaava - klikkaa kalibroidaksesi</TooltipContent>
+            </Tooltip>
           </TooltipProvider>
         </div>
 
