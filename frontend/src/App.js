@@ -504,6 +504,7 @@ function App() {
       <CalibrateDialog
         open={calibrateDialogOpen}
         onClose={() => setCalibrateDialogOpen(false)}
+        pdfRenderInfo={pdfRenderInfo}
         onCalibrate={(newScale) => {
           setScale(newScale);
           toast.success(`Mittakaava asetettu: ${newScale.ratio}`);
