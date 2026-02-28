@@ -111,11 +111,9 @@ export const exportToPDF = (project, measurements, summary, settings) => {
   const summaryLines = [
     `Työtunnit yhteensä: ${formatNumber(summary.totalLaborHours)} h`,
     `Työkustannukset: ${formatCurrency(summary.totalLaborCost)}`,
-    `Materiaalikustannukset: ${formatCurrency(summary.totalMaterialCost)}`,
-    `Yleiskustannukset (${settings.overheadPercentage}%): ${formatCurrency(summary.overheadCost)}`,
-    `Kate (${settings.targetMargin}%): ${formatCurrency(summary.marginAmount)}`,
-    `Myyntihinta (ALV 0%): ${formatCurrency(summary.sellingPriceNoVat)}`,
-    `Myyntihinta (sis. ALV ${settings.vatPercentage}%): ${formatCurrency(summary.sellingPriceWithVat)}`
+    `Materiaali: ${formatCurrency(summary.totalMaterialCost)}`,
+    `Hind kokku (ALV 0%): ${formatCurrency(summary.totalPrice)}`,
+    `Hind kokku (sis. ALV ${settings.vatPercentage}%): ${formatCurrency(summary.totalPriceWithVat)}`
   ];
   
   summaryLines.forEach(line => {
