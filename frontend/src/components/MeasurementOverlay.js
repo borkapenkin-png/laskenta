@@ -179,6 +179,7 @@ export const MeasurementOverlay = ({
     const coords = getCanvasCoordinates(e);
     if (!coords) return;
 
+    // If no tool selected, try to select a measurement
     if (!currentTool) {
       for (let i = measurements.length - 1; i >= 0; i--) {
         const measurement = measurements[i];
@@ -203,24 +204,73 @@ export const MeasurementOverlay = ({
       point = snapToAngle(points[points.length - 1], point, 45);
     }
 
-    if (currentTool === 'line') {
+    // All tools: single click adds a point
+    if (currentTool === 'count') {
+      // Count tool: single click completes immediately
+      onMeasurementComplete({
+        type: 'count',
+        points: [point],
+        quantity: 1,
+        unit: 'kpl'
+      });
+    } else if (currentTool === 'rectangle') {
+      // Rectangle: 2 clicks (corners)
       if (points.length === 0) {
         setPoints([point]);
-      } else {
-        const distance = calculateDistance(points[0], point);
-        const meters = pixelsToMeters(distance, scale);
+      }
+      // Second click handled in handleDoubleClick or next single click
+    } else {
+      // Line, wall, polygon: add point on single click
+      setPoints(prev => [...prev, point]);
+    }
+  };
+
+  const handleDoubleClick = (e) => {
+    if (!scale || !currentTool) return;
+    
+    const coords = getCanvasCoordinates(e);
+    if (!coords) return;
+
+    let point = coords;
+    if (snapEnabled && points.length > 0) {
+      point = snapToAngle(points[points.length - 1], point, 45);
+    }
+
+    // Double click finishes the measurement
+    if (currentTool === 'line' || currentTool === 'wall') {
+      if (points.length >= 1) {
+        // Calculate total length of all segments
+        const allPoints = [...points, point];
+        let totalDistance = 0;
+        for (let i = 0; i < allPoints.length - 1; i++) {
+          totalDistance += calculateDistance(allPoints[i], allPoints[i + 1]);
+        }
+        const meters = pixelsToMeters(totalDistance, scale);
+        
         onMeasurementComplete({
-          type: 'line',
-          points: [points[0], point],
+          type: currentTool,
+          points: allPoints,
           quantity: meters,
           unit: 'jm'
         });
         setPoints([]);
       }
+    } else if (currentTool === 'polygon') {
+      if (points.length >= 2) {
+        const allPoints = [...points, point];
+        const area = calculatePolygonArea(allPoints);
+        const metersSquared = pixelsToMeters(Math.sqrt(area), scale) ** 2;
+        
+        onMeasurementComplete({
+          type: 'polygon',
+          points: allPoints,
+          quantity: metersSquared,
+          unit: 'm²'
+        });
+        setPoints([]);
+      }
     } else if (currentTool === 'rectangle') {
-      if (points.length === 0) {
-        setPoints([point]);
-      } else {
+      if (points.length === 1) {
         const width = Math.abs(point.x - points[0].x);
         const height = Math.abs(point.y - points[0].y);
         const area = width * height;
@@ -241,44 +291,6 @@ export const MeasurementOverlay = ({
         });
         setPoints([]);
       }
-    } else if (currentTool === 'polygon') {
-      setPoints(prev => [...prev, point]);
-    } else if (currentTool === 'wall') {
-      if (points.length === 0) {
-        setPoints([point]);
-      } else {
-        const distance = calculateDistance(points[0], point);
-        const meters = pixelsToMeters(distance, scale);
-        onMeasurementComplete({
-          type: 'wall',
-          points: [points[0], point],
-          quantity: meters,
-          unit: 'jm'
-        });
-        setPoints([]);
-      }
-    } else if (currentTool === 'count') {
-      onMeasurementComplete({
-        type: 'count',
-        points: [point],
-        quantity: 1,
-        unit: 'kpl'
-      });
-    }
-  };
-
-  const handleDoubleClick = () => {
-    if (currentTool === 'polygon' && points.length >= 3) {
-      const area = calculatePolygonArea(points);
-      const metersSquared = pixelsToMeters(Math.sqrt(area), scale) ** 2;
-      
-      onMeasurementComplete({
-        type: 'polygon',
-        points: [...points],
-        quantity: metersSquared,
-        unit: 'm²'
-      });
-      setPoints([]);
     }
   };
 
