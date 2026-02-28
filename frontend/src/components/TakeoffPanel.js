@@ -54,11 +54,10 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
   };
 
   const calculateRow = (m) => {
-    const waste = (m.waste || 0) / 100;
     const layers = m.layers || 1;
-    const productivity = m.productivity || 1;
     const materialCost = m.materialCostPerUnit || 0;
     const hourlyRate = settings?.hourlyRate || 45;
+    const defaultProductivity = 8; // Fixed productivity for labor calculation
 
     let effectiveQuantity = m.quantity || 0;
 
@@ -68,15 +67,15 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
       effectiveQuantity = bruttoM2 - openings;
     }
 
-    const quantityWithWaste = effectiveQuantity * (1 + waste) * layers;
-    const laborHours = quantityWithWaste / productivity;
+    const totalQuantity = effectiveQuantity * layers;
+    const laborHours = totalQuantity / defaultProductivity;
     const laborCost = laborHours * hourlyRate;
-    const totalMaterialCost = quantityWithWaste * materialCost;
+    const totalMaterialCost = totalQuantity * materialCost;
     const totalCost = laborCost + totalMaterialCost;
 
     return {
       effectiveQuantity,
-      quantityWithWaste,
+      totalQuantity,
       laborHours,
       laborCost,
       totalMaterialCost,
