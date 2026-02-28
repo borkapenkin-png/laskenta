@@ -21,7 +21,8 @@ export const PDFViewer = ({
   onZoomChange,
   calibrationMode = false,
   calibrationDistance,
-  onCalibrationComplete
+  onCalibrationComplete,
+  onRenderInfoChange
 }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
