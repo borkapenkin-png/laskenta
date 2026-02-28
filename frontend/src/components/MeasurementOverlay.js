@@ -216,12 +216,32 @@ export const MeasurementOverlay = ({
   };
 
   const handlePointerDown = (e) => {
-    if (!scale) return;
-    
     e.target.setPointerCapture(e.pointerId);
     
     const coords = getCanvasCoordinates(e);
     if (!coords) return;
+
+    // Handle calibration mode
+    if (calibrationMode) {
+      if (calibrationPoints.length === 0) {
+        setCalibrationPoints([coords]);
+      } else if (calibrationPoints.length === 1) {
+        const pixelDistance = calculateDistance(calibrationPoints[0], coords);
+        setCalibrationPoints([calibrationPoints[0], coords]);
+        
+        // Complete calibration after a short delay to show the line
+        setTimeout(() => {
+          if (onCalibrationComplete) {
+            onCalibrationComplete(pixelDistance);
+          }
+          setCalibrationPoints([]);
+        }, 500);
+      }
+      return;
+    }
+
+    // Need scale for measurement tools
+    if (!scale) return;
 
     // If no tool selected, try to select a measurement
     if (!currentTool) {
