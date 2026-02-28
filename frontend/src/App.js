@@ -409,6 +409,23 @@ function App() {
             onMeasurementSelect={setSelectedMeasurementId}
             zoom={zoom}
             onZoomChange={setZoom}
+            calibrationMode={currentTool === 'calibrate'}
+            calibrationDistance={calibrationDistance}
+            onCalibrationComplete={(pixelDistance) => {
+              if (calibrationDistance && pixelDistance > 0) {
+                const pixelsPerMeter = pixelDistance / calibrationDistance;
+                const estimatedScale = Math.round(100 / (pixelsPerMeter / 37.8));
+                setScale({
+                  pixelsPerMeter: pixelsPerMeter,
+                  ratio: `~1:${estimatedScale}`,
+                  scaleValue: estimatedScale,
+                  detected: true
+                });
+                toast.success(`Mittakaava kalibroitu: ~1:${estimatedScale}`);
+              }
+              setCalibrationDistance(null);
+              setCurrentTool(null);
+            }}
           />
         </div>
 
