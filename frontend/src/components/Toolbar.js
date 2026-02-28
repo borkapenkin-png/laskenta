@@ -259,24 +259,9 @@ export const Toolbar = ({
         {/* Right side - spacer */}
         <div className="flex-1"></div>
 
-        {/* Right side - Export and calibrate */}
+        {/* Right side - Export */}
         <div className="flex items-center gap-2">
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="calibrate-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onCalibrate}
-                >
-                  <Ruler className="h-4 w-4 mr-2" />
-                  Kalibroi
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Kalibroi mittakaava</TooltipContent>
-            </Tooltip>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
