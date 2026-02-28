@@ -313,6 +313,7 @@ function App() {
             onPageChange={setCurrentPage}
             scale={scale}
             onScaleChange={setScale}
+            currentTool={currentTool}
           />
         </div>
 
