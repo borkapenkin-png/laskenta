@@ -413,6 +413,14 @@ function App() {
         onExportPDF={handleExportPDF}
         currentTool={currentTool}
         onToolSelect={setCurrentTool}
+        selectedMeasurementId={selectedMeasurementId}
+        onDeleteSelected={() => selectedMeasurementId && handleDeleteMeasurement(selectedMeasurementId)}
+        onDeleteCurrentPage={handleDeleteCurrentPage}
+        onDeleteAll={handleDeleteAllMeasurements}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canUndo={undoStack.length > 0}
+        canRedo={redoStack.length > 0}
       />
 
       <div className="flex flex-1 overflow-hidden relative">
