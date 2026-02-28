@@ -53,8 +53,6 @@ export const Toolbar = ({
   scale,
   onScaleChange
 }) => {
-  const [scaleInput, setScaleInput] = useState('');
-  
   const tools = [
     { id: null, icon: Hand, label: 'Käsityökalu (liiku PDF:ssä)', testId: 'tool-hand' },
     { id: 'line', icon: Minus, label: 'Viiva (jm) - 1x klõps alusta, 2x klõps lõpeta', testId: 'tool-line' },
@@ -64,15 +62,9 @@ export const Toolbar = ({
     { id: 'count', icon: Hash, label: 'Kappalemäärä (kpl) - 1 klõps', testId: 'tool-count' }
   ];
 
-  const handleScaleSubmit = () => {
-    const value = parseFloat(scaleInput);
-    if (value > 0 && onScaleChange) {
-      onScaleChange({ pixelsPerMeter: value, detected: false, ratio: `1:${Math.round(100/value)}` });
-    }
-  };
-
   const currentScaleDisplay = scale ? 
-    (scale.ratio || `${scale.pixelsPerMeter?.toFixed(0)} px/m`) : 
+    (scale.ratio || `1:${scale.scaleValue || '?'}`) : 
+    'Ei asetettu'; 
     'Ei asetettu';
 
   return (
