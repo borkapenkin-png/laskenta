@@ -395,6 +395,14 @@ function App() {
     localStorage.setItem('rakenna_left_sidebar_open', newState.toString());
   };
 
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.25, 0.5));
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB]">
       <Toolbar
@@ -408,12 +416,13 @@ function App() {
         onToolSelect={setCurrentTool}
         selectedMeasurementId={selectedMeasurementId}
         onDeleteSelected={() => selectedMeasurementId && handleDeleteMeasurement(selectedMeasurementId)}
-        onDeleteCurrentPage={handleDeleteCurrentPage}
-        onDeleteAll={handleDeleteAllMeasurements}
         onUndo={handleUndo}
         onRedo={handleRedo}
         canUndo={undoStack.length > 0}
         canRedo={redoStack.length > 0}
+        zoom={zoom}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
       />
 
       <div className="flex flex-1 relative" style={{ overflow: 'hidden' }}>
@@ -439,6 +448,8 @@ function App() {
             measurements={measurements}
             selectedMeasurementId={selectedMeasurementId}
             onMeasurementSelect={setSelectedMeasurementId}
+            zoom={zoom}
+            onZoomChange={setZoom}
           />
         </div>
 
