@@ -15,10 +15,8 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
     totalLaborHours: 0,
     totalLaborCost: 0,
     totalMaterialCost: 0,
-    overheadCost: 0,
-    marginAmount: 0,
-    sellingPriceNoVat: 0,
-    sellingPriceWithVat: 0
+    totalPrice: 0,
+    totalPriceWithVat: 0
   });
 
   useEffect(() => {
