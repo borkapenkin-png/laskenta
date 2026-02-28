@@ -177,6 +177,10 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
                 <span className="font-mono font-medium">{formatNumber(summary.totalCeilings)} m²</span>
               </div>
               <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Lattiat</span>
+                <span className="font-mono font-medium">{formatNumber(summary.totalFloors)} m²</span>
+              </div>
+              <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Julkisivu</span>
                 <span className="font-mono font-medium">{formatNumber(summary.totalFacade)} m²</span>
               </div>
