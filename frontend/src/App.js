@@ -237,8 +237,40 @@ function App() {
   };
 
   const handleDeleteMeasurement = (id) => {
+    if (undoStack.length > 0 || measurements.length > 0) {
+      saveToUndoStack();
+    }
     setMeasurements(prev => prev.filter(m => m.id !== id));
+    setSelectedMeasurementId(null);
     toast.success('Mittaus poistettu');
+  };
+
+  const handleDeleteCurrentPage = () => {
+    if (measurements.filter(m => m.page === currentPage).length === 0) {
+      toast.error('Ei mittauksia tällä sivulla');
+      return;
+    }
+    
+    if (window.confirm('Haluatko varmasti poistaa kaikki mittaukset tältä sivulta?')) {
+      saveToUndoStack();
+      setMeasurements(prev => prev.filter(m => m.page !== currentPage));
+      setSelectedMeasurementId(null);
+      toast.success('Sivun mittaukset poistettu');
+    }
+  };
+
+  const handleDeleteAllMeasurements = () => {
+    if (measurements.length === 0) {
+      toast.error('Ei mittauksia poistettavaksi');
+      return;
+    }
+    
+    if (window.confirm('Haluatko varmasti poistaa KAIKKI mittaukset projektista? Tätä toimintoa ei voi perua.')) {
+      saveToUndoStack();
+      setMeasurements([]);
+      setSelectedMeasurementId(null);
+      toast.success('Kaikki mittaukset poistettu');
+    }
   };
 
   const handleSaveProject = () => {
