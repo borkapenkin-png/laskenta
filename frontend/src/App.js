@@ -424,7 +424,7 @@ function App() {
         canRedo={redoStack.length > 0}
       />
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative" style={{ overflow: 'clip' }}>
         {/* Left Sidebar with Thumbnails */}
         <LeftSidebar
           pdfDocument={pdfDocument}
