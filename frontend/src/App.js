@@ -32,6 +32,7 @@ function App() {
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
   const [zoom, setZoom] = useState(1);
+  const [calibrationDistance, setCalibrationDistance] = useState(null);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
