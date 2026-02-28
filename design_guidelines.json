@@ -1,0 +1,154 @@
+{
+  "project_name": "Rakenna - Quantity Takeoff Tool",
+  "design_philosophy": {
+    "identity": "The Precision Architect",
+    "core_principles": [
+      "Clarity over Decoration: Every pixel must serve the measurement.",
+      "Tactile Precision: Tools must feel like physical instruments (snapping, guides).",
+      "Data Density: Show maximum information without clutter using collapsible panels.",
+      "Finnish Functionalism: Minimalist, durable, honest design."
+    ],
+    "mood": "Professional, Trustworthy, Light, Architectural",
+    "theme_mode": "light"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Manrope, sans-serif",
+      "body": "Public Sans, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-3xl font-bold tracking-tight text-gray-900",
+      "h2": "text-2xl font-semibold tracking-tight text-gray-900",
+      "h3": "text-xl font-semibold text-gray-800",
+      "body": "text-sm leading-relaxed text-gray-600",
+      "label": "text-xs font-medium uppercase tracking-wider text-gray-500",
+      "data": "font-mono text-sm font-medium text-gray-900"
+    }
+  },
+  "colors": {
+    "primary": {
+      "name": "Finnish Blue",
+      "DEFAULT": "#0052CC",
+      "hover": "#0043A8",
+      "active": "#003585",
+      "foreground": "#FFFFFF"
+    },
+    "secondary": {
+      "name": "Technical Gray",
+      "DEFAULT": "#F3F4F6",
+      "hover": "#E5E7EB",
+      "active": "#D1D5DB",
+      "foreground": "#111827"
+    },
+    "accent": {
+      "name": "Measurement Orange",
+      "DEFAULT": "#F97316",
+      "foreground": "#FFFFFF"
+    },
+    "background": {
+      "app": "#F9FAFB",
+      "paper": "#FFFFFF",
+      "panel": "#FFFFFF",
+      "canvas": "#E5E5E5"
+    },
+    "semantic": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#3B82F6",
+      "border": "#E5E7EB",
+      "divider": "#F3F4F6"
+    }
+  },
+  "layout_strategy": {
+    "structure": "Three-Column Dashboard",
+    "areas": {
+      "sidebar_left": {
+        "width": "w-64",
+        "behavior": "collapsible",
+        "content": "PDF Page Thumbnails"
+      },
+      "canvas_center": {
+        "width": "flex-1",
+        "behavior": "scrollable-pan-zoom",
+        "content": "PDF Viewer + Measurement Overlay"
+      },
+      "sidebar_right": {
+        "width": "w-96",
+        "behavior": "fixed",
+        "content": "Tabbed Panel: Takeoff Data, Presets, Cost Estimation"
+      }
+    },
+    "spacing": {
+      "container_padding": "p-4",
+      "panel_gap": "gap-4",
+      "internal_padding": "p-4"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#0052CC] hover:bg-[#0043A8] text-white shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-colors",
+      "secondary": "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm rounded-md px-4 py-2 text-sm font-medium transition-colors",
+      "icon": "p-2 rounded-md hover:bg-gray-100 text-gray-600 transition-colors",
+      "tool_active": "bg-[#0052CC]/10 text-[#0052CC] border-[#0052CC] border"
+    },
+    "cards": {
+      "base": "bg-white border border-gray-200 rounded-lg shadow-sm",
+      "hover": "hover:shadow-md transition-shadow duration-200"
+    },
+    "inputs": {
+      "base": "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0052CC] disabled:cursor-not-allowed disabled:opacity-50"
+    },
+    "measurement_overlay": {
+      "line_color": "#0052CC",
+      "fill_color": "rgba(0, 82, 204, 0.1)",
+      "handle_color": "#FFFFFF",
+      "handle_border": "#0052CC",
+      "label_bg": "#FFFFFF",
+      "label_text": "#0052CC"
+    }
+  },
+  "motion": {
+    "hover": "transition-all duration-200 ease-in-out",
+    "panel_slide": "transition-transform duration-300 cubic-bezier(0.16, 1, 0.3, 1)",
+    "zoom": "transition-transform duration-100 ease-linear"
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "Stroke width 1.5px, rounded caps"
+  },
+  "image_urls": {
+    "demo_blueprint": "https://images.unsplash.com/photo-1721244654346-9be0c0129e36?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzB8MHwxfHNlYXJjaHwxfHxhcmNoaXRlY3R1cmFsJTIwYmx1ZXByaW50JTIwZmxvb3IlMjBwbGFuJTIwbW9kZXJufGVufDB8fHx8MTc3MjMwMjAyMHww&ixlib=rb-4.1.0&q=85",
+    "placeholder_logo": "https://via.placeholder.com/150"
+  },
+  "instructions_to_main_agent": {
+    "general": [
+      "Use 'Manrope' for all UI headings and 'Public Sans' for body text.",
+      "Use 'JetBrains Mono' for all numerical data in the takeoff table.",
+      "The layout must be fixed height (100vh) with internal scrolling for panels.",
+      "PDF rendering must be high-performance using pdf.js. Implement lazy loading for pages.",
+      "Measurement tools must have a 'snapping' feel (even if simulated visual feedback).",
+      "Cost calculation needs to be real-time as users modify measurements.",
+      "Use the 'Finnish Blue' (#0052CC) as the primary action color."
+    ],
+    "specific_files": {
+      "App.js": "Main layout orchestrator. Manages state for 'projects', 'currentTool', 'scale'.",
+      "components/PDFViewer.js": "Wrapper for React-PDF. Handles canvas overlay for drawing.",
+      "components/Toolbar.js": "Floating or fixed toolbar for selecting tools (Line, Rect, Poly).",
+      "components/PropertiesPanel.js": "Right sidebar. Tabs for 'Measurements', 'Materials', 'Export'.",
+      "utils/geometry.js": "Helper functions for calculating area/length from coordinates."
+    },
+    "state_management": {
+      "persistence": "All state changes (measurements, scale, project name) must be saved to localStorage immediately.",
+      "export": "Project export creates a JSON file containing all measurements and metadata."
+    }
+  },
+  "UNIVERSAL_GUIDELINES": [
+    "Do not use generic SaaS blue gradients. Use solid, authoritative blue.",
+    "Ensure high contrast for measurement lines against white/gray PDF backgrounds.",
+    "Micro-interactions: Hovering over a measurement in the table should highlight it on the canvas.",
+    "Input fields for costs/dimensions must be tabular and compact.",
+    "All interactive elements MUST have data-testid attributes."
+  ]
+}
