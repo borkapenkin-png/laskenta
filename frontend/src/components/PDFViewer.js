@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MeasurementOverlay } from '@/components/MeasurementOverlay';
 
 // Set worker source to use local file
 pdfjsLib.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
@@ -13,17 +14,18 @@ export const PDFViewer = ({
   scale, 
   onScaleChange,
   onPdfLoad,
-  currentTool
+  currentTool,
+  onMeasurementComplete,
+  measurements = []
 }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
+  const overlayContainerRef = useRef(null);
   const [pdfDocument, setPdfDocument] = useState(null);
   const [numPages, setNumPages] = useState(0);
   const [rendering, setRendering] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [canvasSize, setCanvasSize] = useState(null);
 
   useEffect(() => {
     if (!pdfFile) return;
@@ -55,9 +57,18 @@ export const PDFViewer = ({
         const canvas = canvasRef.current;
         const context = canvas.getContext('2d');
         
+        // Use zoom for viewport scaling (NOT CSS transform)
         const viewport = page.getViewport({ scale: zoom });
+        
+        // Critical: Set canvas dimensions properly
         canvas.width = viewport.width;
         canvas.height = viewport.height;
+
+        // Update canvas size for overlay
+        setCanvasSize({
+          width: viewport.width,
+          height: viewport.height
+        });
 
         await page.render({
           canvasContext: context,
@@ -78,32 +89,14 @@ export const PDFViewer = ({
     renderPage();
   }, [pdfDocument, currentPage, zoom, scale, onScaleChange]);
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
-
-  const handleMouseDown = (e) => {
-    // Allow panning with:
-    // 1. Middle mouse button
-    // 2. Left mouse + Shift
-    // 3. Left mouse when no tool is selected
-    if (e.button === 1 || (e.button === 0 && (e.shiftKey || !currentTool))) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-      e.preventDefault();
-    }
+  const handleZoomIn = () => {
+    const newZoom = Math.min(zoom + 0.25, 3);
+    setZoom(newZoom);
   };
-
-  const handleMouseMove = (e) => {
-    if (isPanning) {
-      setPan({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsPanning(false);
+  
+  const handleZoomOut = () => {
+    const newZoom = Math.max(zoom - 0.25, 0.5);
+    setZoom(newZoom);
   };
 
   return (
@@ -161,23 +154,41 @@ export const PDFViewer = ({
       <div 
         ref={containerRef}
         className="flex-1 overflow-auto relative"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        style={{ cursor: isPanning ? 'grabbing' : (currentTool ? 'crosshair' : 'grab') }}
       >
         <div className="flex items-center justify-center min-h-full p-4">
           {!pdfFile ? (
             <div className="text-gray-500 text-sm">Avaa PDF-tiedosto aloittaaksesi</div>
           ) : (
-            <canvas 
-              ref={canvasRef} 
-              className="shadow-lg bg-white"
+            <div
+              ref={overlayContainerRef}
+              className="relative"
               style={{
-                transform: `translate(${pan.x}px, ${pan.y}px)`
+                width: canvasSize ? `${canvasSize.width}px` : 'auto',
+                height: canvasSize ? `${canvasSize.height}px` : 'auto'
               }}
-            />
+            >
+              {/* PDF Canvas - z-index: 1 */}
+              <canvas 
+                ref={canvasRef} 
+                className="shadow-lg bg-white"
+                style={{
+                  display: 'block',
+                  position: 'relative',
+                  zIndex: 1
+                }}
+              />
+
+              {/* Measurement Overlay - z-index: 10, pointer-events: auto */}
+              {canvasSize && (
+                <MeasurementOverlay
+                  canvasSize={canvasSize}
+                  currentTool={currentTool}
+                  scale={scale}
+                  onMeasurementComplete={onMeasurementComplete}
+                  measurements={measurements}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>
