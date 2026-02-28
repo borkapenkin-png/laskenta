@@ -185,32 +185,11 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
                         )}
 
                         <div>
-                          <label className="text-xs text-gray-500">Hukka %</label>
-                          <Input
-                            type="number"
-                            value={editData.waste || 0}
-                            onChange={(e) => setEditData({ ...editData, waste: parseInt(e.target.value) || 0 })}
-                            className="h-8"
-                          />
-                        </div>
-
-                        <div>
                           <label className="text-xs text-gray-500">Kerrokset</label>
                           <Input
                             type="number"
                             value={editData.layers || 1}
                             onChange={(e) => setEditData({ ...editData, layers: parseInt(e.target.value) || 1 })}
-                            className="h-8"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="text-xs text-gray-500">Tuottavuus (m²/h)</label>
-                          <Input
-                            type="number"
-                            step="0.1"
-                            value={editData.productivity || 1}
-                            onChange={(e) => setEditData({ ...editData, productivity: parseFloat(e.target.value) || 1 })}
                             className="h-8"
                           />
                         </div>
