@@ -86,6 +86,16 @@ export const PDFViewer = ({
           zoom: zoom
         });
 
+        // Notify parent about render info for scale calculations
+        if (onRenderInfoChange) {
+          onRenderInfoChange({
+            actualDPI: actualDPI,
+            zoom: zoom,
+            width: viewport.width,
+            height: viewport.height
+          });
+        }
+
         await page.render({
           canvasContext: context,
           viewport: viewport
