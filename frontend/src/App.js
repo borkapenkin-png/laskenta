@@ -286,11 +286,6 @@ function App() {
     toast.info(`Sovellettava presetti: ${preset.name}. Tämä toiminto lisätään tuleville mittauksille.`);
   };
 
-  const handleToolbarSizeChange = (newSize) => {
-    setToolbarSize(newSize);
-    localStorage.setItem('rakenna_toolbar_size', newSize.toString());
-  };
-
   const toggleRightPanel = () => {
     const newState = !rightPanelOpen;
     setRightPanelOpen(newState);
@@ -308,8 +303,6 @@ function App() {
         onExportPDF={handleExportPDF}
         currentTool={currentTool}
         onToolSelect={setCurrentTool}
-        toolbarSize={toolbarSize}
-        onToolbarSizeChange={handleToolbarSizeChange}
       />
 
       <div className="flex flex-1 overflow-hidden relative">
