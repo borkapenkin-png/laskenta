@@ -276,16 +276,9 @@ function App() {
   };
 
   const calculateSummary = () => {
-    let totalLaborHours = 0;
-    let totalLaborCost = 0;
-    let totalMaterialCost = 0;
-    const defaultProductivity = 8; // Fixed productivity
+    let totalCost = 0;
 
     measurements.forEach(m => {
-      const layers = m.layers || 1;
-      const materialCost = m.materialCostPerUnit || 0;
-      const hourlyRate = settings?.hourlyRate || 45;
-
       let effectiveQuantity = m.quantity || 0;
 
       if (m.type === 'wall' && m.wallHeight) {
@@ -294,25 +287,15 @@ function App() {
         effectiveQuantity = bruttoM2 - openings;
       }
 
-      const totalQuantity = effectiveQuantity * layers;
-      const laborHours = totalQuantity / defaultProductivity;
-      const laborCost = laborHours * hourlyRate;
-      const matCost = totalQuantity * materialCost;
-
-      totalLaborHours += laborHours;
-      totalLaborCost += laborCost;
-      totalMaterialCost += matCost;
+      const pricePerUnit = m.pricePerUnit || 0;
+      totalCost += effectiveQuantity * pricePerUnit;
     });
 
-    const totalPrice = totalLaborCost + totalMaterialCost;
     const vatPercentage = settings?.vatPercentage || 25.5;
-    const totalPriceWithVat = totalPrice * (1 + vatPercentage / 100);
+    const totalPriceWithVat = totalCost * (1 + vatPercentage / 100);
 
     return {
-      totalLaborHours,
-      totalLaborCost,
-      totalMaterialCost,
-      totalPrice,
+      totalPrice: totalCost,
       totalPriceWithVat
     };
   };
