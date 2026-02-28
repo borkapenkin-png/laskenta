@@ -23,6 +23,7 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
     const calculateSummary = () => {
       let totalWalls = 0;
       let totalCeilings = 0;
+      let totalFloors = 0;
       let totalFacade = 0;
       let totalJm = 0;
       let totalKpl = 0;
@@ -49,6 +50,8 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
           totalWalls += effectiveQuantity;
         } else if (m.subcategory === 'Katot') {
           totalCeilings += effectiveQuantity;
+        } else if (m.subcategory === 'Lattiat') {
+          totalFloors += effectiveQuantity;
         } else if (m.subcategory === 'Julkisivu') {
           totalFacade += effectiveQuantity;
         }
@@ -76,6 +79,7 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
       setSummary({
         totalWalls,
         totalCeilings,
+        totalFloors,
         totalFacade,
         totalJm,
         totalKpl,
