@@ -8,7 +8,7 @@ import { formatNumber } from '@/utils/pdfHelpers';
 
 const categories = ['Tasoitus', 'Maalaus', 'Rappaus', 'Muut'];
 const subcategories = [
-  'Seinät', 'Katot', 'Julkisivu', 'Metalli', 
+  'Seinät', 'Katot', 'Lattiat', 'Julkisivu', 'Metalli', 
   'Kaiteet', 'Ovet', 'Ikkunat', 'Muu'
 ];
 
