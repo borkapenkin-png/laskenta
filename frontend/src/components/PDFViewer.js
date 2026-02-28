@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MeasurementOverlay } from '@/components/MeasurementOverlay';
 
@@ -18,7 +18,9 @@ export const PDFViewer = ({
   onMeasurementComplete,
   measurements = [],
   selectedMeasurementId,
-  onMeasurementSelect
+  onMeasurementSelect,
+  zoom = 1,
+  onZoomChange
 }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -26,7 +28,6 @@ export const PDFViewer = ({
   const [pdfDocument, setPdfDocument] = useState(null);
   const [numPages, setNumPages] = useState(0);
   const [rendering, setRendering] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const [canvasSize, setCanvasSize] = useState(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
