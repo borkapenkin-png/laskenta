@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   FileUp, 
   Ruler, 
@@ -15,15 +15,22 @@ import {
   Redo,
   Hand,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 export const Toolbar = ({ 
   onOpenPdf, 
@@ -42,16 +49,31 @@ export const Toolbar = ({
   canRedo,
   zoom,
   onZoomIn,
-  onZoomOut
+  onZoomOut,
+  scale,
+  onScaleChange
 }) => {
+  const [scaleInput, setScaleInput] = useState('');
+  
   const tools = [
     { id: null, icon: Hand, label: 'Käsityökalu (liiku PDF:ssä)', testId: 'tool-hand' },
-    { id: 'line', icon: Minus, label: 'Viiva (jm)', testId: 'tool-line' },
-    { id: 'wall', icon: Home, label: 'Seinä (jm → m²)', testId: 'tool-wall' },
-    { id: 'rectangle', icon: Square, label: 'Suorakulmio (m²)', testId: 'tool-rectangle' },
-    { id: 'polygon', icon: Pentagon, label: 'Monikulmio (m²)', testId: 'tool-polygon' },
-    { id: 'count', icon: Hash, label: 'Kappalemäärä (kpl)', testId: 'tool-count' }
+    { id: 'line', icon: Minus, label: 'Viiva (jm) - 1x klõps alusta, 2x klõps lõpeta', testId: 'tool-line' },
+    { id: 'wall', icon: Home, label: 'Seinä (jm → m²) - 1x klõps alusta, 2x klõps lõpeta', testId: 'tool-wall' },
+    { id: 'rectangle', icon: Square, label: 'Suorakulmio (m²) - 2 klõpsu', testId: 'tool-rectangle' },
+    { id: 'polygon', icon: Pentagon, label: 'Monikulmio (m²) - mitu klõpsu, 2x lõpeta', testId: 'tool-polygon' },
+    { id: 'count', icon: Hash, label: 'Kappalemäärä (kpl) - 1 klõps', testId: 'tool-count' }
   ];
+
+  const handleScaleSubmit = () => {
+    const value = parseFloat(scaleInput);
+    if (value > 0 && onScaleChange) {
+      onScaleChange({ pixelsPerMeter: value, detected: false, ratio: `1:${Math.round(100/value)}` });
+    }
+  };
+
+  const currentScaleDisplay = scale ? 
+    (scale.ratio || `${scale.pixelsPerMeter?.toFixed(0)} px/m`) : 
+    'Ei asetettu';
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3">
