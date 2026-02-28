@@ -115,32 +115,11 @@ export const PresetPanel = ({ presets, onSave, onDelete, onApply }) => {
         </div>
 
         <div>
-          <label className="text-xs text-gray-500">Hukka %</label>
-          <Input
-            type="number"
-            value={data.waste}
-            onChange={(e) => onChange({ ...data, waste: parseInt(e.target.value) || 0 })}
-            className="h-8"
-          />
-        </div>
-
-        <div>
           <label className="text-xs text-gray-500">Kerrokset</label>
           <Input
             type="number"
             value={data.layers}
             onChange={(e) => onChange({ ...data, layers: parseInt(e.target.value) || 1 })}
-            className="h-8"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs text-gray-500">Tuottavuus (m²/h)</label>
-          <Input
-            type="number"
-            step="0.1"
-            value={data.productivity}
-            onChange={(e) => onChange({ ...data, productivity: parseFloat(e.target.value) || 1 })}
             className="h-8"
           />
         </div>
