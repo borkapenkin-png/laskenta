@@ -33,6 +33,7 @@ function App() {
   const [redoStack, setRedoStack] = useState([]);
   const [zoom, setZoom] = useState(1);
   const [calibrationDistance, setCalibrationDistance] = useState(null);
+  const [pdfRenderInfo, setPdfRenderInfo] = useState(null); // Store PDF rendering DPI info
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
