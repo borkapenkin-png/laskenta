@@ -22,36 +22,42 @@ const PRESET_SCALES = [
   { label: '1:500', value: 500 },
 ];
 
-export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration }) => {
+export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration, pdfRenderInfo }) => {
   const [selectedScale, setSelectedScale] = useState('50');
   const [customScale, setCustomScale] = useState('');
   const [knownDistance, setKnownDistance] = useState('');
   const [calibrationMode, setCalibrationMode] = useState('preset');
 
+  // Calculate pixelsPerMeter based on actual PDF rendering DPI
+  const calculatePixelsPerMeter = (scaleValue) => {
+    // Get actual DPI from PDF rendering, default to 72 if not available
+    const actualDPI = pdfRenderInfo?.actualDPI || 72;
+    
+    // Calculate actual pixels per cm based on DPI
+    // 1 inch = 2.54 cm, so pixels per cm = DPI / 2.54
+    const pixelsPerCm = actualDPI / 2.54;
+    
+    // For a 1:X scale drawing:
+    // 1 cm on drawing = X cm in real life = X/100 meters
+    // So: pixelsPerCm pixels = X/100 meters
+    // Therefore: pixelsPerMeter = pixelsPerCm / (X/100) = pixelsPerCm * 100 / X
+    const pixelsPerMeter = (pixelsPerCm * 100) / scaleValue;
+    
+    console.log(`Scale 1:${scaleValue}, DPI: ${actualDPI}, px/cm: ${pixelsPerCm.toFixed(2)}, px/m: ${pixelsPerMeter.toFixed(2)}`);
+    
+    return pixelsPerMeter;
+  };
+
   const handlePresetCalibrate = () => {
     const scaleValue = parseInt(selectedScale);
     if (scaleValue > 0) {
-      // For scale 1:50, 1cm on drawing = 50cm real = 0.5m
-      // We need to know the PDF DPI to calculate properly
-      // Assuming standard 72 DPI for PDF: 1 inch = 72 pixels, 1 cm = 28.35 pixels
-      // At 1:50 scale: 28.35 pixels = 0.5m real
-      // So pixelsPerMeter = 28.35 / 0.5 = 56.7 at 72 DPI
-      // But PDFs are usually rendered at higher resolution, let's use 96 DPI as default
-      // At 96 DPI: 1 cm = 37.8 pixels
-      // At 1:50: 37.8 pixels = 0.5m, so pixelsPerMeter = 75.6
-      
-      // Actually, the correct formula is:
-      // pixelsPerMeter = (pixels per cm on screen) * 100 / scaleValue
-      // We'll estimate based on typical PDF rendering
-      const estimatedPixelsPerCm = 37.8; // ~96 DPI
-      const pixelsPerMeter = (estimatedPixelsPerCm * 100) / scaleValue;
+      const pixelsPerMeter = calculatePixelsPerMeter(scaleValue);
       
       onCalibrate({
         ratio: `1:${scaleValue}`,
         scaleValue: scaleValue,
         pixelsPerMeter: pixelsPerMeter,
-        detected: false,
-        needsCalibration: true // Flag that this is an estimate, user should verify
+        detected: false
       });
       onClose();
     }
@@ -60,15 +66,13 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
   const handleCustomScaleCalibrate = () => {
     const scaleValue = parseInt(customScale);
     if (scaleValue > 0) {
-      const estimatedPixelsPerCm = 37.8;
-      const pixelsPerMeter = (estimatedPixelsPerCm * 100) / scaleValue;
+      const pixelsPerMeter = calculatePixelsPerMeter(scaleValue);
       
       onCalibrate({
         ratio: `1:${scaleValue}`,
         scaleValue: scaleValue,
         pixelsPerMeter: pixelsPerMeter,
-        detected: false,
-        needsCalibration: true
+        detected: false
       });
       onClose();
     }
@@ -81,6 +85,8 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
       onClose();
     }
   };
+
+  const hasPdfLoaded = pdfRenderInfo && pdfRenderInfo.actualDPI;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -99,6 +105,15 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
           </TabsList>
 
           <TabsContent value="preset" className="space-y-4 pt-4">
+            {!hasPdfLoaded && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                <p className="font-medium">Lataa PDF ensin!</p>
+                <p className="text-xs mt-1">
+                  Mittakaavan oikea laskenta vaatii PDF-tiedoston lataamisen.
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Valitse joonisen mittakaava</Label>
               <Select value={selectedScale} onValueChange={setSelectedScale}>
@@ -132,7 +147,7 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
                 </div>
                 <Button 
                   onClick={handleCustomScaleCalibrate}
-                  disabled={!customScale || parseInt(customScale) <= 0}
+                  disabled={!customScale || parseInt(customScale) <= 0 || !hasPdfLoaded}
                   size="sm"
                 >
                   Käytä
@@ -140,18 +155,19 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
               </div>
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-              <p className="font-medium">Huom!</p>
-              <p className="text-xs mt-1">
-                Tämä on arvio. Tarkkaan mittaukseen käytä "Kaksi pistettä" -kalibrointia, 
-                jossa mittaat tunnetun etäisyyden suoraan PDF:stä.
-              </p>
-            </div>
+            {hasPdfLoaded && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+                <p className="text-xs">
+                  PDF DPI: {pdfRenderInfo.actualDPI.toFixed(0)} | 
+                  Zoom: {((pdfRenderInfo.zoom || 1) * 100).toFixed(0)}%
+                </p>
+              </div>
+            )}
 
             <Button
               onClick={handlePresetCalibrate}
               className="w-full bg-[#0052CC] hover:bg-[#0043A8]"
-              disabled={!selectedScale}
+              disabled={!selectedScale || !hasPdfLoaded}
             >
               Aseta mittakaava 1:{selectedScale}
             </Button>
@@ -188,7 +204,7 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
               data-testid="start-calibration"
               onClick={handleTwoPointCalibration}
               className="w-full bg-[#0052CC] hover:bg-[#0043A8]"
-              disabled={!knownDistance || parseFloat(knownDistance) <= 0}
+              disabled={!knownDistance || parseFloat(knownDistance) <= 0 || !hasPdfLoaded}
             >
               Aloita kalibrointi
             </Button>
