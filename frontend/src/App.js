@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { Toolbar } from '@/components/Toolbar';
 import { PDFViewer } from '@/components/PDFViewer';
+import { LeftSidebar } from '@/components/LeftSidebar';
 import { TakeoffPanel } from '@/components/TakeoffPanel';
 import { PresetPanel } from '@/components/PresetPanel';
 import { CalculatorPanel } from '@/components/CalculatorPanel';
@@ -16,6 +17,7 @@ import { exportToCSV, exportToPDF } from '@/utils/export';
 
 function App() {
   const [pdfFile, setPdfFile] = useState(null);
+  const [pdfDocument, setPdfDocument] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(null);
   const [currentTool, setCurrentTool] = useState(null);
@@ -25,6 +27,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('takeoff');
   const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
