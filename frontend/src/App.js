@@ -31,6 +31,7 @@ function App() {
   const [selectedMeasurementId, setSelectedMeasurementId] = useState(null);
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
+  const [zoom, setZoom] = useState(1);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
