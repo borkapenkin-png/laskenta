@@ -112,7 +112,13 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings, selec
                 <div
                   key={measurement.id}
                   data-testid={`measurement-row-${measurement.id}`}
-                  onClick={() => !isEditing && onMeasurementSelect && onMeasurementSelect(measurement.id)}
+                  onClick={(e) => {
+                    // Don't select if clicking on buttons
+                    if (e.target.closest('button')) return;
+                    if (!isEditing && onMeasurementSelect) {
+                      onMeasurementSelect(measurement.id);
+                    }
+                  }}
                   className={`border rounded-lg p-3 hover:shadow-md transition-all cursor-pointer ${
                     isSelected ? 'bg-orange-50 border-orange-400 border-2' : 'bg-white border-gray-200'
                   }`}
