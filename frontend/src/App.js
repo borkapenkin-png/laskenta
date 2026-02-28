@@ -336,13 +336,14 @@ function App() {
 
         {/* Right panel */}
         <div 
-          className="bg-white border-l border-gray-200 transition-all duration-300"
+          className="bg-white border-l border-gray-200 transition-all duration-300 relative z-20"
           style={{
             width: rightPanelOpen ? '384px' : '0px',
+            minWidth: rightPanelOpen ? '384px' : '0px',
             overflow: 'hidden'
           }}
         >
-          <div className="w-96">
+          <div style={{ width: '384px' }}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
               <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
                 <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
