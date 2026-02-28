@@ -27,7 +27,15 @@ export const Toolbar = ({
   onExportCSV,
   onExportPDF,
   currentTool,
-  onToolSelect
+  onToolSelect,
+  selectedMeasurementId,
+  onDeleteSelected,
+  onDeleteCurrentPage,
+  onDeleteAll,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo
 }) => {
   const tools = [
     { id: 'line', icon: Minus, label: 'Viiva (jm)', testId: 'tool-line' },
