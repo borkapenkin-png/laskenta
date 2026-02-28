@@ -251,13 +251,7 @@ export const PresetPanel = ({ presets, onSave, onDelete, onApply }) => {
                         <span className="text-gray-500">Yksikkö:</span> {preset.unit}
                       </div>
                       <div>
-                        <span className="text-gray-500">Hukka:</span> {preset.waste}%
-                      </div>
-                      <div>
                         <span className="text-gray-500">Kerrokset:</span> {preset.layers}x
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Tuottavuus:</span> {preset.productivity} m²/h
                       </div>
                     </div>
                     <div className="flex gap-2">
