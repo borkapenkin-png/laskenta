@@ -51,6 +51,47 @@ export const MeasurementOverlay = ({
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Draw calibration line if in calibration mode
+    if (calibrationMode && calibrationPoints.length > 0) {
+      ctx.strokeStyle = '#FF6B00';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 5]);
+      
+      ctx.beginPath();
+      ctx.moveTo(calibrationPoints[0].x, calibrationPoints[0].y);
+      
+      if (calibrationPoints.length === 2) {
+        ctx.lineTo(calibrationPoints[1].x, calibrationPoints[1].y);
+      } else if (mousePos) {
+        ctx.lineTo(mousePos.x, mousePos.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Draw points
+      calibrationPoints.forEach((point) => {
+        ctx.fillStyle = '#FF6B00';
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 8, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+      
+      // Draw distance label if both points are set
+      if (calibrationPoints.length === 2) {
+        const midX = (calibrationPoints[0].x + calibrationPoints[1].x) / 2;
+        const midY = (calibrationPoints[0].y + calibrationPoints[1].y) / 2;
+        const pixelDistance = calculateDistance(calibrationPoints[0], calibrationPoints[1]);
+        
+        ctx.fillStyle = '#FF6B00';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${pixelDistance.toFixed(0)} px`, midX, midY - 10);
+      }
+    }
+
     measurements.forEach(m => {
       if (m.points && m.points.length > 0) {
         const isSelected = m.id === selectedMeasurementId;
@@ -58,7 +99,7 @@ export const MeasurementOverlay = ({
       }
     });
 
-    if (points.length > 0 && currentTool) {
+    if (points.length > 0 && currentTool && !calibrationMode) {
       ctx.strokeStyle = '#0052CC';
       ctx.lineWidth = 2;
       ctx.fillStyle = 'rgba(0, 82, 204, 0.1)';
@@ -95,7 +136,7 @@ export const MeasurementOverlay = ({
         ctx.stroke();
       });
     }
-  }, [points, mousePos, measurements, currentTool, snapEnabled, selectedMeasurementId]);
+  }, [points, mousePos, measurements, currentTool, snapEnabled, selectedMeasurementId, calibrationMode, calibrationPoints]);
 
   const drawMeasurement = (ctx, measurement, isSelected = false) => {
     if (!measurement.points || measurement.points.length === 0) return;
