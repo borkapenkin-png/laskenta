@@ -243,26 +243,16 @@ function App() {
       totalMaterialCost += matCost;
     });
 
-    const directCosts = totalLaborCost + totalMaterialCost;
-    const overheadPercentage = settings?.overheadPercentage || 15;
-    const overheadCost = directCosts * (overheadPercentage / 100);
-    
-    const costBeforeMargin = directCosts + overheadCost;
-    const targetMargin = settings?.targetMargin || 25;
-    const marginAmount = costBeforeMargin * (targetMargin / 100);
-    
-    const sellingPriceNoVat = costBeforeMargin + marginAmount;
+    const totalPrice = totalLaborCost + totalMaterialCost;
     const vatPercentage = settings?.vatPercentage || 25.5;
-    const sellingPriceWithVat = sellingPriceNoVat * (1 + vatPercentage / 100);
+    const totalPriceWithVat = totalPrice * (1 + vatPercentage / 100);
 
     return {
       totalLaborHours,
       totalLaborCost,
       totalMaterialCost,
-      overheadCost,
-      marginAmount,
-      sellingPriceNoVat,
-      sellingPriceWithVat
+      totalPrice,
+      totalPriceWithVat
     };
   };
 
