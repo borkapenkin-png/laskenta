@@ -102,6 +102,7 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
 
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-6">
+          <div className="space-y-6">
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-700">Globaaliasetukset</h3>
             
@@ -114,32 +115,6 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
                 step="1"
                 value={settings?.hourlyRate || 45}
                 onChange={(e) => onSettingsChange({ ...settings, hourlyRate: parseFloat(e.target.value) || 45 })}
-                className="h-9"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="overhead" className="text-xs text-gray-500">Yleiskustannus %</Label>
-              <Input
-                id="overhead"
-                data-testid="overhead-input"
-                type="number"
-                step="1"
-                value={settings?.overheadPercentage || 15}
-                onChange={(e) => onSettingsChange({ ...settings, overheadPercentage: parseFloat(e.target.value) || 15 })}
-                className="h-9"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="margin" className="text-xs text-gray-500">Tavoitekate %</Label>
-              <Input
-                id="margin"
-                data-testid="margin-input"
-                type="number"
-                step="1"
-                value={settings?.targetMargin || 25}
-                onChange={(e) => onSettingsChange({ ...settings, targetMargin: parseFloat(e.target.value) || 25 })}
                 className="h-9"
               />
             </div>
@@ -227,33 +202,26 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) =>
                 <span className="text-gray-600">Materiaali</span>
                 <span className="font-mono font-medium">{formatCurrency(summary.totalMaterialCost)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Yleiskustannus</span>
-                <span className="font-mono font-medium">{formatCurrency(summary.overheadCost)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Kate</span>
-                <span className="font-mono font-medium">{formatCurrency(summary.marginAmount)}</span>
-              </div>
             </div>
 
             <Separator />
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-900">Myyntihinta (ALV 0%)</span>
+                <span className="font-semibold text-gray-900">Hind kokku (ALV 0%)</span>
                 <span className="font-mono font-bold text-lg text-[#0052CC]">
-                  {formatCurrency(summary.sellingPriceNoVat)}
+                  {formatCurrency(summary.totalPrice)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-900">Myyntihinta (sis. ALV)</span>
+                <span className="font-semibold text-gray-900">Hind kokku (sis. ALV)</span>
                 <span className="font-mono font-bold text-lg text-[#10B981]">
-                  {formatCurrency(summary.sellingPriceWithVat)}
+                  {formatCurrency(summary.totalPriceWithVat)}
                 </span>
               </div>
             </div>
           </div>
+        </div>
         </div>
       </ScrollArea>
     </div>
