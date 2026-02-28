@@ -73,9 +73,9 @@ export const Toolbar = ({
               <TooltipContent>Kalibroi mittakaava</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-
-        <div className="flex items-center gap-1">
+          
+          <div className="mx-2 h-6 w-px bg-gray-300"></div>
+          
           <TooltipProvider>
             {tools.map(tool => {
               const Icon = tool.icon;
