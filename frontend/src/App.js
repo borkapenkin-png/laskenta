@@ -110,13 +110,12 @@ function App() {
     toast.success('Tehty uudelleen');
   };
 
-  // Clear undo/redo stacks (no demo data)
+  // Load demo data and clear undo/redo stacks
   useEffect(() => {
     setUndoStack([]);
     setRedoStack([]);
-  }, []);
-
-  const demoMeasurements = [
+    
+    const demoMeasurements = [
       {
         id: 'demo-1',
         type: 'wall',
