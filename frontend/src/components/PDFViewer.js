@@ -82,7 +82,11 @@ export const PDFViewer = ({
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.25, 0.5));
 
   const handleMouseDown = (e) => {
-    if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+    // Allow panning with:
+    // 1. Middle mouse button
+    // 2. Left mouse + Shift
+    // 3. Left mouse when no tool is selected
+    if (e.button === 1 || (e.button === 0 && (e.shiftKey || !currentTool))) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
       e.preventDefault();
