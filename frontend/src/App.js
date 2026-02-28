@@ -9,6 +9,8 @@ import { PresetPanel } from '@/components/PresetPanel';
 import { CalculatorPanel } from '@/components/CalculatorPanel';
 import { CalibrateDialog } from '@/components/CalibrateDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { saveProject, getSettings, saveSettings, getPresets, savePresets, exportProjectToJSON, importProjectFromJSON } from '@/utils/storage';
 import { exportToCSV, exportToPDF } from '@/utils/export';
 
@@ -22,6 +24,7 @@ function App() {
   const [settings, setSettings] = useState(null);
   const [activeTab, setActiveTab] = useState('takeoff');
   const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
@@ -40,6 +43,11 @@ function App() {
     const savedToolbarSize = localStorage.getItem('rakenna_toolbar_size');
     if (savedToolbarSize) {
       setToolbarSize(parseFloat(savedToolbarSize));
+    }
+
+    const savedPanelState = localStorage.getItem('rakenna_right_panel_open');
+    if (savedPanelState !== null) {
+      setRightPanelOpen(savedPanelState === 'true');
     }
 
     const demoMeasurements = [
