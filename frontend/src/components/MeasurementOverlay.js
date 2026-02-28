@@ -9,10 +9,13 @@ export const MeasurementOverlay = ({
   onMeasurementComplete,
   measurements = [],
   selectedMeasurementId,
-  onMeasurementSelect
+  onMeasurementSelect,
+  calibrationMode = false,
+  onCalibrationComplete
 }) => {
   const canvasRef = useRef(null);
   const [points, setPoints] = useState([]);
+  const [calibrationPoints, setCalibrationPoints] = useState([]);
   const [mousePos, setMousePos] = useState(null);
   const [snapEnabled, setSnapEnabled] = useState(false);
 
