@@ -319,7 +319,33 @@ function App() {
   };
 
   const handleApplyPreset = (preset) => {
-    toast.info(`Sovellettava presetti: ${preset.name}. Tämä toiminto lisätään tuleville mittauksille.`);
+    // Apply preset to the most recent measurement or set as default for next
+    if (selectedMeasurementId) {
+      // Apply to selected measurement
+      setMeasurements(prev =>
+        prev.map(m => m.id === selectedMeasurementId ? { 
+          ...m, 
+          label: preset.name,
+          pricePerUnit: preset.pricePerUnit,
+          unit: preset.unit
+        } : m)
+      );
+      toast.success(`Presetti "${preset.name}" sovellettu valittuun mittaukseen`);
+    } else if (measurements.length > 0) {
+      // Apply to the last measurement
+      const lastId = measurements[measurements.length - 1].id;
+      setMeasurements(prev =>
+        prev.map(m => m.id === lastId ? { 
+          ...m, 
+          label: preset.name,
+          pricePerUnit: preset.pricePerUnit,
+          unit: preset.unit
+        } : m)
+      );
+      toast.success(`Presetti "${preset.name}" sovellettu viimeiseen mittaukseen`);
+    } else {
+      toast.info(`Valitse tai luo mittaus ensin`);
+    }
   };
 
   const toggleRightPanel = () => {
