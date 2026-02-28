@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   FileUp, 
   Ruler, 
-  Settings, 
   Save, 
   FolderOpen, 
   FileDown,
@@ -10,9 +9,7 @@ import {
   Square,
   Pentagon,
   Hash,
-  Home,
-  ZoomIn,
-  ZoomOut
+  Home
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
