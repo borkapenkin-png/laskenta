@@ -28,6 +28,9 @@ function App() {
   const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+  const [selectedMeasurementId, setSelectedMeasurementId] = useState(null);
+  const [undoStack, setUndoStack] = useState([]);
+  const [redoStack, setRedoStack] = useState([]);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
