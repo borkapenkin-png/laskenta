@@ -21,9 +21,7 @@ export const PresetPanel = ({ presets, onSave, onDelete, onApply }) => {
       category: 'Maalaus',
       subcategory: 'Seinät',
       unit: 'm²',
-      waste: 5,
       layers: 1,
-      productivity: 8,
       materialCost: 2.5,
       wallHeight: 2.6,
       bothSides: false
