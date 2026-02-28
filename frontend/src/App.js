@@ -27,6 +27,7 @@ function App() {
     name: 'Uusi projekti',
     createdAt: new Date().toISOString()
   });
+  const [toolbarSize, setToolbarSize] = useState(1);
   const fileInputRef = useRef(null);
   const projectInputRef = useRef(null);
 
