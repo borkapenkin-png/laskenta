@@ -284,6 +284,11 @@ function App() {
     toast.info(`Sovellettava presetti: ${preset.name}. Tämä toiminto lisätään tuleville mittauksille.`);
   };
 
+  const handleToolbarSizeChange = (newSize) => {
+    setToolbarSize(newSize);
+    localStorage.setItem('rakenna_toolbar_size', newSize.toString());
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB]">
       <Toolbar
