@@ -111,55 +111,11 @@ function App() {
     toast.success('Tehty uudelleen');
   };
 
-  // Load demo data and clear undo/redo stacks
+  // Clear undo/redo stacks on start - no demo measurements
   useEffect(() => {
     setUndoStack([]);
     setRedoStack([]);
-    
-    // Demo measurements - note: these have no points so they can't be selected on canvas
-    // Real measurements from drawing tools will have points
-    const demoMeasurements = [
-      {
-        id: 'demo-1',
-        type: 'wall',
-        category: 'Maalaus',
-        subcategory: 'Seinät',
-        unit: 'jm',
-        quantity: 12.5,
-        wallHeight: 2.6,
-        bothSides: false,
-        openings: 2.1,
-        layers: 2,
-        materialCostPerUnit: 2.5,
-        notes: 'Olohuoneen seinät',
-        points: []
-      },
-      {
-        id: 'demo-2',
-        type: 'rectangle',
-        category: 'Maalaus',
-        subcategory: 'Katot',
-        unit: 'm²',
-        quantity: 25.5,
-        layers: 2,
-        materialCostPerUnit: 3.0,
-        notes: 'Olohuoneen katto',
-        points: []
-      },
-      {
-        id: 'demo-3',
-        type: 'polygon',
-        category: 'Tasoitus',
-        subcategory: 'Seinät',
-        unit: 'm²',
-        quantity: 18.3,
-        layers: 1,
-        materialCostPerUnit: 4.0,
-        notes: 'Keittiön tasoitus',
-        points: []
-      }
-    ];
-    setMeasurements(demoMeasurements);
+    setMeasurements([]);
   }, []);
 
   useEffect(() => {
