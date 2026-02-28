@@ -85,8 +85,6 @@ export const getSettings = () => {
 
 export const getDefaultSettings = () => ({
   hourlyRate: 45,
-  overheadPercentage: 15,
-  targetMargin: 25,
   vatPercentage: 25.5,
   defaultDoorArea: 2.1,
   defaultWindowArea: 1.5,
