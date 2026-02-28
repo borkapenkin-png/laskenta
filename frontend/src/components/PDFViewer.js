@@ -177,6 +177,8 @@ export const PDFViewer = ({
                   measurements={measurements}
                   selectedMeasurementId={selectedMeasurementId}
                   onMeasurementSelect={onMeasurementSelect}
+                  calibrationMode={calibrationMode}
+                  onCalibrationComplete={onCalibrationComplete}
                 />
               )}
             </div>
