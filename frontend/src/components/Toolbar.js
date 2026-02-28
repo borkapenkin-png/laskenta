@@ -30,9 +30,7 @@ export const Toolbar = ({
   onExportCSV,
   onExportPDF,
   currentTool,
-  onToolSelect,
-  toolbarSize = 1,
-  onToolbarSizeChange
+  onToolSelect
 }) => {
   const tools = [
     { id: 'line', icon: Minus, label: 'Viiva (jm)', testId: 'tool-line' },
@@ -42,25 +40,8 @@ export const Toolbar = ({
     { id: 'count', icon: Hash, label: 'Kappalemäärä (kpl)', testId: 'tool-count' }
   ];
 
-  const handleZoomIn = () => {
-    const newSize = Math.min(toolbarSize + 0.1, 1.5);
-    onToolbarSizeChange(newSize);
-  };
-
-  const handleZoomOut = () => {
-    const newSize = Math.max(toolbarSize - 0.1, 0.7);
-    onToolbarSizeChange(newSize);
-  };
-
   return (
-    <div 
-      className="bg-white border-b border-gray-200 px-4 py-3 transition-all duration-200"
-      style={{ 
-        transform: `scale(${toolbarSize})`,
-        transformOrigin: 'top center',
-        marginBottom: `${(toolbarSize - 1) * -30}px`
-      }}
-    >
+    <div className="bg-white border-b border-gray-200 px-4 py-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TooltipProvider>
@@ -123,42 +104,6 @@ export const Toolbar = ({
 
         <div className="flex items-center gap-2">
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="toolbar-zoom-out"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleZoomOut}
-                  disabled={toolbarSize <= 0.7}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Pienennä työkalupalkki</TooltipContent>
-            </Tooltip>
-
-            <span className="text-xs text-gray-500 font-mono w-12 text-center">
-              {Math.round(toolbarSize * 100)}%
-            </span>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="toolbar-zoom-in"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleZoomIn}
-                  disabled={toolbarSize >= 1.5}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Suurenna työkalupalkki</TooltipContent>
-            </Tooltip>
-
-            <div className="mx-2 h-6 w-px bg-gray-300"></div>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
