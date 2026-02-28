@@ -18,7 +18,10 @@ export const PDFViewer = ({
   selectedMeasurementId,
   onMeasurementSelect,
   zoom = 1,
-  onZoomChange
+  onZoomChange,
+  calibrationMode = false,
+  calibrationDistance,
+  onCalibrationComplete
 }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
