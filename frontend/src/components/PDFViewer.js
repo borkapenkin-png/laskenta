@@ -105,8 +105,9 @@ export const PDFViewer = ({
   };
 
   const handleMouseDown = (e) => {
-    // Pan with right mouse button or space + left mouse when no tool
-    if (e.button === 2 || (e.button === 0 && e.shiftKey && !currentTool)) {
+    // Pan with: middle mouse, right mouse, OR left mouse when no tool is selected
+    const canPan = e.button === 1 || e.button === 2 || (e.button === 0 && !currentTool);
+    if (canPan) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
       e.preventDefault();
@@ -124,6 +125,15 @@ export const PDFViewer = ({
 
   const handleMouseUp = () => {
     setIsPanning(false);
+  };
+
+  // Handle wheel zoom
+  const handleWheel = (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
+    }
   };
 
   return (
@@ -185,8 +195,9 @@ export const PDFViewer = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onWheel={handleWheel}
         onContextMenu={(e) => e.preventDefault()}
-        style={{ cursor: isPanning ? 'grabbing' : 'default' }}
+        style={{ cursor: isPanning ? 'grabbing' : (currentTool ? 'crosshair' : 'grab') }}
       >
         <div className="flex items-center justify-center min-h-full p-4">
           {!pdfFile ? (
