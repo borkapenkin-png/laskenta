@@ -39,11 +39,6 @@ function App() {
     const loadedPresets = getPresets();
     setPresets(loadedPresets);
 
-    const savedToolbarSize = localStorage.getItem('rakenna_toolbar_size');
-    if (savedToolbarSize) {
-      setToolbarSize(parseFloat(savedToolbarSize));
-    }
-
     const savedPanelState = localStorage.getItem('rakenna_right_panel_open');
     if (savedPanelState !== null) {
       setRightPanelOpen(savedPanelState === 'true');
