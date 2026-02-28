@@ -16,7 +16,9 @@ export const PDFViewer = ({
   onPdfLoad,
   currentTool,
   onMeasurementComplete,
-  measurements = []
+  measurements = [],
+  selectedMeasurementId,
+  onMeasurementSelect
 }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
