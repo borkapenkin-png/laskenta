@@ -467,13 +467,14 @@ function App() {
           )}
         </Button>
 
-        {/* Right panel - uses transform for smooth animation without unmounting content */}
+        {/* Right panel - fixed position to avoid layout issues */}
         <div 
-          className="bg-white border-l border-gray-200 relative z-20 flex-shrink-0 h-full"
+          data-testid="right-panel"
+          className="bg-white border-l border-gray-200 absolute top-0 right-0 z-20 h-full"
           style={{
             width: '384px',
-            marginRight: rightPanelOpen ? '0px' : '-384px',
-            transition: 'margin-right 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+            transform: rightPanelOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
