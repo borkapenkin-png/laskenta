@@ -490,6 +490,8 @@ function App() {
                     onUpdate={handleUpdateMeasurement}
                     onDelete={handleDeleteMeasurement}
                     settings={settings}
+                    selectedMeasurementId={selectedMeasurementId}
+                    onMeasurementSelect={setSelectedMeasurementId}
                   />
                 </TabsContent>
 
