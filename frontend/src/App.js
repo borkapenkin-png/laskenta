@@ -37,6 +37,11 @@ function App() {
     const loadedPresets = getPresets();
     setPresets(loadedPresets);
 
+    const savedToolbarSize = localStorage.getItem('rakenna_toolbar_size');
+    if (savedToolbarSize) {
+      setToolbarSize(parseFloat(savedToolbarSize));
+    }
+
     const demoMeasurements = [
       {
         id: 'demo-1',
