@@ -300,6 +300,8 @@ function App() {
         onExportPDF={handleExportPDF}
         currentTool={currentTool}
         onToolSelect={setCurrentTool}
+        toolbarSize={toolbarSize}
+        onToolbarSizeChange={handleToolbarSizeChange}
       />
 
       <div className="flex flex-1 overflow-hidden">
