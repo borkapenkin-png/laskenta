@@ -35,9 +35,7 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings }) => 
   const calculateRow = (m) => {
     const waste = (m.waste || 0) / 100;
     const layers = m.layers || 1;
-    const productivity = m.productivity || 1;
-    const materialCost = m.materialCostPerUnit || 0;
-    const hourlyRate = settings?.hourlyRate || 45;
+    const pricePerUnit = m.pricePerUnit || 0;
 
     let effectiveQuantity = m.quantity || 0;
 
@@ -48,17 +46,11 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, settings }) => 
     }
 
     const quantityWithWaste = effectiveQuantity * (1 + waste) * layers;
-    const laborHours = quantityWithWaste / productivity;
-    const laborCost = laborHours * hourlyRate;
-    const totalMaterialCost = quantityWithWaste * materialCost;
-    const totalCost = laborCost + totalMaterialCost;
+    const totalCost = quantityWithWaste * pricePerUnit;
 
     return {
       effectiveQuantity,
       quantityWithWaste,
-      laborHours,
-      laborCost,
-      totalMaterialCost,
       totalCost
     };
   };
