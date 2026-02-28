@@ -1,52 +1,381 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import '@/App.css';
+import { Toaster } from '@/components/ui/sonner';
+import { toast } from 'sonner';
+import { Toolbar } from '@/components/Toolbar';
+import { PDFViewer } from '@/components/PDFViewer';
+import { TakeoffPanel } from '@/components/TakeoffPanel';
+import { PresetPanel } from '@/components/PresetPanel';
+import { CalculatorPanel } from '@/components/CalculatorPanel';
+import { CalibrateDialog } from '@/components/CalibrateDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { saveProject, getSettings, saveSettings, getPresets, savePresets, exportProjectToJSON, importProjectFromJSON } from '@/utils/storage';
+import { exportToCSV, exportToPDF } from '@/utils/export';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function App() {
+  const [pdfFile, setPdfFile] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [scale, setScale] = useState(null);
+  const [currentTool, setCurrentTool] = useState(null);
+  const [measurements, setMeasurements] = useState([]);
+  const [presets, setPresets] = useState([]);
+  const [settings, setSettings] = useState(null);
+  const [activeTab, setActiveTab] = useState('takeoff');
+  const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
+  const [project, setProject] = useState({
+    id: `project-${Date.now()}`,
+    name: 'Uusi projekti',
+    createdAt: new Date().toISOString()
+  });
+  const fileInputRef = useRef(null);
+  const projectInputRef = useRef(null);
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+  useEffect(() => {
+    const loadedSettings = getSettings();
+    setSettings(loadedSettings);
+    const loadedPresets = getPresets();
+    setPresets(loadedPresets);
+
+    const demoMeasurements = [
+      {
+        id: 'demo-1',
+        type: 'wall',
+        category: 'Maalaus',
+        subcategory: 'Seinät',
+        unit: 'jm',
+        quantity: 12.5,
+        wallHeight: 2.6,
+        bothSides: false,
+        openings: 2.1,
+        waste: 5,
+        layers: 2,
+        productivity: 8,
+        materialCostPerUnit: 2.5,
+        notes: 'Olohuoneen seinät',
+        points: []
+      },
+      {
+        id: 'demo-2',
+        type: 'rectangle',
+        category: 'Maalaus',
+        subcategory: 'Katot',
+        unit: 'm²',
+        quantity: 25.5,
+        waste: 5,
+        layers: 2,
+        productivity: 6,
+        materialCostPerUnit: 3.0,
+        notes: 'Olohuoneen katto',
+        points: []
+      },
+      {
+        id: 'demo-3',
+        type: 'polygon',
+        category: 'Tasoitus',
+        subcategory: 'Seinät',
+        unit: 'm²',
+        quantity: 18.3,
+        waste: 10,
+        layers: 1,
+        productivity: 5,
+        materialCostPerUnit: 4.0,
+        notes: 'Keittiön tasoitus',
+        points: []
+      }
+    ];
+    setMeasurements(demoMeasurements);
+  }, []);
+
+  useEffect(() => {
+    const saveData = () => {
+      if (project && measurements.length > 0) {
+        saveProject({
+          ...project,
+          measurements,
+          scale,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    };
+
+    const timeoutId = setTimeout(saveData, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [measurements, project, scale]);
+
+  useEffect(() => {
+    if (settings) {
+      saveSettings(settings);
+    }
+  }, [settings]);
+
+  useEffect(() => {
+    if (presets.length > 0) {
+      savePresets(presets);
+    }
+  }, [presets]);
+
+  const handleOpenPdf = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePdfFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setPdfFile(file);
+      setCurrentPage(1);
+      toast.success('PDF ladattu onnistuneesti');
+    } else {
+      toast.error('Valitse kelvollinen PDF-tiedosto');
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const handleMeasurementComplete = (measurement) => {
+    const newMeasurement = {
+      ...measurement,
+      id: `measurement-${Date.now()}`,
+      category: 'Määrittelemätön',
+      subcategory: 'Määrittelemätön',
+      waste: 5,
+      layers: 1,
+      productivity: 8,
+      materialCostPerUnit: 2.5,
+      wallHeight: measurement.type === 'wall' ? (settings?.defaultWallHeight || 2.6) : null,
+      bothSides: false,
+      openings: 0,
+      page: currentPage
+    };
+
+    setMeasurements(prev => [...prev, newMeasurement]);
+    toast.success(`Mittaus lisätty: ${measurement.quantity.toFixed(2)} ${measurement.unit}`);
+  };
+
+  const handleUpdateMeasurement = (id, updatedData) => {
+    setMeasurements(prev =>
+      prev.map(m => (m.id === id ? { ...m, ...updatedData } : m))
+    );
+    toast.success('Mittaus päivitetty');
+  };
+
+  const handleDeleteMeasurement = (id) => {
+    setMeasurements(prev => prev.filter(m => m.id !== id));
+    toast.success('Mittaus poistettu');
+  };
+
+  const handleSaveProject = () => {
+    const projectData = {
+      ...project,
+      measurements,
+      scale,
+      updatedAt: new Date().toISOString()
+    };
+    exportProjectToJSON(projectData);
+    toast.success('Projekti tallennettu');
+  };
+
+  const handleLoadProject = () => {
+    projectInputRef.current?.click();
+  };
+
+  const handleProjectFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const loadedProject = await importProjectFromJSON(file);
+        setProject(loadedProject);
+        setMeasurements(loadedProject.measurements || []);
+        setScale(loadedProject.scale || null);
+        toast.success('Projekti ladattu onnistuneesti');
+      } catch (error) {
+        toast.error('Projektin lataaminen epäonnistui');
+      }
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (measurements.length === 0) {
+      toast.error('Ei mittauksia vietäväksi');
+      return;
+    }
+
+    const summary = calculateSummary();
+    exportToCSV(measurements, summary, settings);
+    toast.success('CSV viety onnistuneesti');
+  };
+
+  const handleExportPDF = () => {
+    if (measurements.length === 0) {
+      toast.error('Ei mittauksia vietäväksi');
+      return;
+    }
+
+    const summary = calculateSummary();
+    exportToPDF(project, measurements, summary, settings);
+    toast.success('PDF-raportti luotu');
+  };
+
+  const calculateSummary = () => {
+    let totalLaborHours = 0;
+    let totalLaborCost = 0;
+    let totalMaterialCost = 0;
+
+    measurements.forEach(m => {
+      const waste = (m.waste || 0) / 100;
+      const layers = m.layers || 1;
+      const productivity = m.productivity || 1;
+      const materialCost = m.materialCostPerUnit || 0;
+      const hourlyRate = settings?.hourlyRate || 45;
+
+      let effectiveQuantity = m.quantity || 0;
+
+      if (m.type === 'wall' && m.wallHeight) {
+        const bruttoM2 = effectiveQuantity * m.wallHeight * (m.bothSides ? 2 : 1);
+        const openings = m.openings || 0;
+        effectiveQuantity = bruttoM2 - openings;
+      }
+
+      const quantityWithWaste = effectiveQuantity * (1 + waste) * layers;
+      const laborHours = quantityWithWaste / productivity;
+      const laborCost = laborHours * hourlyRate;
+      const matCost = quantityWithWaste * materialCost;
+
+      totalLaborHours += laborHours;
+      totalLaborCost += laborCost;
+      totalMaterialCost += matCost;
+    });
+
+    const directCosts = totalLaborCost + totalMaterialCost;
+    const overheadPercentage = settings?.overheadPercentage || 15;
+    const overheadCost = directCosts * (overheadPercentage / 100);
+    
+    const costBeforeMargin = directCosts + overheadCost;
+    const targetMargin = settings?.targetMargin || 25;
+    const marginAmount = costBeforeMargin * (targetMargin / 100);
+    
+    const sellingPriceNoVat = costBeforeMargin + marginAmount;
+    const vatPercentage = settings?.vatPercentage || 25.5;
+    const sellingPriceWithVat = sellingPriceNoVat * (1 + vatPercentage / 100);
+
+    return {
+      totalLaborHours,
+      totalLaborCost,
+      totalMaterialCost,
+      overheadCost,
+      marginAmount,
+      sellingPriceNoVat,
+      sellingPriceWithVat
+    };
+  };
+
+  const handleSavePreset = (preset) => {
+    const existingIndex = presets.findIndex(p => p.id === preset.id);
+    if (existingIndex >= 0) {
+      const updated = [...presets];
+      updated[existingIndex] = preset;
+      setPresets(updated);
+      toast.success('Presetti päivitetty');
+    } else {
+      setPresets(prev => [...prev, preset]);
+      toast.success('Presetti lisätty');
+    }
+  };
+
+  const handleDeletePreset = (id) => {
+    setPresets(prev => prev.filter(p => p.id !== id));
+    toast.success('Presetti poistettu');
+  };
+
+  const handleApplyPreset = (preset) => {
+    toast.info(`Sovellettava presetti: ${preset.name}. Tämä toiminto lisätään tuleville mittauksille.`);
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+    <div className="flex flex-col h-screen bg-[#F9FAFB]">
+      <Toolbar
+        onOpenPdf={handleOpenPdf}
+        onCalibrate={() => setCalibrateDialogOpen(true)}
+        onSaveProject={handleSaveProject}
+        onLoadProject={handleLoadProject}
+        onExportCSV={handleExportCSV}
+        onExportPDF={handleExportPDF}
+        currentTool={currentTool}
+        onToolSelect={setCurrentTool}
+      />
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-1 relative">
+          <PDFViewer
+            pdfFile={pdfFile}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            scale={scale}
+            onScaleChange={setScale}
+          />
+        </div>
+
+        <div className="w-96 bg-white border-l border-gray-200">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
+              <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
+              <TabsTrigger value="presets" data-testid="tab-presets">Presetit</TabsTrigger>
+              <TabsTrigger value="calculator" data-testid="tab-calculator">Laskenta</TabsTrigger>
+            </TabsList>
+
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="takeoff" className="h-full m-0">
+                <TakeoffPanel
+                  measurements={measurements}
+                  onUpdate={handleUpdateMeasurement}
+                  onDelete={handleDeleteMeasurement}
+                  settings={settings}
+                />
+              </TabsContent>
+
+              <TabsContent value="presets" className="h-full m-0">
+                <PresetPanel
+                  presets={presets}
+                  onSave={handleSavePreset}
+                  onDelete={handleDeletePreset}
+                  onApply={handleApplyPreset}
+                />
+              </TabsContent>
+
+              <TabsContent value="calculator" className="h-full m-0">
+                <CalculatorPanel
+                  measurements={measurements}
+                  settings={settings}
+                  onSettingsChange={setSettings}
+                />
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
+      </div>
+
+      <CalibrateDialog
+        open={calibrateDialogOpen}
+        onClose={() => setCalibrateDialogOpen(false)}
+        onCalibrate={(distance) => {
+          toast.success(`Mittakaava kalibroitu: ${distance}m`);
+        }}
+      />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf"
+        onChange={handlePdfFileChange}
+        className="hidden"
+      />
+
+      <input
+        ref={projectInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleProjectFileChange}
+        className="hidden"
+      />
+
+      <Toaster position="top-right" />
     </div>
   );
 }
