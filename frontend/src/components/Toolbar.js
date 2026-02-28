@@ -12,7 +12,10 @@ import {
   Home,
   Trash2,
   Undo,
-  Redo
+  Redo,
+  Hand,
+  ZoomIn,
+  ZoomOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,14 +36,16 @@ export const Toolbar = ({
   onToolSelect,
   selectedMeasurementId,
   onDeleteSelected,
-  onDeleteCurrentPage,
-  onDeleteAll,
   onUndo,
   onRedo,
   canUndo,
-  canRedo
+  canRedo,
+  zoom,
+  onZoomIn,
+  onZoomOut
 }) => {
   const tools = [
+    { id: null, icon: Hand, label: 'Käsityökalu (liiku PDF:ssä)', testId: 'tool-hand' },
     { id: 'line', icon: Minus, label: 'Viiva (jm)', testId: 'tool-line' },
     { id: 'wall', icon: Home, label: 'Seinä (jm → m²)', testId: 'tool-wall' },
     { id: 'rectangle', icon: Square, label: 'Suorakulmio (m²)', testId: 'tool-rectangle' },
@@ -50,14 +55,67 @@ export const Toolbar = ({
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        {/* Left side - File operations */}
         <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="open-pdf-button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onOpenPdf}
+                >
+                  <FileUp className="h-4 w-4 mr-2" />
+                  Avaa PDF
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Avaa PDF-pohjakuva</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="save-project-button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onSaveProject}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Tallenna
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Tallenna projekti</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="load-project-button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onLoadProject}
+                >
+                  <FolderOpen className="h-4 w-4 mr-2" />
+                  Lataa
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Lataa projekti</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="h-6 w-px bg-gray-300"></div>
+
+        {/* Tools */}
+        <div className="flex items-center gap-1">
           <TooltipProvider>
             {tools.map(tool => {
               const Icon = tool.icon;
               const isActive = currentTool === tool.id;
               return (
-                <Tooltip key={tool.id}>
+                <Tooltip key={tool.testId}>
                   <TooltipTrigger asChild>
                     <Button
                       data-testid={tool.testId}
@@ -74,9 +132,53 @@ export const Toolbar = ({
               );
             })}
           </TooltipProvider>
-          
-          <div className="mx-2 h-6 w-px bg-gray-300"></div>
-          
+        </div>
+
+        <div className="h-6 w-px bg-gray-300"></div>
+
+        {/* Zoom controls */}
+        <div className="flex items-center gap-1">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="zoom-out-button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onZoomOut}
+                  disabled={zoom <= 0.5}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Loitonna</TooltipContent>
+            </Tooltip>
+
+            <span className="text-sm text-gray-600 font-mono w-14 text-center">
+              {Math.round((zoom || 1) * 100)}%
+            </span>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="zoom-in-button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onZoomIn}
+                  disabled={zoom >= 3}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Lähennä</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="h-6 w-px bg-gray-300"></div>
+
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -107,11 +209,7 @@ export const Toolbar = ({
               </TooltipTrigger>
               <TooltipContent>Tee uudelleen (Ctrl+Shift+Z)</TooltipContent>
             </Tooltip>
-          </TooltipProvider>
 
-          <div className="mx-2 h-6 w-px bg-gray-300"></div>
-
-          <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -130,54 +228,12 @@ export const Toolbar = ({
           </TooltipProvider>
         </div>
 
+        {/* Right side - spacer */}
+        <div className="flex-1"></div>
+
+        {/* Right side - Export and calibrate */}
         <div className="flex items-center gap-2">
           <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="delete-page-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onDeleteCurrentPage}
-                  className="text-orange-600 hover:text-orange-700"
-                >
-                  Tyhjennä sivu
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Poista kaikki mittaukset tältä sivulta</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="delete-all-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onDeleteAll}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Tyhjennä projekti
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Poista KAIKKI mittaukset</TooltipContent>
-            </Tooltip>
-
-            <div className="mx-2 h-6 w-px bg-gray-300"></div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="open-pdf-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onOpenPdf}
-                >
-                  <FileUp className="h-4 w-4 mr-2" />
-                  Avaa PDF
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Avaa PDF-pohjakuva</TooltipContent>
-            </Tooltip>
-
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -191,40 +247,6 @@ export const Toolbar = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Kalibroi mittakaava</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="save-project-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onSaveProject}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Tallenna
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Tallenna projekti</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  data-testid="load-project-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onLoadProject}
-                >
-                  <FolderOpen className="h-4 w-4 mr-2" />
-                  Lataa
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Lataa projekti</TooltipContent>
             </Tooltip>
 
             <Tooltip>
