@@ -9,7 +9,10 @@ import {
   Square,
   Pentagon,
   Hash,
-  Home
+  Home,
+  Trash2,
+  Undo,
+  Redo
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
