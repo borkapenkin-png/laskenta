@@ -465,54 +465,52 @@ function App() {
           )}
         </Button>
 
-        {/* Right panel */}
+        {/* Right panel - uses transform for smooth animation without unmounting content */}
         <div 
-          className="bg-white border-l border-gray-200 transition-all duration-300 relative z-20"
+          className="bg-white border-l border-gray-200 relative z-20 flex-shrink-0 h-full"
           style={{
-            width: rightPanelOpen ? '384px' : '0px',
-            minWidth: rightPanelOpen ? '384px' : '0px',
-            overflow: 'hidden'
+            width: '384px',
+            marginRight: rightPanelOpen ? '0px' : '-384px',
+            transition: 'margin-right 300ms cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
-          <div style={{ width: '384px' }}>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-              <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
-                <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
-                <TabsTrigger value="presets" data-testid="tab-presets">Presetit</TabsTrigger>
-                <TabsTrigger value="calculator" data-testid="tab-calculator">Laskenta</TabsTrigger>
-              </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
+              <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
+              <TabsTrigger value="presets" data-testid="tab-presets">Presetit</TabsTrigger>
+              <TabsTrigger value="calculator" data-testid="tab-calculator">Laskenta</TabsTrigger>
+            </TabsList>
 
-              <div className="flex-1 overflow-hidden">
-                <TabsContent value="takeoff" className="h-full m-0">
-                  <TakeoffPanel
-                    measurements={measurements}
-                    onUpdate={handleUpdateMeasurement}
-                    onDelete={handleDeleteMeasurement}
-                    settings={settings}
-                    selectedMeasurementId={selectedMeasurementId}
-                    onMeasurementSelect={setSelectedMeasurementId}
-                  />
-                </TabsContent>
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="takeoff" className="h-full m-0">
+                <TakeoffPanel
+                  measurements={measurements}
+                  onUpdate={handleUpdateMeasurement}
+                  onDelete={handleDeleteMeasurement}
+                  settings={settings}
+                  selectedMeasurementId={selectedMeasurementId}
+                  onMeasurementSelect={setSelectedMeasurementId}
+                />
+              </TabsContent>
 
-                <TabsContent value="presets" className="h-full m-0">
-                  <PresetPanel
-                    presets={presets}
-                    onSave={handleSavePreset}
-                    onDelete={handleDeletePreset}
-                    onApply={handleApplyPreset}
-                  />
-                </TabsContent>
+              <TabsContent value="presets" className="h-full m-0">
+                <PresetPanel
+                  presets={presets}
+                  onSave={handleSavePreset}
+                  onDelete={handleDeletePreset}
+                  onApply={handleApplyPreset}
+                />
+              </TabsContent>
 
-                <TabsContent value="calculator" className="h-full m-0">
-                  <CalculatorPanel
-                    measurements={measurements}
-                    settings={settings}
-                    onSettingsChange={setSettings}
-                  />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </div>
+              <TabsContent value="calculator" className="h-full m-0">
+                <CalculatorPanel
+                  measurements={measurements}
+                  settings={settings}
+                  onSettingsChange={setSettings}
+                />
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
       </div>
 
