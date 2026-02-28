@@ -81,6 +81,91 @@ export const Toolbar = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  data-testid="undo-button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onUndo}
+                  disabled={!canUndo}
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Peruuta (Ctrl+Z)</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="redo-button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRedo}
+                  disabled={!canRedo}
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Tee uudelleen (Ctrl+Shift+Z)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <div className="mx-2 h-6 w-px bg-gray-300"></div>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="delete-selected-button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onDeleteSelected}
+                  disabled={!selectedMeasurementId}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Poista valittu (Delete)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="delete-page-button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onDeleteCurrentPage}
+                  className="text-orange-600 hover:text-orange-700"
+                >
+                  Tyhjennä sivu
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Poista kaikki mittaukset tältä sivulta</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="delete-all-button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onDeleteAll}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  Tyhjennä projekti
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Poista KAIKKI mittaukset</TooltipContent>
+            </Tooltip>
+
+            <div className="mx-2 h-6 w-px bg-gray-300"></div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
                   data-testid="open-pdf-button"
                   variant="outline"
                   size="sm"
