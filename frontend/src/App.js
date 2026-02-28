@@ -297,6 +297,12 @@ function App() {
     localStorage.setItem('rakenna_toolbar_size', newSize.toString());
   };
 
+  const toggleRightPanel = () => {
+    const newState = !rightPanelOpen;
+    setRightPanelOpen(newState);
+    localStorage.setItem('rakenna_right_panel_open', newState.toString());
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB]">
       <Toolbar
@@ -312,7 +318,7 @@ function App() {
         onToolbarSizeChange={handleToolbarSizeChange}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         <div className="flex-1 relative">
           <PDFViewer
             pdfFile={pdfFile}
@@ -323,42 +329,68 @@ function App() {
           />
         </div>
 
-        <div className="w-96 bg-white border-l border-gray-200">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
-              <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
-              <TabsTrigger value="presets" data-testid="tab-presets">Presetit</TabsTrigger>
-              <TabsTrigger value="calculator" data-testid="tab-calculator">Laskenta</TabsTrigger>
-            </TabsList>
+        {/* Toggle button */}
+        <Button
+          data-testid="toggle-right-panel"
+          onClick={toggleRightPanel}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-20 w-6 rounded-l-lg rounded-r-none bg-[#0052CC] hover:bg-[#0043A8] p-0 shadow-lg"
+          style={{ 
+            right: rightPanelOpen ? '384px' : '0px',
+            transition: 'right 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+          }}
+        >
+          {rightPanelOpen ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </Button>
 
-            <div className="flex-1 overflow-hidden">
-              <TabsContent value="takeoff" className="h-full m-0">
-                <TakeoffPanel
-                  measurements={measurements}
-                  onUpdate={handleUpdateMeasurement}
-                  onDelete={handleDeleteMeasurement}
-                  settings={settings}
-                />
-              </TabsContent>
+        {/* Right panel */}
+        <div 
+          className="bg-white border-l border-gray-200 transition-all duration-300"
+          style={{
+            width: rightPanelOpen ? '384px' : '0px',
+            overflow: 'hidden'
+          }}
+        >
+          <div className="w-96">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
+                <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
+                <TabsTrigger value="presets" data-testid="tab-presets">Presetit</TabsTrigger>
+                <TabsTrigger value="calculator" data-testid="tab-calculator">Laskenta</TabsTrigger>
+              </TabsList>
 
-              <TabsContent value="presets" className="h-full m-0">
-                <PresetPanel
-                  presets={presets}
-                  onSave={handleSavePreset}
-                  onDelete={handleDeletePreset}
-                  onApply={handleApplyPreset}
-                />
-              </TabsContent>
+              <div className="flex-1 overflow-hidden">
+                <TabsContent value="takeoff" className="h-full m-0">
+                  <TakeoffPanel
+                    measurements={measurements}
+                    onUpdate={handleUpdateMeasurement}
+                    onDelete={handleDeleteMeasurement}
+                    settings={settings}
+                  />
+                </TabsContent>
 
-              <TabsContent value="calculator" className="h-full m-0">
-                <CalculatorPanel
-                  measurements={measurements}
-                  settings={settings}
-                  onSettingsChange={setSettings}
-                />
-              </TabsContent>
-            </div>
-          </Tabs>
+                <TabsContent value="presets" className="h-full m-0">
+                  <PresetPanel
+                    presets={presets}
+                    onSave={handleSavePreset}
+                    onDelete={handleDeletePreset}
+                    onApply={handleApplyPreset}
+                  />
+                </TabsContent>
+
+                <TabsContent value="calculator" className="h-full m-0">
+                  <CalculatorPanel
+                    measurements={measurements}
+                    settings={settings}
+                    onSettingsChange={setSettings}
+                  />
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
         </div>
       </div>
 
