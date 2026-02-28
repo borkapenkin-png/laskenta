@@ -55,7 +55,68 @@ function App() {
       setLeftSidebarOpen(savedLeftSidebarState === 'true');
     }
 
-    const demoMeasurements = [
+    // Keyboard shortcuts for delete and undo/redo
+    const handleKeyDown = (e) => {
+      // Delete selected measurement
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMeasurementId) {
+        e.preventDefault();
+        handleDeleteMeasurement(selectedMeasurementId);
+      }
+      
+      // Undo: Ctrl/Cmd + Z
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      
+      // Redo: Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y
+      if ((e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) ||
+          (e.key === 'y' && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedMeasurementId]);
+
+  // Save to undo stack before making changes
+  const saveToUndoStack = () => {
+    setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(measurements))]);
+    setRedoStack([]); // Clear redo stack on new action
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length === 0) return;
+    
+    const previousState = undoStack[undoStack.length - 1];
+    setRedoStack(prev => [...prev, JSON.parse(JSON.stringify(measurements))]);
+    setMeasurements(previousState);
+    setUndoStack(prev => prev.slice(0, -1));
+    toast.success('Peruutettu');
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+    
+    const nextState = redoStack[redoStack.length - 1];
+    setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(measurements))]);
+    setMeasurements(nextState);
+    setRedoStack(prev => prev.slice(0, -1));
+    toast.success('Tehty uudelleen');
+  };
+
+  // Clear undo/redo stacks (no demo data)
+  useEffect(() => {
+    setUndoStack([]);
+    setRedoStack([]);
+  }, []);
+
+  const demoMeasurements = [
       {
         id: 'demo-1',
         type: 'wall',
