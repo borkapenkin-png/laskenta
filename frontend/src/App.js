@@ -41,7 +41,7 @@ function App() {
   const [toolPresetPosition, setToolPresetPosition] = useState({ x: 100, y: 100 });
   const [tarjousDialogOpen, setTarjousDialogOpen] = useState(false);
   const [floors, setFloors] = useState([
-    { id: 'floor-1', name: '1. kerros', pdfDataUrl: null, pdfDocument: null, scale: null }
+    { id: 'floor-1', name: '1. kerros', pdfDataUrl: null, pdfDocument: null, scale: null, zoom: 1 }
   ]);
   const [activeFloorId, setActiveFloorId] = useState('floor-1');
   const [project, setProject] = useState({
