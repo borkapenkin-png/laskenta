@@ -469,9 +469,8 @@ function App() {
           }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 rounded-none border-b border-gray-200">
+            <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-gray-200">
               <TabsTrigger value="takeoff" data-testid="tab-takeoff">Määrälaskenta</TabsTrigger>
-              <TabsTrigger value="presets" data-testid="tab-presets">Presetit</TabsTrigger>
               <TabsTrigger value="calculator" data-testid="tab-calculator">Laskenta</TabsTrigger>
             </TabsList>
 
@@ -481,18 +480,10 @@ function App() {
                   measurements={measurements}
                   onUpdate={handleUpdateMeasurement}
                   onDelete={handleDeleteMeasurement}
+                  onCopy={handleCopyMeasurement}
                   settings={settings}
                   selectedMeasurementId={selectedMeasurementId}
                   onMeasurementSelect={setSelectedMeasurementId}
-                />
-              </TabsContent>
-
-              <TabsContent value="presets" className="h-full m-0">
-                <PresetPanel
-                  presets={presets}
-                  onSave={handleSavePreset}
-                  onDelete={handleDeletePreset}
-                  onApply={handleApplyPreset}
                 />
               </TabsContent>
 
