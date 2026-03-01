@@ -612,6 +612,7 @@ function App() {
                   measurements={measurements}
                   settings={settings}
                   onSettingsChange={setSettings}
+                  onGlobalWallHeightChange={handleGlobalWallHeightChange}
                 />
               </TabsContent>
             </div>
