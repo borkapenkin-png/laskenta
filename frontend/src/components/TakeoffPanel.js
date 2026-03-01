@@ -199,24 +199,51 @@ export const TakeoffPanel = ({
 
   return (
     <div ref={containerRef} className="h-full flex flex-col p-4">
-      <div className="flex items-center justify-between mb-4">
+      {/* Header with floor filter */}
+      <div className="flex items-center justify-between mb-3">
         <div>
           <h2 className="text-lg font-semibold">Määrälaskenta</h2>
-          <p className="text-sm text-gray-500">{measurements.length} mittausta</p>
+          <p className="text-sm text-gray-500">
+            {viewMode === 'floor' 
+              ? `${activeFloor?.name || 'Kerros'}: ${displayMeasurements.length} mittausta`
+              : `Kaikki: ${displayMeasurements.length} mittausta`
+            }
+          </p>
+        </div>
+        
+        {/* Floor/All toggle */}
+        <div className="flex gap-1">
+          <Button
+            size="sm"
+            variant={viewMode === 'floor' ? 'default' : 'outline'}
+            onClick={() => setViewMode('floor')}
+            className="text-xs h-7"
+          >
+            Kerros
+          </Button>
+          <Button
+            size="sm"
+            variant={viewMode === 'all' ? 'default' : 'outline'}
+            onClick={() => setViewMode('all')}
+            className="text-xs h-7"
+          >
+            Kaikki
+          </Button>
         </div>
       </div>
 
       <ScrollArea className="flex-1">
-        {measurements.length === 0 ? (
+        {displayMeasurements.length === 0 ? (
           <div className="text-center text-gray-400 py-8">
             Aloita mittaamalla PDF:stä
           </div>
         ) : (
           <div className="space-y-2">
-            {measurements.map((measurement) => {
+            {displayMeasurements.map((measurement) => {
               const isEditing = editingId === measurement.id;
               const isSelected = selectedMeasurementId === measurement.id;
               const calc = calculateRow(isEditing ? editData : measurement);
+              const measurementFloor = floors.find(f => f.id === measurement.floorId);
 
               return (
                 <div
