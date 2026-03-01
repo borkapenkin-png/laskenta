@@ -424,7 +424,7 @@ function App() {
         onExportCSV={handleExportCSV}
         onExportPDF={handleExportPDF}
         currentTool={currentTool}
-        onToolSelect={setCurrentTool}
+        onToolSelect={handleToolSelect}
         selectedMeasurementId={selectedMeasurementId}
         onDeleteSelected={() => selectedMeasurementId && handleDeleteMeasurement(selectedMeasurementId)}
         onUndo={handleUndo}
@@ -436,6 +436,15 @@ function App() {
         onZoomOut={handleZoomOut}
         scale={scale}
         onScaleChange={setScale}
+      />
+
+      {/* Tool Preset Selector */}
+      <ToolPresetSelector
+        isOpen={toolPresetOpen}
+        toolType={pendingTool}
+        position={toolPresetPosition}
+        onSelect={handlePresetSelect}
+        onClose={handlePresetClose}
       />
 
       <div className="flex flex-1 relative" style={{ overflow: 'hidden' }}>
