@@ -379,9 +379,9 @@ function App() {
     setTarjousDialogOpen(true);
   };
 
-  const handleGenerateTarjous = async (tarjousData) => {
+  const handleGenerateTarjous = (tarjousData) => {
     try {
-      await exportTarjousPDF(project, measurements, settings, tarjousData);
+      exportTarjousPDF(project, measurements, settings, tarjousData);
       toast.success('Tarjous PDF luotu!');
     } catch (error) {
       console.error('Tarjous generation error:', error);
