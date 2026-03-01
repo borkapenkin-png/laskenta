@@ -631,17 +631,18 @@ export const TakeoffPanel = ({
                     </div>
                   ) : (
                     // View mode - No prices shown, action buttons always visible
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" style={{ minHeight: '40px' }}>
                       {/* Description area - truncates when too long */}
-                      <div className="flex-1 min-w-0 overflow-hidden">
+                      <div className="flex-1 min-w-0 overflow-hidden pr-2">
                         <div className="font-medium text-sm truncate" title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}>
                           {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
                         </div>
                         <div className="text-xs text-gray-500 truncate">
                           {formatNumber(calc.effectiveQuantity)} {measurement.unit}
-                          {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && (
+                          {/* For Pystykotelot: show kpl × height = jm */}
+                          {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
                             <span className="ml-1 text-gray-400">
-                              (h: {measurement.wallHeight}m)
+                              × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
                             </span>
                           )}
                           {measurement.hasRankaKipsi && (
@@ -652,50 +653,50 @@ export const TakeoffPanel = ({
                           )}
                         </div>
                       </div>
-                      {/* Action buttons - always visible, never wrap */}
-                      <div className="flex items-center gap-1 flex-shrink-0">
+                      {/* Action buttons - fixed position, never wrap or move */}
+                      <div className="flex items-center gap-0.5 flex-shrink-0 ml-auto">
                         {/* Jalkalista button for wall measurements */}
                         {measurement.type === 'wall' && onAddJalkalista && (
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => onAddJalkalista(measurement)}
-                            className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
                             title="Lisää jalkalista maalaus"
                             data-testid={`jalkalista-btn-${measurement.id}`}
                           >
-                            <Footprints className="h-4 w-4" />
+                            <Footprints className="h-3.5 w-3.5" />
                           </Button>
                         )}
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => onCopy && onCopy(measurement)}
-                          className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
+                          className="h-7 w-7 p-0 text-blue-500 hover:text-blue-700"
                           title="Kopioi"
                           data-testid={`copy-btn-${measurement.id}`}
                         >
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => startEdit(measurement)}
-                          className="h-8 w-8 p-0"
+                          className="h-7 w-7 p-0"
                           title="Muokkaa"
                           data-testid={`edit-btn-${measurement.id}`}
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => onDelete(measurement.id)}
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                          className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
                           title="Poista"
                           data-testid={`delete-btn-${measurement.id}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
