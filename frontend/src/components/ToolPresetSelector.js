@@ -90,7 +90,8 @@ export const ToolPresetSelector = ({
       onSelect({
         label: preset.name,
         pricePerUnit: preset.price,
-        unit: preset.unit
+        unit: preset.unit,
+        isPystykotelot: preset.isPystykotelot || false
       });
     }
   };
@@ -100,7 +101,8 @@ export const ToolPresetSelector = ({
       onSelect({
         label: customName || 'Nimetön',
         pricePerUnit: selectedPreset.price,
-        unit: selectedPreset.unit
+        unit: selectedPreset.unit,
+        isPystykotelot: selectedPreset.isPystykotelot || false
       });
     }
   };
