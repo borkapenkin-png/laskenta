@@ -168,10 +168,10 @@ export const LeftSidebar = ({
                   onClick={() => {
                     const currentIndex = floors.findIndex(f => f.id === activeFloorId);
                     if (currentIndex > 0) {
-                      onFloorSelect(floors[currentIndex - 1].id);
+                      handleFloorClick(floors[currentIndex - 1].id);
                     }
                   }}
-                  disabled={floors.findIndex(f => f.id === activeFloorId) === 0}
+                  disabled={isNavigating || floors.findIndex(f => f.id === activeFloorId) === 0}
                   className="h-7 px-2"
                   data-testid="prev-floor-button"
                 >
@@ -187,10 +187,10 @@ export const LeftSidebar = ({
                   onClick={() => {
                     const currentIndex = floors.findIndex(f => f.id === activeFloorId);
                     if (currentIndex < floors.length - 1) {
-                      onFloorSelect(floors[currentIndex + 1].id);
+                      handleFloorClick(floors[currentIndex + 1].id);
                     }
                   }}
-                  disabled={floors.findIndex(f => f.id === activeFloorId) === floors.length - 1}
+                  disabled={isNavigating || floors.findIndex(f => f.id === activeFloorId) === floors.length - 1}
                   className="h-7 px-2"
                   data-testid="next-floor-button"
                 >
