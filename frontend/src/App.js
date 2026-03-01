@@ -531,10 +531,38 @@ function App() {
   };
 
   const handleSelectFloor = (floorId) => {
+    // Save current floor's scale before switching
+    if (scale) {
+      setFloors(prev => prev.map(f => 
+        f.id === activeFloorId 
+          ? { ...f, scale: scale }
+          : f
+      ));
+    }
+    
     setActiveFloorId(floorId);
     const floor = floors.find(f => f.id === floorId);
-    if (floor && floor.pageStart && pdfDocument) {
-      setCurrentPage(floor.pageStart);
+    
+    if (floor) {
+      // Load floor's PDF if it has one
+      if (floor.pdfDataUrl) {
+        // Convert data URL back to file-like object for PDFViewer
+        fetch(floor.pdfDataUrl)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], `floor-${floor.name}.pdf`, { type: 'application/pdf' });
+            setPdfFile(file);
+            setPdfDocument(floor.pdfDocument || null);
+          });
+      } else {
+        // No PDF for this floor
+        setPdfFile(null);
+        setPdfDocument(null);
+      }
+      
+      // Load floor's scale
+      setScale(floor.scale || null);
+      setCurrentPage(1);
     }
   };
 
