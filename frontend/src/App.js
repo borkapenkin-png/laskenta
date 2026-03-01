@@ -367,7 +367,17 @@ function App() {
 
     const summary = calculateSummary();
     exportToPDF(project, measurements, summary, settings);
-    toast.success('PDF-raportti luotu');
+    toast.success('PDF-raportti luotu (hinnoilla)');
+  };
+
+  const handleExportPDFQuantitiesOnly = () => {
+    if (measurements.length === 0) {
+      toast.error('Ei mittauksia vietäväksi');
+      return;
+    }
+
+    exportToPDFQuantitiesOnly(project, measurements, settings);
+    toast.success('PDF-raportti luotu (vain määrät)');
   };
 
   const calculateSummary = () => {
