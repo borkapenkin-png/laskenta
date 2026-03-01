@@ -71,8 +71,11 @@ const ALL_PRESETS = {
     { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   count: [
-    { id: 'count-1', name: 'Ovi', price: 25, unit: 'kpl' },
-    { id: 'count-2', name: 'Ikkuna', price: 20, unit: 'kpl' },
+    { id: 'count-1', name: 'Oven maalaus yheltä puolelta', price: 25, unit: 'kpl' },
+    { id: 'count-1b', name: 'Oven maalaus molemmilta puolelta', price: 45, unit: 'kpl' },
+    { id: 'count-2', name: 'Sisäikkuna sisäpuolelta', price: 20, unit: 'kpl' },
+    { id: 'count-2b', name: 'Sisäikkuna molemmilta puolelta', price: 35, unit: 'kpl' },
+    { id: 'count-2c', name: 'Sisä molemmin puolelta ja ulkoikkuna sisäpuolelta', price: 50, unit: 'kpl' },
     { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 0, unit: 'kpl', isKuivatilaPystykotelo: true },
     { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 0, unit: 'kpl', isPRHPystykotelo: true },
     { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'kpl', isPystykotelot: true },
