@@ -88,7 +88,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
               data-testid="tarjous-alv"
             />
             <Label htmlFor="sisallaAlv" className="text-sm cursor-pointer">
-              Näytä hinnat ALV:n kanssa (muuten ALV 0%)
+              Lisää ALV hintaan
             </Label>
           </div>
 
