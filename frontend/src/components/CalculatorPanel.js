@@ -120,9 +120,17 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange, onGl
                 type="number"
                 step="0.1"
                 value={settings?.defaultWallHeight || 2.6}
-                onChange={(e) => onSettingsChange({ ...settings, defaultWallHeight: parseFloat(e.target.value) || 2.6 })}
+                onChange={(e) => {
+                  const newHeight = parseFloat(e.target.value) || 2.6;
+                  onSettingsChange({ ...settings, defaultWallHeight: newHeight });
+                  // Also update all existing measurements
+                  if (onGlobalWallHeightChange) {
+                    onGlobalWallHeightChange(newHeight);
+                  }
+                }}
                 className="h-8"
               />
+              <p className="text-xs text-gray-400 mt-1">Muuttaa kaikkien seinien korkeuden</p>
             </div>
           </div>
         </div>
