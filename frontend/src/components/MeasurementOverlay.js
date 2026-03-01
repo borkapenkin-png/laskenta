@@ -322,14 +322,20 @@ export const MeasurementOverlay = ({
 
     let point = coords;
     if (snapEnabled && points.length > 0) {
-      point = snapToAngle(points[points.length - 1], point, 45);
+      // Convert last point back to screen coords for snap calculation
+      const lastScreenPoint = toScreenCoords(points[points.length - 1]);
+      point = snapToAngle(lastScreenPoint, point, 45);
     }
 
+    // Normalize the final point
+    const normalizedPoint = toNormalizedCoords(point);
+
     // Double click finishes the measurement
+    // Points are already in normalized coordinates
     if (currentTool === 'line' || currentTool === 'wall') {
       if (points.length >= 1) {
-        // Calculate total length of all segments
-        const allPoints = [...points, point];
+        // Calculate total length of all segments (in normalized coordinates)
+        const allPoints = [...points, normalizedPoint];
         let totalDistance = 0;
         for (let i = 0; i < allPoints.length - 1; i++) {
           totalDistance += calculateDistance(allPoints[i], allPoints[i + 1]);
@@ -346,7 +352,7 @@ export const MeasurementOverlay = ({
       }
     } else if (currentTool === 'polygon') {
       if (points.length >= 2) {
-        const allPoints = [...points, point];
+        const allPoints = [...points, normalizedPoint];
         const area = calculatePolygonArea(allPoints);
         const metersSquared = pixelsToMeters(Math.sqrt(area), scale) ** 2;
         
@@ -360,16 +366,16 @@ export const MeasurementOverlay = ({
       }
     } else if (currentTool === 'rectangle') {
       if (points.length === 1) {
-        const width = Math.abs(point.x - points[0].x);
-        const height = Math.abs(point.y - points[0].y);
+        const width = Math.abs(normalizedPoint.x - points[0].x);
+        const height = Math.abs(normalizedPoint.y - points[0].y);
         const area = width * height;
         const metersSquared = pixelsToMeters(Math.sqrt(area), scale) ** 2;
         
         const rectPoints = [
           points[0],
-          { x: point.x, y: points[0].y },
-          point,
-          { x: points[0].x, y: point.y }
+          { x: normalizedPoint.x, y: points[0].y },
+          normalizedPoint,
+          { x: points[0].x, y: normalizedPoint.y }
         ];
         
         onMeasurementComplete({
