@@ -93,7 +93,8 @@ export const ToolPresetSelector = ({
         label: preset.name,
         pricePerUnit: preset.price,
         unit: preset.unit,
-        isPystykotelot: preset.isPystykotelot || false
+        isPystykotelot: preset.isPystykotelot || false,
+        isRakennustyo: preset.isRakennustyo || false
       });
     }
   };
@@ -104,7 +105,8 @@ export const ToolPresetSelector = ({
         label: customName || 'Nimetön',
         pricePerUnit: selectedPreset.price,
         unit: selectedPreset.unit,
-        isPystykotelot: selectedPreset.isPystykotelot || false
+        isPystykotelot: selectedPreset.isPystykotelot || false,
+        isRakennustyo: selectedPreset.isRakennustyo || false
       });
     }
   };
