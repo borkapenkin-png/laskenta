@@ -37,6 +37,19 @@ Finnish painting/plastering companies who need to:
 - [x] Collapsible right panel (Määrälaskenta, Laskenta tabs)
 - [x] Project name input field (left sidebar top)
 
+### Project Save/Load (December 2025 - ENHANCED)
+- [x] **Complete project export to JSON** including:
+  - PDF file as base64 (automatically restored on load)
+  - All measurements with coordinates and properties
+  - Scale/calibration data
+  - View state (zoom, page)
+  - Project metadata with schema version
+- [x] **Project import with automatic PDF restoration**
+- [x] **Race condition handling** - measurements applied only after PDF ready
+- [x] **Legacy format support** - old projects still work
+- [x] **Autosave to localStorage** (measurements, scale, not PDF)
+- [x] **Validation and error handling** with user feedback
+
 ### Measurement Tools
 - [x] Line tool (jm)
 - [x] Rectangle tool (m²)
