@@ -197,25 +197,18 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
     yPos += 7;
   });
   
-  // Cost summary (only if prices included)
+  // Cost summary (only if prices included) - ALV 0% only
   if (includePrices) {
     yPos += 5;
-    const vatPercentage = settings?.vatPercentage || 25.5;
     const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
-    const vatAmount = totalCost * vatPercentage / 100;
-    const totalWithVat = totalCost + vatAmount;
     
     doc.setFont('helvetica', 'bold');
     doc.text('Yhteenveto', 20, yPos);
     yPos += 8;
     
     doc.setFont('helvetica', 'normal');
-    doc.text(`Yhteensä (ALV 0%): ${formatCurrency(totalCost)}`, 20, yPos);
-    yPos += 7;
-    doc.text(`ALV ${vatPercentage}%: ${formatCurrency(vatAmount)}`, 20, yPos);
-    yPos += 7;
     doc.setFont('helvetica', 'bold');
-    doc.text(`Yhteensä (sis. ALV): ${formatCurrency(totalWithVat)}`, 20, yPos);
+    doc.text(`Yhteensä (ALV 0%): ${formatCurrency(totalCost)}`, 20, yPos);
   }
   
   // Save
