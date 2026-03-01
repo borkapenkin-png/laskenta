@@ -342,15 +342,25 @@ function App() {
     }
   };
 
-  const handleSaveProject = () => {
-    const projectData = {
-      ...project,
-      measurements,
-      scale,
-      updatedAt: new Date().toISOString()
-    };
-    exportProjectToJSON(projectData);
-    toast.success('Projekti tallennettu');
+  const handleSaveProject = async () => {
+    try {
+      // Create complete project data with PDF included
+      const projectData = await createProjectData(
+        project,
+        measurements,
+        scale,
+        pdfFile,
+        currentPage,
+        { zoom },
+        settings
+      );
+      
+      await exportProjectToJSON(projectData);
+      toast.success('Projekti tallennettu tiedostoon');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error('Projektin tallennus epäonnistui');
+    }
   };
 
   const handleLoadProject = () => {
@@ -359,16 +369,89 @@ function App() {
 
   const handleProjectFileChange = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const loadedProject = await importProjectFromJSON(file);
-        setProject(loadedProject);
-        setMeasurements(loadedProject.measurements || []);
-        setScale(loadedProject.scale || null);
-        toast.success('Projekti ladattu onnistuneesti');
-      } catch (error) {
-        toast.error('Projektin lataaminen epäonnistui');
+    if (!file) return;
+    
+    // Reset input so same file can be selected again
+    e.target.value = '';
+    
+    setIsLoadingProject(true);
+    
+    try {
+      // Parse the JSON file
+      const rawData = await importProjectFromJSON(file);
+      
+      // Validate project data
+      const validation = validateProjectData(rawData);
+      if (validation.warnings.length > 0) {
+        validation.warnings.forEach(w => toast.warning(w));
       }
+      
+      // Parse into structured format
+      const parsed = parseProjectData(rawData);
+      
+      console.log('Loaded project:', parsed);
+      
+      // Update project metadata
+      setProject({
+        id: parsed.project.id,
+        name: parsed.project.name,
+        createdAt: parsed.project.createdAt,
+      });
+      
+      // Set scale
+      if (parsed.scale) {
+        setScale(parsed.scale);
+      }
+      
+      // Set view state
+      if (parsed.viewState?.zoom) {
+        setZoom(parsed.viewState.zoom);
+      }
+      
+      // Handle base file (PDF)
+      if (parsed.baseFile?.data) {
+        try {
+          // Convert base64 back to blob/file
+          const blob = base64ToBlob(parsed.baseFile.data);
+          if (blob) {
+            const pdfFileFromProject = new File(
+              [blob], 
+              parsed.baseFile.name || 'project.pdf',
+              { type: parsed.baseFile.type || 'application/pdf' }
+            );
+            
+            // Store measurements to apply after PDF loads
+            setPendingMeasurements(parsed.measurements);
+            
+            // Set page first, then file (file change will trigger PDF load)
+            setCurrentPage(parsed.baseFile.pageIndex || 1);
+            setPdfFile(pdfFileFromProject);
+            
+            toast.success(`Projekti "${parsed.project.name}" ladattu - ${parsed.measurements.length} mittausta`);
+          } else {
+            throw new Error('PDF-tiedoston muunnos epäonnistui');
+          }
+        } catch (pdfError) {
+          console.error('PDF restore error:', pdfError);
+          // Load measurements anyway, user can load PDF manually
+          setMeasurements(parsed.measurements);
+          toast.warning('PDF-pohja puuttuu - lataa PDF erikseen. Mittaukset palautettu.');
+        }
+      } else if (parsed.isLegacy) {
+        // Legacy project without PDF
+        setMeasurements(parsed.measurements);
+        toast.warning('Vanha projektiversio - lataa PDF erikseen mittausten näyttämiseksi');
+      } else {
+        // No PDF in project
+        setMeasurements(parsed.measurements);
+        toast.info('Projekti ladattu - lataa PDF nähdäksesi mittaukset');
+      }
+      
+    } catch (error) {
+      console.error('Load error:', error);
+      toast.error(`Projektin lataaminen epäonnistui: ${error.message}`);
+    } finally {
+      setIsLoadingProject(false);
     }
   };
 
