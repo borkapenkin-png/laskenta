@@ -802,7 +802,14 @@ function App() {
         className="hidden"
       />
 
-      <Toaster position="top-right" />
+      <Toaster 
+        position="top-right" 
+        closeButton
+        toastOptions={{
+          duration: 4000,
+          className: 'toast-notification',
+        }}
+      />
     </div>
   );
 }
