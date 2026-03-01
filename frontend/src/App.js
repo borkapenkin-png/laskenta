@@ -466,13 +466,22 @@ function App() {
   };
 
   const handleExportPDF = (includePrices) => {
+    // Dismiss any existing PDF toast first
+    toast.dismiss('pdf-export');
+    
     if (includePrices) {
       const summary = calculateSummary();
       exportToPDF(project, measurements, summary, settings);
-      toast.success('PDF-raportti luotu (hinnoilla)');
+      toast.success('PDF luotu (hinnoilla)', { 
+        id: 'pdf-export',
+        duration: 3000 
+      });
     } else {
       exportToPDFQuantitiesOnly(project, measurements, settings);
-      toast.success('PDF-raportti luotu (vain määrät)');
+      toast.success('PDF luotu (vain määrät)', { 
+        id: 'pdf-export',
+        duration: 3000 
+      });
     }
   };
 
