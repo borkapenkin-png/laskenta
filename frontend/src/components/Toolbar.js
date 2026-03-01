@@ -287,10 +287,25 @@ export const Toolbar = ({
                   onClick={onExportPDF}
                 >
                   <FileDown className="h-4 w-4 mr-2" />
+                  PDF €
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>PDF hinnoilla</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="export-pdf-quantities-button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onExportPDFQuantitiesOnly}
+                >
+                  <FileDown className="h-4 w-4 mr-2" />
                   PDF
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Luo PDF-raportti</TooltipContent>
+              <TooltipContent>PDF vain määrillä (aliurakoitsijoille)</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </div>
