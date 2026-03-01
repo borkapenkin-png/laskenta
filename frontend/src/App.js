@@ -371,6 +371,24 @@ function App() {
     toast.success('PDF-raportti luotu (vain määrät)');
   };
 
+  const handleCreateTarjous = () => {
+    if (measurements.length === 0) {
+      toast.error('Ei mittauksia - lisää mittauksia ensin');
+      return;
+    }
+    setTarjousDialogOpen(true);
+  };
+
+  const handleGenerateTarjous = async (tarjousData) => {
+    try {
+      await exportTarjousPDF(project, measurements, settings, tarjousData);
+      toast.success('Tarjous PDF luotu!');
+    } catch (error) {
+      console.error('Tarjous generation error:', error);
+      toast.error('Tarjouksen luominen epäonnistui');
+    }
+  };
+
   const calculateSummary = () => {
     let totalCost = 0;
 
