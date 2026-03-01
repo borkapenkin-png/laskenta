@@ -633,16 +633,36 @@ export const TakeoffPanel = ({
                       </div>
                     </div>
                   ) : (
-                    // View mode - Two row layout: title+buttons on row 1, details on row 2
-                    <div className="space-y-1">
-                      {/* Row 1: Title and action buttons */}
-                      <div className="flex items-center">
-                        <div className="font-medium text-sm truncate flex-1 min-w-0 pr-2" title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}>
-                          {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
+                    // View mode - Bulletproof layout: buttons always visible
+                    <div>
+                      {/* Row 1: Title and action buttons with fixed layout */}
+                      <div className="flex items-start">
+                        {/* Text area - takes remaining space, truncates */}
+                        <div className="flex-1 min-w-0 overflow-hidden" style={{ maxWidth: 'calc(100% - 100px)' }}>
+                          <div 
+                            className="font-medium text-sm truncate" 
+                            title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
+                          >
+                            {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
+                          </div>
+                          {/* Details row */}
+                          <div className="text-xs text-gray-500 truncate">
+                            {formatNumber(calc.effectiveQuantity)} {measurement.unit}
+                            {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
+                              <span className="ml-1 text-gray-400">
+                                × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
+                              </span>
+                            )}
+                            {measurement.hasRankaKipsi && (
+                              <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
+                                ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
+                                {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        {/* Action buttons - always visible on the right */}
-                        <div className="flex items-center flex-shrink-0">
-                          {/* Jalkalista button for wall measurements */}
+                        {/* Action buttons - FIXED 100px width, always visible */}
+                        <div className="flex items-center justify-end" style={{ width: '100px', minWidth: '100px' }}>
                           {measurement.type === 'wall' && onAddJalkalista && (
                             <Button
                               size="sm"
@@ -669,7 +689,7 @@ export const TakeoffPanel = ({
                             size="sm"
                             variant="ghost"
                             onClick={() => startEdit(measurement)}
-                            className="h-6 w-6 p-0"
+                            className="h-6 w-6 p-0 text-gray-600 hover:text-gray-800"
                             title="Muokkaa"
                             data-testid={`edit-btn-${measurement.id}`}
                           >
@@ -686,22 +706,6 @@ export const TakeoffPanel = ({
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
-                      </div>
-                      {/* Row 2: Details */}
-                      <div className="text-xs text-gray-500 truncate">
-                        {formatNumber(calc.effectiveQuantity)} {measurement.unit}
-                        {/* For Pystykotelot: show kpl × height = jm */}
-                        {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
-                          <span className="ml-1 text-gray-400">
-                            × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
-                          </span>
-                        )}
-                        {measurement.hasRankaKipsi && (
-                          <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
-                            ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
-                            {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
-                          </span>
-                        )}
                       </div>
                     </div>
                   )}
