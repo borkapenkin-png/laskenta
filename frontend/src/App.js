@@ -141,21 +141,26 @@ function App() {
     setMeasurements([]);
   }, []);
 
+  // Autosave to localStorage (without PDF data to avoid quota issues)
   useEffect(() => {
     const saveData = () => {
       if (project && measurements.length > 0) {
-        saveProject({
-          ...project,
-          measurements,
-          scale,
-          updatedAt: new Date().toISOString()
-        });
+        saveAutosave(project, measurements, scale, currentPage);
       }
     };
 
-    const timeoutId = setTimeout(saveData, 1000);
+    const timeoutId = setTimeout(saveData, 2000);
     return () => clearTimeout(timeoutId);
-  }, [measurements, project, scale]);
+  }, [measurements, project, scale, currentPage]);
+
+  // When PDF document is ready and we have pending measurements, apply them
+  useEffect(() => {
+    if (pdfDocument && pendingMeasurements && !isLoadingProject) {
+      console.log('PDF ready, applying pending measurements:', pendingMeasurements.length);
+      setMeasurements(pendingMeasurements);
+      setPendingMeasurements(null);
+    }
+  }, [pdfDocument, pendingMeasurements, isLoadingProject]);
 
   useEffect(() => {
     if (settings) {
