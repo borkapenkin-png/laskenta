@@ -680,7 +680,7 @@ function App() {
             scale={scale}
             onScaleChange={setScale}
             currentTool={currentTool}
-            onPdfLoad={setPdfDocument}
+            onPdfLoad={handlePdfDocumentLoad}
             onMeasurementComplete={handleMeasurementComplete}
             measurements={currentFloorMeasurements}
             selectedMeasurementId={selectedMeasurementId}
