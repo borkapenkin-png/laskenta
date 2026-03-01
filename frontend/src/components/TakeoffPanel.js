@@ -135,12 +135,39 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-gray-500">Nimi / Kuvaus</label>
-                        <Input
-                          value={editData.label || ''}
-                          onChange={(e) => setEditData({ ...editData, label: e.target.value })}
-                          placeholder="Esim. Seinämaalaus"
-                          className="h-8"
-                        />
+                        {editData.isRakennustyo ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" className="w-full h-8 justify-between">
+                                {editData.label || 'Valitse rakennustyyppi'}
+                                <ChevronDown className="h-4 w-4 ml-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-56">
+                              <DropdownMenuLabel>Rakennustyypit</DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              {RAKENNUSTYO_PRESETS.map((preset) => (
+                                <DropdownMenuItem
+                                  key={preset.name}
+                                  onClick={() => setEditData({ ...editData, label: preset.name, pricePerUnit: preset.price })}
+                                >
+                                  {preset.name}
+                                </DropdownMenuItem>
+                              ))}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setEditData({ ...editData, isRakennustyo: false })}>
+                                Syötä oma nimi...
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <Input
+                            value={editData.label || ''}
+                            onChange={(e) => setEditData({ ...editData, label: e.target.value })}
+                            placeholder="Esim. Seinämaalaus"
+                            className="h-8"
+                          />
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
