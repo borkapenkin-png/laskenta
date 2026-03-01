@@ -276,6 +276,221 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                         </div>
                       )}
 
+                      {/* PRH Rakennus settings */}
+                      {editData.isPRHRakennus && (
+                        <div className="space-y-2 p-2 bg-purple-50 rounded-lg">
+                          <div className="text-xs font-medium text-purple-800">PRH asetukset</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Kuivatila AK settings */}
+                      {editData.isKuivatilaAK && (
+                        <div className="space-y-2 p-2 bg-blue-50 rounded-lg">
+                          <div className="text-xs font-medium text-blue-800">Kuivatila AK asetukset</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Märkätila AK settings */}
+                      {editData.isMarkatilaAK && (
+                        <div className="space-y-2 p-2 bg-cyan-50 rounded-lg">
+                          <div className="text-xs font-medium text-cyan-800">Märkätila AK asetukset</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 pt-1">
+                            <input
+                              type="checkbox"
+                              checked={editData.lagiPaneeli || false}
+                              onChange={(e) => setEditData({ ...editData, lagiPaneeli: e.target.checked })}
+                              className="w-4 h-4"
+                            />
+                            <label className="text-xs text-gray-600">Lagi panelilla</label>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PRH AK settings */}
+                      {editData.isPRHAK && (
+                        <div className="space-y-2 p-2 bg-purple-50 rounded-lg">
+                          <div className="text-xs font-medium text-purple-800">PRH AK asetukset</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Kuivatila Pystykotelo settings */}
+                      {editData.isKuivatilaPystykotelo && (
+                        <div className="space-y-2 p-2 bg-blue-50 rounded-lg">
+                          <div className="text-xs font-medium text-blue-800">Kuivatila pystykotelo asetukset</div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Korkeus (m)</label>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                value={editData.wallHeight || 2.6}
+                                onChange={(e) => setEditData({ ...editData, wallHeight: parseFloat(e.target.value) || 2.6 })}
+                                className="h-8"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PRH Pystykotelo settings */}
+                      {editData.isPRHPystykotelo && (
+                        <div className="space-y-2 p-2 bg-purple-50 rounded-lg">
+                          <div className="text-xs font-medium text-purple-800">PRH pystykotelo asetukset</div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Korkeus (m)</label>
+                              <Input
+                                type="number"
+                                step="0.1"
+                                value={editData.wallHeight || 2.6}
+                                onChange={(e) => setEditData({ ...editData, wallHeight: parseFloat(e.target.value) || 2.6 })}
+                                className="h-8"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <label className="text-xs text-gray-500">Hinta (€ / {editData.unit || 'yks'})</label>
                         <Input
