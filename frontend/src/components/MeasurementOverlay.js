@@ -270,9 +270,12 @@ export const MeasurementOverlay = ({
 
     // If no tool selected, try to select a measurement
     if (!currentTool) {
+      // Convert click coords to normalized for hit testing
+      const normalizedCoords = toNormalizedCoords(coords);
       for (let i = measurements.length - 1; i >= 0; i--) {
         const measurement = measurements[i];
-        if (hitTestMeasurement(coords, measurement, 12)) {
+        // Adjust threshold based on zoom
+        if (hitTestMeasurement(normalizedCoords, measurement, 12 / currentZoom)) {
           console.log('Selected measurement:', measurement.id);
           if (onMeasurementSelect) {
             onMeasurementSelect(measurement.id);
