@@ -444,3 +444,91 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   const fileName = `Tarjous_${tarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${today.replace(/\./g, '-')}.pdf`;
   doc.save(fileName);
 };
+
+// Export PDF per floor
+export const exportFloorPDF = (project, measurements, floor, settings) => {
+  const doc = new jsPDF();
+  const grouped = groupMeasurements(measurements);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Title
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text('KERROSKOHTAINEN MÄÄRÄLASKENTA', 105, 20, { align: 'center' });
+  
+  // Project and floor info
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Projekti: ${project.name || 'Nimetön projekti'}`, 20, 35);
+  doc.text(`Kerros: ${floor.name}`, 20, 42);
+  doc.text(`Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}`, 20, 49);
+  
+  // Table data - grouped by type, prices as ALV 0%
+  const tableHeaders = [['Tyyppi', 'Määrä', 'Yksikkö', 'Hinta €/yks (ALV 0%)', 'Yhteensä € (ALV 0%)']];
+  const tableData = grouped.map(g => [
+    g.label,
+    formatNumber(g.totalQuantity),
+    g.unit,
+    formatNumber(g.pricePerUnit),
+    formatNumber(g.totalCost)
+  ]);
+
+  autoTable(doc, {
+    startY: 60,
+    head: tableHeaders,
+    body: tableData,
+    styles: { 
+      fontSize: 9,
+      cellPadding: 3
+    },
+    headStyles: { 
+      fillColor: [0, 82, 204],
+      textColor: 255,
+      fontStyle: 'bold'
+    },
+    alternateRowStyles: {
+      fillColor: [245, 247, 250]
+    },
+    columnStyles: {
+      0: { cellWidth: 70 },
+      1: { halign: 'right', cellWidth: 25 },
+      2: { cellWidth: 20 },
+      3: { halign: 'right', cellWidth: 30 },
+      4: { halign: 'right', cellWidth: 35 }
+    }
+  });
+
+  // Summary section
+  const finalY = doc.lastAutoTable.finalY + 15;
+  const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('YHTEENVETO', 20, finalY);
+  
+  doc.setFontSize(10);
+  let yPos = finalY + 10;
+  
+  // Quantity summary by unit
+  const quantityByUnit = {};
+  grouped.forEach(g => {
+    if (!quantityByUnit[g.unit]) {
+      quantityByUnit[g.unit] = 0;
+    }
+    quantityByUnit[g.unit] += g.totalQuantity;
+  });
+  
+  doc.setFont('helvetica', 'normal');
+  Object.entries(quantityByUnit).forEach(([unit, qty]) => {
+    doc.text(`${unit}: ${formatNumber(qty)}`, 20, yPos);
+    yPos += 7;
+  });
+  
+  yPos += 5;
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Yhteensä (ALV 0%): ${formatCurrency(totalCost)}`, 20, yPos);
+  
+  // Save
+  const floorName = floor.name.replace(/\s+/g, '_').replace(/\./g, '');
+  doc.save(`${project.name || 'projekti'}_${floorName}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`);
+};
