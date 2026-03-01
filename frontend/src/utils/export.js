@@ -231,16 +231,17 @@ const BRAND_TEAL = [74, 155, 173]; // #4A9BAD
 const BRAND_GRAY = [128, 128, 128];
 
 // Export professional tarjous (offer/quote) PDF
-export const exportTarjousPDF = async (project, measurements, settings, tarjousData) => {
+export const exportTarjousPDF = (project, measurements, settings, tarjousData) => {
   const doc = new jsPDF();
   const grouped = groupMeasurements(measurements);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   
-  // Calculate totals
+  // Calculate totals - use ALV 0% if sisallaAlv is false
   const vatPercentage = settings?.vatPercentage || 25.5;
+  const showWithVat = tarjousData.sisallaAlv !== false; // default to true
   const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
-  const vatAmount = totalCost * vatPercentage / 100;
+  const vatAmount = showWithVat ? totalCost * vatPercentage / 100 : 0;
   const totalWithVat = totalCost + vatAmount;
   
   // Add logo from base64
