@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-export const LeftSidebar = ({ pdfDocument, currentPage, onPageChange, isOpen, onToggle }) => {
+export const LeftSidebar = ({ pdfDocument, currentPage, onPageChange, isOpen, onToggle, projectName, onProjectNameChange }) => {
   const containerRef = useRef(null);
   const [thumbnails, setThumbnails] = useState([]);
   const [containerWidth, setContainerWidth] = useState(0);
