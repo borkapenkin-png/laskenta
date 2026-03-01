@@ -656,6 +656,13 @@ function App() {
         }}
       />
 
+      <TarjousDialog
+        open={tarjousDialogOpen}
+        onClose={() => setTarjousDialogOpen(false)}
+        onGenerate={handleGenerateTarjous}
+        projectName={project.name}
+      />
+
       <input
         ref={fileInputRef}
         type="file"
