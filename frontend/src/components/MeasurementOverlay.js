@@ -206,7 +206,13 @@ export const MeasurementOverlay = ({
       
       let label = '';
       if (measurement.quantity) {
-        label = `${measurement.quantity.toFixed(2)} ${measurement.unit}`;
+        // For Pystykotelot: show "X × Ym = Z jm" format
+        if ((measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight) {
+          const totalJm = measurement.quantity * measurement.wallHeight;
+          label = `${measurement.quantity} × ${measurement.wallHeight}m = ${totalJm.toFixed(2)} jm`;
+        } else {
+          label = `${measurement.quantity.toFixed(2)} ${measurement.unit}`;
+        }
       }
       
       if (label) {
