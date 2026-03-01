@@ -128,7 +128,7 @@ export const Toolbar = ({
                       data-testid={tool.testId}
                       variant={isActive ? 'default' : 'ghost'}
                       size="sm"
-                      onClick={() => onToolSelect(tool.id)}
+                      onClick={(e) => onToolSelect(tool.id, e)}
                       className={isActive ? 'bg-[#0052CC] text-white' : ''}
                     >
                       <Icon className="h-4 w-4" />
