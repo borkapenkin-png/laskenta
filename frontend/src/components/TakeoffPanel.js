@@ -185,42 +185,73 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                   {isEditing ? (
                     // Edit mode
                     <div className="space-y-3">
+                      {/* Preset type selector */}
                       <div>
-                        <label className="text-xs text-gray-500">Nimi / Kuvaus</label>
-                        {editData.isRakennustyo ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" className="w-full h-8 justify-between">
-                                {editData.label || 'Valitse rakennustyyppi'}
-                                <ChevronDown className="h-4 w-4 ml-2" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56">
-                              <DropdownMenuLabel>Rakennustyypit</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              {RAKENNUSTYO_PRESETS.map((preset) => (
-                                <DropdownMenuItem
-                                  key={preset.name}
-                                  onClick={() => setEditData({ ...editData, label: preset.name, pricePerUnit: preset.price })}
-                                >
-                                  {preset.name}
-                                </DropdownMenuItem>
-                              ))}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => setEditData({ ...editData, isRakennustyo: false })}>
-                                Syötä oma nimi...
+                        <label className="text-xs text-gray-500">Tyyppi</label>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="w-full h-8 justify-between text-left">
+                              <span className="truncate">{editData.label || 'Valitse tyyppi'}</span>
+                              <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="w-64 max-h-80 overflow-y-auto">
+                            <DropdownMenuLabel>Vaihda tyyppi</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {(ALL_PRESETS[editData.type] || ALL_PRESETS.rectangle).map((preset) => (
+                              <DropdownMenuItem
+                                key={preset.id}
+                                onClick={() => {
+                                  // Reset special flags and apply new preset
+                                  const newData = {
+                                    ...editData,
+                                    label: preset.name,
+                                    pricePerUnit: preset.price,
+                                    unit: preset.unit,
+                                    // Reset all special flags
+                                    isPystykotelot: false,
+                                    isRakennustyo: false,
+                                    isKuivatilaRakennus: false,
+                                    isPRHRakennus: false,
+                                    isKuivatilaAK: false,
+                                    isMarkatilaAK: false,
+                                    isPRHAK: false,
+                                    isKuivatilaPystykotelo: false,
+                                    isPRHPystykotelo: false,
+                                    isCustom: false,
+                                    // Apply new preset flags
+                                    ...(preset.isPystykotelot && { isPystykotelot: true }),
+                                    ...(preset.isKuivatilaRakennus && { isKuivatilaRakennus: true }),
+                                    ...(preset.isPRHRakennus && { isPRHRakennus: true }),
+                                    ...(preset.isKuivatilaAK && { isKuivatilaAK: true }),
+                                    ...(preset.isMarkatilaAK && { isMarkatilaAK: true }),
+                                    ...(preset.isPRHAK && { isPRHAK: true }),
+                                    ...(preset.isKuivatilaPystykotelo && { isKuivatilaPystykotelo: true }),
+                                    ...(preset.isPRHPystykotelo && { isPRHPystykotelo: true }),
+                                    ...(preset.isCustom && { isCustom: true }),
+                                  };
+                                  setEditData(newData);
+                                }}
+                              >
+                                {preset.name}
                               </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      {/* Custom name input - only shown for "Muu" type */}
+                      {editData.isCustom && (
+                        <div>
+                          <label className="text-xs text-gray-500">Nimi / Kuvaus</label>
                           <Input
                             value={editData.label || ''}
                             onChange={(e) => setEditData({ ...editData, label: e.target.value })}
                             placeholder="Esim. Seinämaalaus"
                             className="h-8"
                           />
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-2">
                         <div>
