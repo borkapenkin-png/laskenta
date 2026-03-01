@@ -170,6 +170,7 @@ function App() {
   const handleMeasurementComplete = (measurement) => {
     // Check if this is a Pystykotelot measurement (from count tool with isPystykotelot flag)
     const isPystykotelot = pendingPreset?.isPystykotelot || false;
+    const isRakennustyo = pendingPreset?.isRakennustyo || false;
     
     const newMeasurement = {
       ...measurement,
@@ -181,6 +182,7 @@ function App() {
       // Wall and Pystykotelot have height
       wallHeight: (measurement.type === 'wall' || isPystykotelot) ? (settings?.defaultWallHeight || 2.6) : null,
       isPystykotelot: isPystykotelot,
+      isRakennustyo: isRakennustyo,
       bothSides: false,
       openings: 0,
       page: currentPage
