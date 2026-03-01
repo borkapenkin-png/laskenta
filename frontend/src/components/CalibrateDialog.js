@@ -29,13 +29,18 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
   const [calibrationMode, setCalibrationMode] = useState('preset');
 
   // Calculate pixelsPerMeter based on actual PDF rendering DPI
+  // IMPORTANT: We need to calculate for zoom=1 (normalized coordinates)
   const calculatePixelsPerMeter = (scaleValue) => {
-    // Get actual DPI from PDF rendering, default to 72 if not available
+    // Get actual DPI from PDF rendering
     const actualDPI = pdfRenderInfo?.actualDPI || 72;
+    const currentZoom = pdfRenderInfo?.zoom || 1;
     
-    // Calculate actual pixels per cm based on DPI
+    // Calculate base DPI (at zoom=1) - this is what we store measurements in
+    const baseDPI = actualDPI / currentZoom;
+    
+    // Calculate actual pixels per cm based on base DPI
     // 1 inch = 2.54 cm, so pixels per cm = DPI / 2.54
-    const pixelsPerCm = actualDPI / 2.54;
+    const pixelsPerCm = baseDPI / 2.54;
     
     // For a 1:X scale drawing:
     // 1 cm on drawing = X cm in real life = X/100 meters
@@ -43,7 +48,7 @@ export const CalibrateDialog = ({ open, onClose, onCalibrate, onStartCalibration
     // Therefore: pixelsPerMeter = pixelsPerCm / (X/100) = pixelsPerCm * 100 / X
     const pixelsPerMeter = (pixelsPerCm * 100) / scaleValue;
     
-    console.log(`Scale 1:${scaleValue}, DPI: ${actualDPI}, px/cm: ${pixelsPerCm.toFixed(2)}, px/m: ${pixelsPerMeter.toFixed(2)}`);
+    console.log(`Scale 1:${scaleValue}, BaseDPI: ${baseDPI.toFixed(0)}, Zoom: ${currentZoom}, px/cm: ${pixelsPerCm.toFixed(2)}, px/m: ${pixelsPerMeter.toFixed(2)}`);
     
     return pixelsPerMeter;
   };
