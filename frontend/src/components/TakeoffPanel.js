@@ -633,74 +633,75 @@ export const TakeoffPanel = ({
                       </div>
                     </div>
                   ) : (
-                    // View mode - No prices shown, action buttons always visible
-                    <div className="flex items-center gap-2" style={{ minHeight: '40px' }}>
-                      {/* Description area - truncates when too long */}
-                      <div className="flex-1 min-w-0 overflow-hidden pr-2">
-                        <div className="font-medium text-sm truncate" title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}>
+                    // View mode - Two row layout: title+buttons on row 1, details on row 2
+                    <div className="space-y-1">
+                      {/* Row 1: Title and action buttons */}
+                      <div className="flex items-center">
+                        <div className="font-medium text-sm truncate flex-1 min-w-0 pr-2" title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}>
                           {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {formatNumber(calc.effectiveQuantity)} {measurement.unit}
-                          {/* For Pystykotelot: show kpl × height = jm */}
-                          {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
-                            <span className="ml-1 text-gray-400">
-                              × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
-                            </span>
+                        {/* Action buttons - always visible on the right */}
+                        <div className="flex items-center flex-shrink-0">
+                          {/* Jalkalista button for wall measurements */}
+                          {measurement.type === 'wall' && onAddJalkalista && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => onAddJalkalista(measurement)}
+                              className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                              title="Lisää jalkalista maalaus"
+                              data-testid={`jalkalista-btn-${measurement.id}`}
+                            >
+                              <Footprints className="h-3.5 w-3.5" />
+                            </Button>
                           )}
-                          {measurement.hasRankaKipsi && (
-                            <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
-                              ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
-                              {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      {/* Action buttons - fixed position, never wrap or move */}
-                      <div className="flex items-center gap-0.5 flex-shrink-0 ml-auto">
-                        {/* Jalkalista button for wall measurements */}
-                        {measurement.type === 'wall' && onAddJalkalista && (
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onAddJalkalista(measurement)}
-                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                            title="Lisää jalkalista maalaus"
-                            data-testid={`jalkalista-btn-${measurement.id}`}
+                            onClick={() => onCopy && onCopy(measurement)}
+                            className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                            title="Kopioi"
+                            data-testid={`copy-btn-${measurement.id}`}
                           >
-                            <Footprints className="h-3.5 w-3.5" />
+                            <Copy className="h-3.5 w-3.5" />
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEdit(measurement)}
+                            className="h-6 w-6 p-0"
+                            title="Muokkaa"
+                            data-testid={`edit-btn-${measurement.id}`}
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onDelete(measurement.id)}
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                            title="Poista"
+                            data-testid={`delete-btn-${measurement.id}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Row 2: Details */}
+                      <div className="text-xs text-gray-500 truncate">
+                        {formatNumber(calc.effectiveQuantity)} {measurement.unit}
+                        {/* For Pystykotelot: show kpl × height = jm */}
+                        {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
+                          <span className="ml-1 text-gray-400">
+                            × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
+                          </span>
                         )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onCopy && onCopy(measurement)}
-                          className="h-7 w-7 p-0 text-blue-500 hover:text-blue-700"
-                          title="Kopioi"
-                          data-testid={`copy-btn-${measurement.id}`}
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => startEdit(measurement)}
-                          className="h-7 w-7 p-0"
-                          title="Muokkaa"
-                          data-testid={`edit-btn-${measurement.id}`}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onDelete(measurement.id)}
-                          className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
-                          title="Poista"
-                          data-testid={`delete-btn-${measurement.id}`}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {measurement.hasRankaKipsi && (
+                          <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
+                            ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
+                            {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}
