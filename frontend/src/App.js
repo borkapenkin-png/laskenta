@@ -165,12 +165,38 @@ function App() {
   const handlePdfFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
-      setPdfFile(file);
-      setCurrentPage(1);
-      toast.success('PDF ladattu onnistuneesti');
+      // Convert file to data URL for storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const pdfDataUrl = event.target.result;
+        
+        // Store PDF in the active floor
+        setFloors(prev => prev.map(f => 
+          f.id === activeFloorId 
+            ? { ...f, pdfDataUrl: pdfDataUrl }
+            : f
+        ));
+        
+        setPdfFile(file);
+        setCurrentPage(1);
+        toast.success(`PDF ladattu kerrokseen "${floors.find(f => f.id === activeFloorId)?.name}"`);
+      };
+      reader.readAsDataURL(file);
     } else {
       toast.error('Valitse kelvollinen PDF-tiedosto');
     }
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
+
+  // Store pdfDocument in floor when it loads
+  const handlePdfDocumentLoad = (doc) => {
+    setPdfDocument(doc);
+    setFloors(prev => prev.map(f => 
+      f.id === activeFloorId 
+        ? { ...f, pdfDocument: doc }
+        : f
+    ));
   };
 
   const handleMeasurementComplete = (measurement) => {
