@@ -290,24 +290,27 @@ export const MeasurementOverlay = ({
       point = snapToAngle(points[points.length - 1], point, 45);
     }
 
+    // Normalize point to zoom=1 coordinates for storage
+    const normalizedPoint = toNormalizedCoords(point);
+
     // All tools: single click adds a point
     if (currentTool === 'count') {
       // Count tool: single click completes immediately
       onMeasurementComplete({
         type: 'count',
-        points: [point],
+        points: [normalizedPoint],
         quantity: 1,
         unit: 'kpl'
       });
     } else if (currentTool === 'rectangle') {
       // Rectangle: 2 clicks (corners)
       if (points.length === 0) {
-        setPoints([point]);
+        setPoints([normalizedPoint]);
       }
       // Second click handled in handleDoubleClick or next single click
     } else {
       // Line, wall, polygon: add point on single click
-      setPoints(prev => [...prev, point]);
+      setPoints(prev => [...prev, normalizedPoint]);
     }
   };
 
