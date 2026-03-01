@@ -469,6 +469,7 @@ function App() {
 
   // Floor management functions
   const handleAddFloor = () => {
+    const numPages = pdfDocument?.numPages || 0;
     const newFloor = {
       id: `floor-${Date.now()}`,
       name: `${floors.length + 1}. kerros`,
