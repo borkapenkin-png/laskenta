@@ -36,23 +36,39 @@ export const PDFViewer = ({
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (!pdfFile) return;
+    if (!pdfFile) {
+      setPdfDocument(null);
+      setNumPages(0);
+      return;
+    }
+
+    let cancelled = false;
 
     const loadPdf = async () => {
       try {
         const arrayBuffer = await pdfFile.arrayBuffer();
+        if (cancelled) return;
+        
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        if (cancelled) return;
+        
         setPdfDocument(pdf);
         setNumPages(pdf.numPages);
         if (onPdfLoad) {
           onPdfLoad(pdf);
         }
       } catch (error) {
-        console.error('Error loading PDF:', error);
+        if (!cancelled) {
+          console.error('Error loading PDF:', error);
+        }
       }
     };
 
     loadPdf();
+    
+    return () => {
+      cancelled = true;
+    };
   }, [pdfFile, onPdfLoad]);
 
   useEffect(() => {
