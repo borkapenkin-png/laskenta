@@ -553,6 +553,7 @@ function App() {
                   onUpdate={handleUpdateMeasurement}
                   onDelete={handleDeleteMeasurement}
                   onCopy={handleCopyMeasurement}
+                  onAddJalkalista={handleAddJalkalista}
                   settings={settings}
                   selectedMeasurementId={selectedMeasurementId}
                   onMeasurementSelect={setSelectedMeasurementId}
