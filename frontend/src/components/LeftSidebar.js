@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const LeftSidebar = ({ pdfDocument, currentPage, onPageChange, isOpen, onToggle, projectName, onProjectNameChange }) => {
