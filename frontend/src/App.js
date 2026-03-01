@@ -482,7 +482,6 @@ function App() {
         onCalibrate={() => setCalibrateDialogOpen(true)}
         onSaveProject={handleSaveProject}
         onLoadProject={handleLoadProject}
-        onExportCSV={handleExportCSV}
         onExportPDF={handleExportPDF}
         onExportPDFQuantitiesOnly={handleExportPDFQuantitiesOnly}
         currentTool={currentTool}
