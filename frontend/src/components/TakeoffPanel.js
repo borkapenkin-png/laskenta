@@ -73,9 +73,9 @@ const ALL_PRESETS = {
   count: [
     { id: 'count-1', name: 'Ovi', price: 25, unit: 'kpl' },
     { id: 'count-2', name: 'Ikkuna', price: 20, unit: 'kpl' },
-    { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 0, unit: 'jm', isKuivatilaPystykotelo: true },
-    { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 0, unit: 'jm', isPRHPystykotelo: true },
-    { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'jm', isPystykotelot: true },
+    { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 0, unit: 'kpl', isKuivatilaPystykotelo: true },
+    { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 0, unit: 'kpl', isPRHPystykotelo: true },
+    { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'kpl', isPystykotelot: true },
     { id: 'count-other', name: 'Muu', price: 0, unit: 'kpl', isCustom: true }
   ]
 };
@@ -113,6 +113,7 @@ export const TakeoffPanel = ({
   // Simple calculation: quantity * price
   const calculateRow = (m) => {
     let effectiveQuantity = m.quantity || 0;
+    let displayUnit = m.unit || 'kpl';
 
     // For wall type: convert running meters to m² if height is set
     if (m.type === 'wall' && m.wallHeight) {
@@ -121,12 +122,13 @@ export const TakeoffPanel = ({
       effectiveQuantity = bruttoM2 - openings;
     }
     
-    // For Pystykotelot: show jm but calculate total based on height for display
-    // Price is per jm, so we use original quantity for cost
+    // For Pystykotelot types: kpl × height = jm (running meters)
+    // Display shows kpl count, but also calculate total jm
+    let totalJm = null;
     let costQuantity = m.quantity || 0;
-    if (m.isPystykotelot && m.wallHeight) {
-      // Display shows total m² but price is per jm
-      effectiveQuantity = m.quantity; // Keep original jm for display
+    if ((m.isPystykotelot || m.isKuivatilaPystykotelo || m.isPRHPystykotelo) && m.wallHeight) {
+      totalJm = m.quantity * m.wallHeight; // kpl × height = jm
+      costQuantity = totalJm; // Price is per jm, so cost is based on total jm
     }
 
     const pricePerUnit = m.pricePerUnit || 0;
@@ -134,9 +136,10 @@ export const TakeoffPanel = ({
 
     return {
       effectiveQuantity,
+      displayUnit,
       totalCost,
-      // For Pystykotelot, also calculate total m² for info
-      totalM2: m.isPystykotelot && m.wallHeight ? m.quantity * m.wallHeight : null
+      // For Pystykotelot, show total jm (kpl × height)
+      totalJm
     };
   };
 
