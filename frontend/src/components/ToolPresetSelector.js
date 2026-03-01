@@ -6,9 +6,9 @@ import { X } from 'lucide-react';
 // Default presets for each tool type
 const DEFAULT_PRESETS = {
   line: [
-    { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 0, unit: 'jm', isKuivatilaRakennus: true },
+    { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 35, unit: 'jm', isKuivatilaRakennus: true },
     { id: 'line-2', name: 'Kuivatila kotelot tasoitus ja maalaus', price: 45, unit: 'jm' },
-    { id: 'line-3', name: 'PRH Kotelo rakennus', price: 0, unit: 'jm', isPRHRakennus: true },
+    { id: 'line-3', name: 'PRH Kotelo rakennus', price: 35, unit: 'jm', isPRHRakennus: true },
     { id: 'line-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
   ],
   wall: [
@@ -27,9 +27,9 @@ const DEFAULT_PRESETS = {
     { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
     { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
     { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
-    { id: 'rect-8', name: 'Kuivatila AK Rakennus', price: 0, unit: 'm²', isKuivatilaAK: true },
-    { id: 'rect-9', name: 'Märkätila AK Rakennus', price: 0, unit: 'm²', isMarkatilaAK: true },
-    { id: 'rect-10', name: 'PRH AK Rakennus', price: 0, unit: 'm²', isPRHAK: true },
+    { id: 'rect-8', name: 'Kuivatila AK Rakennus', price: 35, unit: 'm²', isKuivatilaAK: true },
+    { id: 'rect-9', name: 'Märkätila AK Rakennus', price: 35, unit: 'm²', isMarkatilaAK: true },
+    { id: 'rect-10', name: 'PRH AK Rakennus', price: 35, unit: 'm²', isPRHAK: true },
     { id: 'rect-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   polygon: [
@@ -40,19 +40,19 @@ const DEFAULT_PRESETS = {
     { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
     { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
     { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
-    { id: 'poly-8', name: 'Kuivatila AK Rakennus', price: 0, unit: 'm²', isKuivatilaAK: true },
-    { id: 'poly-9', name: 'Märkätila AK Rakennus', price: 0, unit: 'm²', isMarkatilaAK: true },
-    { id: 'poly-10', name: 'PRH AK Rakennus', price: 0, unit: 'm²', isPRHAK: true },
+    { id: 'poly-8', name: 'Kuivatila AK Rakennus', price: 35, unit: 'm²', isKuivatilaAK: true },
+    { id: 'poly-9', name: 'Märkätila AK Rakennus', price: 35, unit: 'm²', isMarkatilaAK: true },
+    { id: 'poly-10', name: 'PRH AK Rakennus', price: 35, unit: 'm²', isPRHAK: true },
     { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   count: [
-    { id: 'count-1', name: 'Oven maalaus yheltä puolelta', price: 25, unit: 'kpl' },
-    { id: 'count-1b', name: 'Oven maalaus molemmilta puolelta', price: 45, unit: 'kpl' },
-    { id: 'count-2', name: 'Sisäikkuna sisäpuolelta', price: 20, unit: 'kpl' },
-    { id: 'count-2b', name: 'Sisäikkuna molemmilta puolelta', price: 35, unit: 'kpl' },
-    { id: 'count-2c', name: 'Sisä molemmin puolelta ja ulkoikkuna sisäpuolelta', price: 50, unit: 'kpl' },
-    { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 0, unit: 'kpl', isKuivatilaPystykotelo: true },
-    { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 0, unit: 'kpl', isPRHPystykotelo: true },
+    { id: 'count-1', name: 'Oven maalaus yheltä puolelta', price: 90, unit: 'kpl' },
+    { id: 'count-1b', name: 'Oven maalaus molemmilta puolelta', price: 180, unit: 'kpl' },
+    { id: 'count-2', name: 'Sisäikkuna sisäpuolelta', price: 70, unit: 'kpl' },
+    { id: 'count-2b', name: 'Sisäikkuna molemmilta puolelta', price: 140, unit: 'kpl' },
+    { id: 'count-2c', name: 'Sisä molemmin puolelta ja ulkoikkuna sisäpuolelta', price: 240, unit: 'kpl' },
+    { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 35, unit: 'kpl', isKuivatilaPystykotelo: true },
+    { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 35, unit: 'kpl', isPRHPystykotelo: true },
     { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'kpl', isPystykotelot: true },
     { id: 'count-other', name: 'Muu', price: 0, unit: 'kpl', isCustom: true }
   ]
