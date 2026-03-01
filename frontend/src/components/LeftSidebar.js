@@ -197,7 +197,9 @@ export const LeftSidebar = ({
                   className={`flex items-center gap-1 p-2 rounded-lg cursor-pointer transition-colors ${
                     activeFloorId === floor.id
                       ? 'bg-[#0052CC] text-white'
-                      : 'bg-white hover:bg-gray-200 text-gray-700'
+                      : floor.pdfDataUrl 
+                        ? 'bg-white hover:bg-gray-200 text-gray-700'
+                        : 'bg-gray-50 hover:bg-gray-200 text-gray-500 border border-dashed border-gray-300'
                   }`}
                   onClick={() => !editingFloorId && onFloorSelect(floor.id)}
                   data-testid={`floor-${floor.id}`}
