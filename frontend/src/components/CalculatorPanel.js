@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export const CalculatorPanel = ({ measurements, settings, onSettingsChange }) => {
+export const CalculatorPanel = ({ measurements, settings, onSettingsChange, onGlobalWallHeightChange }) => {
   const formatNumber = (num) => {
     if (num === undefined || num === null) return '0';
     return num.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
