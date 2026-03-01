@@ -547,14 +547,12 @@ function App() {
   };
 
   const handleSelectFloor = (floorId) => {
-    // Save current floor's scale before switching
-    if (scale) {
-      setFloors(prev => prev.map(f => 
-        f.id === activeFloorId 
-          ? { ...f, scale: scale }
-          : f
-      ));
-    }
+    // Save current floor's state before switching
+    setFloors(prev => prev.map(f => 
+      f.id === activeFloorId 
+        ? { ...f, scale: scale, zoom: zoom }
+        : f
+    ));
     
     setActiveFloorId(floorId);
     const floor = floors.find(f => f.id === floorId);
@@ -568,7 +566,12 @@ function App() {
           .then(blob => {
             const file = new File([blob], `floor-${floor.name}.pdf`, { type: 'application/pdf' });
             setPdfFile(file);
-            setPdfDocument(floor.pdfDocument || null);
+            // Don't set pdfDocument here - let PDFViewer reload it
+          })
+          .catch(err => {
+            console.error('Error loading floor PDF:', err);
+            setPdfFile(null);
+            setPdfDocument(null);
           });
       } else {
         // No PDF for this floor
@@ -576,8 +579,9 @@ function App() {
         setPdfDocument(null);
       }
       
-      // Load floor's scale
+      // Load floor's scale and zoom
       setScale(floor.scale || null);
+      setZoom(floor.zoom || 1);
       setCurrentPage(1);
     }
   };
