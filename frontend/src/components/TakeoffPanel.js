@@ -178,6 +178,25 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                         </div>
                       )}
 
+                      {/* Pystykotelot height field */}
+                      {editData.isPystykotelot && (
+                        <div>
+                          <label className="text-xs text-gray-500">Korkeus (m)</label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            value={editData.wallHeight || 2.6}
+                            onChange={(e) => setEditData({ ...editData, wallHeight: parseFloat(e.target.value) || 2.6 })}
+                            className="h-8"
+                          />
+                          {editData.wallHeight && editData.quantity && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              = {formatNumber(editData.quantity * editData.wallHeight)} m²
+                            </p>
+                          )}
+                        </div>
+                      )}
+
                       <div>
                         <label className="text-xs text-gray-500">Hinta (€ / {editData.unit || 'yks'})</label>
                         <Input
