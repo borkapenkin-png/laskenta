@@ -495,6 +495,7 @@ function App() {
         onLoadProject={handleLoadProject}
         onExportCSV={handleExportCSV}
         onExportPDF={handleExportPDF}
+        onExportPDFQuantitiesOnly={handleExportPDFQuantitiesOnly}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
         selectedMeasurementId={selectedMeasurementId}
