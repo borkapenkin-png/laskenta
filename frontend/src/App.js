@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { saveProject, getSettings, saveSettings, getPresets, savePresets, exportProjectToJSON, importProjectFromJSON } from '@/utils/storage';
-import { exportToCSV, exportToPDF } from '@/utils/export';
+import { exportToCSV, exportToPDF, exportToPDFQuantitiesOnly } from '@/utils/export';
 
 function App() {
   const [pdfFile, setPdfFile] = useState(null);
