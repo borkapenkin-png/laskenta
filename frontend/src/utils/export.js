@@ -1,5 +1,9 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { COMPANY, DEFAULT_TERMS, VAT_PERCENTAGE } from '@/constants/company';
+
+// Import logo - webpack will handle this as data URL
+import companyLogo from '@/assets/jb-logo.png';
 
 // Helper function to format numbers Finnish style
 const formatNumber = (value, decimals = 2) => {
