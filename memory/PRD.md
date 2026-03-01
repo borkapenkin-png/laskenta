@@ -171,8 +171,13 @@ Project {
 
 ## Upcoming Tasks (P1)
 
+### User Testing
+- [ ] User will test all features: Save/Load, PDF Exports, Global Height, Offer Generation, Zoom fix
+- [ ] Wait for user feedback before starting new features
+
 ### Left Sidebar Thumbnails
-- [ ] Verify thumbnails render after collapse/expand (known issue)
+- [ ] Verify thumbnails render after collapse/expand (known issue from initial handoff)
+- ResizeObserver implementation exists - may need further testing
 
 ### Further Tool Refinements
 - [ ] User wants to go through each tool one by one
