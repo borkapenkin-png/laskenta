@@ -99,6 +99,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
             onClick={handleGenerate}
             className="bg-[#4A9BAD] hover:bg-[#3d8699]"
             disabled={!formData.asiakas}
+            data-testid="tarjous-generate-button"
           >
             <FileText className="h-4 w-4 mr-2" />
             Luo tarjous PDF
