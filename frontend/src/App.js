@@ -463,6 +463,19 @@ function App() {
     setZoom(prev => Math.max(prev - 0.25, 0.5));
   };
 
+  // Global wall height change - updates all measurements with wall height
+  const handleGlobalWallHeightChange = (newHeight) => {
+    const updated = measurements.map(m => {
+      // Update measurements that have wall height (wall type and pystykotelo types)
+      if (m.type === 'wall' || m.isPystykotelot || m.isKuivatilaPystykotelo || m.isPRHPystykotelo) {
+        return { ...m, wallHeight: newHeight };
+      }
+      return m;
+    });
+    setMeasurements(updated);
+    toast.success(`Korkeus päivitetty kaikille seinille: ${newHeight}m`);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB]">
       <Toolbar
