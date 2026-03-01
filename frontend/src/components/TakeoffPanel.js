@@ -199,8 +199,8 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, setting
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
+                      <div className="flex items-center gap-1">
+                        <div className="text-right mr-2">
                           <div className="font-semibold text-sm">
                             {formatNumber(calc.totalCost)} €
                           </div>
@@ -208,8 +208,18 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, setting
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => onCopy && onCopy(measurement)}
+                          className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
+                          title="Kopioi"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
                           onClick={() => startEdit(measurement)}
                           className="h-8 w-8 p-0"
+                          title="Muokkaa"
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -218,6 +228,8 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, setting
                           variant="ghost"
                           onClick={() => onDelete(measurement.id)}
                           className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                          title="Poista"
+                        >
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
