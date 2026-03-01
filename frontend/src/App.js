@@ -495,16 +495,32 @@ function App() {
 
   // Floor management functions
   const handleAddFloor = () => {
-    const numPages = pdfDocument?.numPages || 0;
+    // Save current floor's scale before creating new
+    if (scale) {
+      setFloors(prev => prev.map(f => 
+        f.id === activeFloorId 
+          ? { ...f, scale: scale }
+          : f
+      ));
+    }
+    
     const newFloor = {
       id: `floor-${Date.now()}`,
       name: `${floors.length + 1}. kerros`,
-      pageStart: numPages > 0 ? currentPage : 1,
-      pageEnd: numPages > 0 ? currentPage : 1
+      pdfDataUrl: null,
+      pdfDocument: null,
+      scale: null
     };
     setFloors(prev => [...prev, newFloor]);
     setActiveFloorId(newFloor.id);
-    toast.success(`Lisätty: ${newFloor.name}`);
+    
+    // Clear current PDF for new floor
+    setPdfFile(null);
+    setPdfDocument(null);
+    setScale(null);
+    setCurrentPage(1);
+    
+    toast.success(`Lisätty: ${newFloor.name} - Lataa pohjakuva tälle kerrokselle`);
   };
 
   const handleUpdateFloor = (floorId, updates) => {
