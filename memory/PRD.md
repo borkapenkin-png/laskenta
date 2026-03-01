@@ -89,11 +89,19 @@ Finnish painting/plastering companies who need to:
 1. Right Panel Empty After Toggle
 2. PDF Panning Not Working
 3. Measurement Deletion Not Working
+4. Zoom & Scale Inaccuracy - coordinates normalized to zoom=1.0
 
 ### Fixed in This Session
 - Toolbar duplicate line removed
 - Preset dropdown shows only names (no prices)
 - "Kustannukset" renamed to "Yhteenveto" everywhere
+
+### Fixed (December 2025)
+- **Määrälaskenta UI changes:**
+  - Removed prices from measurement list items (hinnat poistettu mittauslistasta)
+  - Action buttons (copy, edit, delete) always visible with flex-shrink-0
+  - Long description text truncates with ellipsis
+  - Added data-testid attributes for testing
 
 ---
 
