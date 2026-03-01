@@ -495,21 +495,20 @@ function App() {
 
   // Floor management functions
   const handleAddFloor = () => {
-    // Save current floor's scale before creating new
-    if (scale) {
-      setFloors(prev => prev.map(f => 
-        f.id === activeFloorId 
-          ? { ...f, scale: scale }
-          : f
-      ));
-    }
+    // Save current floor's state before creating new
+    setFloors(prev => prev.map(f => 
+      f.id === activeFloorId 
+        ? { ...f, scale: scale, zoom: zoom }
+        : f
+    ));
     
     const newFloor = {
       id: `floor-${Date.now()}`,
       name: `${floors.length + 1}. kerros`,
       pdfDataUrl: null,
       pdfDocument: null,
-      scale: null
+      scale: null,
+      zoom: 1
     };
     setFloors(prev => [...prev, newFloor]);
     setActiveFloorId(newFloor.id);
@@ -518,6 +517,7 @@ function App() {
     setPdfFile(null);
     setPdfDocument(null);
     setScale(null);
+    setZoom(1);
     setCurrentPage(1);
     
     toast.success(`Lisätty: ${newFloor.name} - Lataa pohjakuva tälle kerrokselle`);
