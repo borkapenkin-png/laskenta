@@ -28,6 +28,58 @@ const RAKENNUSTYO_PRESETS = [
   { name: 'Asennustyöt', price: 0 },
 ];
 
+// All presets by type - used for changing preset in edit mode
+const ALL_PRESETS = {
+  line: [
+    { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 0, unit: 'jm', isKuivatilaRakennus: true },
+    { id: 'line-2', name: 'Kuivatila kotelot tasoitus ja maalaus', price: 45, unit: 'jm' },
+    { id: 'line-3', name: 'PRH Kotelo rakennus', price: 0, unit: 'jm', isPRHRakennus: true },
+    { id: 'line-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
+  ],
+  wall: [
+    { id: 'wall-1', name: 'Huoltomaalaus', price: 10, unit: 'm²' },
+    { id: 'wall-2', name: 'Kipsiseinä tasoitus ja maalaus', price: 20, unit: 'm²' },
+    { id: 'wall-3', name: 'Verkkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+    { id: 'wall-4', name: 'Tapetointi', price: 20, unit: 'm²' },
+    { id: 'wall-5', name: 'Mikrotsementi', price: 85, unit: 'm²' },
+    { id: 'wall-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
+  ],
+  rectangle: [
+    { id: 'rect-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
+    { id: 'rect-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
+    { id: 'rect-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
+    { id: 'rect-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+    { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
+    { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
+    { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
+    { id: 'rect-8', name: 'Kuivatila AK Rakennus', price: 0, unit: 'm²', isKuivatilaAK: true },
+    { id: 'rect-9', name: 'Märkätila AK Rakennus', price: 0, unit: 'm²', isMarkatilaAK: true },
+    { id: 'rect-10', name: 'PRH AK Rakennus', price: 0, unit: 'm²', isPRHAK: true },
+    { id: 'rect-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
+  ],
+  polygon: [
+    { id: 'poly-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
+    { id: 'poly-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
+    { id: 'poly-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
+    { id: 'poly-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+    { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
+    { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
+    { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
+    { id: 'poly-8', name: 'Kuivatila AK Rakennus', price: 0, unit: 'm²', isKuivatilaAK: true },
+    { id: 'poly-9', name: 'Märkätila AK Rakennus', price: 0, unit: 'm²', isMarkatilaAK: true },
+    { id: 'poly-10', name: 'PRH AK Rakennus', price: 0, unit: 'm²', isPRHAK: true },
+    { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
+  ],
+  count: [
+    { id: 'count-1', name: 'Ovi', price: 25, unit: 'kpl' },
+    { id: 'count-2', name: 'Ikkuna', price: 20, unit: 'kpl' },
+    { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 0, unit: 'jm', isKuivatilaPystykotelo: true },
+    { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 0, unit: 'jm', isPRHPystykotelo: true },
+    { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'jm', isPystykotelot: true },
+    { id: 'count-other', name: 'Muu', price: 0, unit: 'kpl', isCustom: true }
+  ]
+};
+
 export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJalkalista, settings, selectedMeasurementId, onMeasurementSelect }) => {
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
