@@ -149,6 +149,47 @@ export const LeftSidebar = ({
               </Button>
             </div>
 
+            {/* Floor navigation arrows */}
+            {floors.length > 1 && (
+              <div className="flex items-center justify-between mb-2 bg-gray-200 rounded-lg p-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const currentIndex = floors.findIndex(f => f.id === activeFloorId);
+                    if (currentIndex > 0) {
+                      onFloorSelect(floors[currentIndex - 1].id);
+                    }
+                  }}
+                  disabled={floors.findIndex(f => f.id === activeFloorId) === 0}
+                  className="h-7 px-2"
+                  data-testid="prev-floor-button"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="text-xs">Edellinen</span>
+                </Button>
+                <span className="text-xs text-gray-600 font-medium">
+                  {floors.findIndex(f => f.id === activeFloorId) + 1} / {floors.length}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const currentIndex = floors.findIndex(f => f.id === activeFloorId);
+                    if (currentIndex < floors.length - 1) {
+                      onFloorSelect(floors[currentIndex + 1].id);
+                    }
+                  }}
+                  disabled={floors.findIndex(f => f.id === activeFloorId) === floors.length - 1}
+                  className="h-7 px-2"
+                  data-testid="next-floor-button"
+                >
+                  <span className="text-xs">Seuraava</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             <div className="space-y-1">
               {floors.map((floor) => (
                 <div
