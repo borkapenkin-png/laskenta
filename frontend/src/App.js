@@ -487,7 +487,7 @@ function App() {
 
   const handleCreateTarjous = () => {
     if (measurements.length === 0) {
-      toast.error('Ei mittauksia - lisää mittauksia ensin');
+      toast.error('Ei mittauksia - lisää mittauksia ensin', { duration: 5000 });
       return;
     }
     setTarjousDialogOpen(true);
@@ -495,11 +495,16 @@ function App() {
 
   const handleGenerateTarjous = (tarjousData) => {
     try {
+      // Dismiss any existing tarjous toast
+      toast.dismiss('tarjous-export');
       exportTarjousPDF(project, measurements, settings, tarjousData);
-      toast.success('Tarjous PDF luotu!');
+      toast.success('Tarjous PDF luotu!', { 
+        id: 'tarjous-export',
+        duration: 3000 
+      });
     } catch (error) {
       console.error('Tarjous generation error:', error);
-      toast.error('Tarjouksen luominen epäonnistui');
+      toast.error('Tarjouksen luominen epäonnistui', { duration: 8000 });
     }
   };
 
