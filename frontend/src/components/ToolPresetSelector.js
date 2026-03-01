@@ -94,7 +94,8 @@ export const ToolPresetSelector = ({
         pricePerUnit: preset.price,
         unit: preset.unit,
         isPystykotelot: preset.isPystykotelot || false,
-        isRakennustyo: preset.isRakennustyo || false
+        isRakennustyo: preset.isRakennustyo || false,
+        isKuivatilaRakennus: preset.isKuivatilaRakennus || false
       });
     }
   };
@@ -106,7 +107,8 @@ export const ToolPresetSelector = ({
         pricePerUnit: selectedPreset.price,
         unit: selectedPreset.unit,
         isPystykotelot: selectedPreset.isPystykotelot || false,
-        isRakennustyo: selectedPreset.isRakennustyo || false
+        isRakennustyo: selectedPreset.isRakennustyo || false,
+        isKuivatilaRakennus: selectedPreset.isKuivatilaRakennus || false
       });
     }
   };
