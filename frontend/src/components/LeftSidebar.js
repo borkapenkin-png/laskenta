@@ -82,6 +82,18 @@ export const LeftSidebar = ({ pdfDocument, currentPage, onPageChange, isOpen, on
         }}
       >
         <div className="p-4 space-y-2">
+          {/* Project name input */}
+          <div className="mb-4">
+            <label className="text-xs text-gray-500 block mb-1">Projekti nimi</label>
+            <Input
+              value={projectName || ''}
+              onChange={(e) => onProjectNameChange && onProjectNameChange(e.target.value)}
+              placeholder="Anna projektille nimi..."
+              className="h-8 text-sm"
+              data-testid="project-name-input"
+            />
+          </div>
+          
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Sivut</h3>
           {thumbnails.map((thumb) => (
             <div
