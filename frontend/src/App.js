@@ -241,6 +241,23 @@ function App() {
     toast.success('Mittaus kopioitu');
   };
 
+  // Create jalkalista (baseboard) measurement from wall measurement
+  const handleAddJalkalista = (wallMeasurement) => {
+    // Use the original running meters (quantity) from the wall measurement
+    const jalkalistaMeasurement = {
+      id: `measurement-${Date.now()}`,
+      type: 'line',
+      label: 'Jalkalista maalaus',
+      quantity: wallMeasurement.quantity, // Original jm value
+      unit: 'jm',
+      pricePerUnit: 5, // Default jalkalista price
+      page: wallMeasurement.page,
+      points: wallMeasurement.points || []
+    };
+    setMeasurements(prev => [...prev, jalkalistaMeasurement]);
+    toast.success(`Jalkalista maalaus lisätty: ${wallMeasurement.quantity.toFixed(2)} jm`);
+  };
+
   const handleDeleteCurrentPage = () => {
     if (measurements.filter(m => m.page === currentPage).length === 0) {
       toast.error('Ei mittauksia tällä sivulla');
