@@ -88,19 +88,11 @@ export const TakeoffPanel = ({
   onAddJalkalista, 
   settings, 
   selectedMeasurementId, 
-  onMeasurementSelect,
-  floors = [],
-  activeFloorId,
-  allMeasurements = []
+  onMeasurementSelect
 }) => {
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
-  const [viewMode, setViewMode] = useState('floor'); // 'floor' or 'all'
   const containerRef = useRef(null);
-
-  // Use either filtered (current floor) or all measurements based on view mode
-  const displayMeasurements = viewMode === 'all' ? allMeasurements : measurements;
-  const activeFloor = floors.find(f => f.id === activeFloorId);
 
   const startEdit = (measurement) => {
     setEditingId(measurement.id);
