@@ -459,7 +459,7 @@ function App() {
 
   const handleOpenPDFExportDialog = () => {
     if (measurements.length === 0) {
-      toast.error('Ei mittauksia vietäväksi');
+      toast.error('Ei mittauksia vietäväksi', { duration: 5000 });
       return;
     }
     setPdfExportDialogOpen(true);
