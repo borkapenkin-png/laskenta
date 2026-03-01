@@ -91,7 +91,7 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange, onGl
   };
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex flex-col p-4 pb-16">
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Laskenta</h2>
         <p className="text-sm text-gray-500">{operationGroups.length} operaatiota</p>

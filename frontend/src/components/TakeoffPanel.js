@@ -185,7 +185,7 @@ export const TakeoffPanel = ({
   const totalWithVat = totals.totalCost * (1 + vatPercentage / 100);
 
   return (
-    <div ref={containerRef} className="h-full flex flex-col p-4">
+    <div ref={containerRef} className="h-full flex flex-col p-4 pb-16">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
