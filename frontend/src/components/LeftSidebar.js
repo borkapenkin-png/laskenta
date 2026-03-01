@@ -23,6 +23,16 @@ export const LeftSidebar = ({
   const [containerWidth, setContainerWidth] = useState(0);
   const [editingFloorId, setEditingFloorId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // Debounced floor selection to prevent rapid switching
+  const handleFloorClick = (floorId) => {
+    if (isNavigating || floorId === activeFloorId) return;
+    setIsNavigating(true);
+    onFloorSelect(floorId);
+    // Reset after a short delay
+    setTimeout(() => setIsNavigating(false), 300);
+  };
 
   // ResizeObserver to track sidebar width changes
   useEffect(() => {
