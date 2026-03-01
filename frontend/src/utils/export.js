@@ -19,23 +19,11 @@ const formatCurrency = (value) => {
   }) + ' €';
 };
 
-// Group measurements by label (type)
+// Group measurements by operation (label + unit + pricePerUnit)
 const groupMeasurements = (measurements) => {
   const groups = {};
   
   measurements.forEach(m => {
-    const key = m.label || 'Muu';
-    if (!groups[key]) {
-      groups[key] = {
-        label: m.label || 'Muu',
-        unit: m.unit,
-        pricePerUnit: m.pricePerUnit || 0,
-        totalQuantity: 0,
-        totalCost: 0,
-        items: []
-      };
-    }
-    
     // Calculate effective quantity for this measurement
     let effectiveQuantity = m.quantity || 0;
     if (m.type === 'wall' && m.wallHeight) {
@@ -44,12 +32,40 @@ const groupMeasurements = (measurements) => {
       effectiveQuantity = bruttoM2 - openings;
     }
     
+    // For Pystykotelot: kpl × height = jm for cost
+    let costQuantity = effectiveQuantity;
+    if ((m.isPystykotelot || m.isKuivatilaPystykotelo || m.isPRHPystykotelo) && m.wallHeight) {
+      costQuantity = m.quantity * m.wallHeight;
+    }
+
+    // Create unique key: operationName + unit + pricePerUnit
+    const operationName = m.label || 'Muu';
+    const unit = m.unit || 'kpl';
+    const pricePerUnit = m.pricePerUnit || 0;
+    
+    // Key includes price to separate same operations with different prices
+    const key = `${operationName}__${unit}__${pricePerUnit}`;
+    
+    if (!groups[key]) {
+      groups[key] = {
+        label: operationName,
+        unit: unit,
+        pricePerUnit: pricePerUnit,
+        totalQuantity: 0,
+        totalCost: 0,
+        measurementCount: 0,
+        items: []
+      };
+    }
+    
     groups[key].totalQuantity += effectiveQuantity;
-    groups[key].totalCost += effectiveQuantity * (m.pricePerUnit || 0);
+    groups[key].totalCost += costQuantity * pricePerUnit;
+    groups[key].measurementCount += 1;
     groups[key].items.push(m);
   });
   
-  return Object.values(groups);
+  // Sort by cost (highest first)
+  return Object.values(groups).sort((a, b) => b.totalCost - a.totalCost);
 };
 
 export const exportToCSV = (measurements, summary, settings) => {
