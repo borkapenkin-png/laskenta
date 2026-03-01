@@ -228,6 +228,14 @@ export const LeftSidebar = ({
                     </div>
                   ) : (
                     <>
+                      {/* PDF indicator */}
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                        floor.pdfDataUrl 
+                          ? 'bg-green-500' 
+                          : activeFloorId === floor.id 
+                            ? 'bg-gray-300' 
+                            : 'bg-gray-300'
+                      }`} title={floor.pdfDataUrl ? 'PDF ladattu' : 'Ei PDF:ää'} />
                       <span className="text-xs flex-1 truncate">{floor.name}</span>
                       <Button
                         size="sm"
