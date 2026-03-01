@@ -547,42 +547,46 @@ function App() {
   };
 
   const handleSelectFloor = (floorId) => {
-    // Save current floor's state before switching
+    // Don't switch to same floor
+    if (floorId === activeFloorId) return;
+    
+    // Find the target floor FIRST before any state changes
+    const targetFloor = floors.find(f => f.id === floorId);
+    if (!targetFloor) return;
+    
+    // Save current floor's state
     setFloors(prev => prev.map(f => 
       f.id === activeFloorId 
         ? { ...f, scale: scale, zoom: zoom }
         : f
     ));
     
-    setActiveFloorId(floorId);
-    const floor = floors.find(f => f.id === floorId);
+    // Clear current state immediately to prevent race conditions
+    setPdfFile(null);
+    setPdfDocument(null);
     
-    if (floor) {
-      // Load floor's PDF if it has one
-      if (floor.pdfDataUrl) {
-        // Convert data URL back to file-like object for PDFViewer
-        fetch(floor.pdfDataUrl)
+    // Set new active floor
+    setActiveFloorId(floorId);
+    
+    // Load target floor's settings immediately (not dependent on PDF)
+    setScale(targetFloor.scale || null);
+    setZoom(targetFloor.zoom || 1);
+    setCurrentPage(1);
+    
+    // Load target floor's PDF asynchronously if it has one
+    if (targetFloor.pdfDataUrl) {
+      // Use setTimeout to ensure state is cleared first
+      setTimeout(() => {
+        fetch(targetFloor.pdfDataUrl)
           .then(res => res.blob())
           .then(blob => {
-            const file = new File([blob], `floor-${floor.name}.pdf`, { type: 'application/pdf' });
+            const file = new File([blob], `floor-${targetFloor.name}.pdf`, { type: 'application/pdf' });
             setPdfFile(file);
-            // Don't set pdfDocument here - let PDFViewer reload it
           })
           .catch(err => {
             console.error('Error loading floor PDF:', err);
-            setPdfFile(null);
-            setPdfDocument(null);
           });
-      } else {
-        // No PDF for this floor
-        setPdfFile(null);
-        setPdfDocument(null);
-      }
-      
-      // Load floor's scale and zoom
-      setScale(floor.scale || null);
-      setZoom(floor.zoom || 1);
-      setCurrentPage(1);
+      }, 50);
     }
   };
 
