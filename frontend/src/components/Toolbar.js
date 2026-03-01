@@ -266,6 +266,21 @@ export const Toolbar = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  data-testid="create-tarjous-button"
+                  size="sm"
+                  onClick={onCreateTarjous}
+                  className="bg-[#4A9BAD] hover:bg-[#3d8699] text-white"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Tee tarjous
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Luo ammattimainen tarjous PDF</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
                   data-testid="export-pdf-button"
                   variant="outline"
                   size="sm"
