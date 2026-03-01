@@ -79,6 +79,19 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
             />
           </div>
 
+          {/* ALV selection */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="sisallaAlv"
+              checked={formData.sisallaAlv}
+              onCheckedChange={(checked) => handleChange('sisallaAlv', checked)}
+              data-testid="tarjous-alv"
+            />
+            <Label htmlFor="sisallaAlv" className="text-sm cursor-pointer">
+              Näytä hinnat ALV:n kanssa (muuten ALV 0%)
+            </Label>
+          </div>
+
           {/* Additional notes */}
           <div className="space-y-2">
             <Label htmlFor="lisatiedot">Lisätiedot (valinnainen)</Label>
