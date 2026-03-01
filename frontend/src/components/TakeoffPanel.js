@@ -145,8 +145,8 @@ export const TakeoffPanel = ({
     return num.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Group measurements by label for summary - use all measurements for project total
-  const groupedMeasurements = allMeasurements.reduce((acc, m) => {
+  // Group measurements by label for summary
+  const groupedMeasurements = measurements.reduce((acc, m) => {
     const key = m.label || 'Muu';
     if (!acc[key]) {
       acc[key] = {
