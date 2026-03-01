@@ -39,6 +39,7 @@ function App() {
   const [pendingTool, setPendingTool] = useState(null);
   const [pendingPreset, setPendingPreset] = useState(null);
   const [toolPresetPosition, setToolPresetPosition] = useState({ x: 100, y: 100 });
+  const [tarjousDialogOpen, setTarjousDialogOpen] = useState(false);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
