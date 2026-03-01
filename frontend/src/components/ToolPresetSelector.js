@@ -101,7 +101,13 @@ export const ToolPresetSelector = ({
         unit: preset.unit,
         isPystykotelot: preset.isPystykotelot || false,
         isRakennustyo: preset.isRakennustyo || false,
-        isKuivatilaRakennus: preset.isKuivatilaRakennus || false
+        isKuivatilaRakennus: preset.isKuivatilaRakennus || false,
+        isPRHRakennus: preset.isPRHRakennus || false,
+        isKuivatilaAK: preset.isKuivatilaAK || false,
+        isMarkatilaAK: preset.isMarkatilaAK || false,
+        isPRHAK: preset.isPRHAK || false,
+        isKuivatilaPystykotelo: preset.isKuivatilaPystykotelo || false,
+        isPRHPystykotelo: preset.isPRHPystykotelo || false
       });
     }
   };
@@ -114,7 +120,13 @@ export const ToolPresetSelector = ({
         unit: selectedPreset.unit,
         isPystykotelot: selectedPreset.isPystykotelot || false,
         isRakennustyo: selectedPreset.isRakennustyo || false,
-        isKuivatilaRakennus: selectedPreset.isKuivatilaRakennus || false
+        isKuivatilaRakennus: selectedPreset.isKuivatilaRakennus || false,
+        isPRHRakennus: selectedPreset.isPRHRakennus || false,
+        isKuivatilaAK: selectedPreset.isKuivatilaAK || false,
+        isMarkatilaAK: selectedPreset.isMarkatilaAK || false,
+        isPRHAK: selectedPreset.isPRHAK || false,
+        isKuivatilaPystykotelo: selectedPreset.isKuivatilaPystykotelo || false,
+        isPRHPystykotelo: selectedPreset.isPRHPystykotelo || false
       });
     }
   };
