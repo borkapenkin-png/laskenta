@@ -30,7 +30,6 @@ export const Toolbar = ({
   onCalibrate,
   onSaveProject,
   onLoadProject,
-  onExportCSV,
   onExportPDF,
   onExportPDFQuantitiesOnly,
   currentTool,
