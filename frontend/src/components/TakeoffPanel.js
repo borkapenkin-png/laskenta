@@ -520,14 +520,15 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                         </div>
                         <div className="text-xs text-gray-500">
                           {formatNumber(calc.effectiveQuantity)} {measurement.unit}
-                          {measurement.isPystykotelot && measurement.wallHeight && (
+                          {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && (
                             <span className="ml-1 text-gray-400">
-                              (h: {measurement.wallHeight}m = {formatNumber(calc.totalM2)} m²)
+                              (h: {measurement.wallHeight}m)
                             </span>
                           )}
-                          {measurement.isKuivatilaRakennus && (
-                            <span className="ml-1 text-blue-500">
+                          {measurement.hasRankaKipsi && (
+                            <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
                               ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
+                              {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
                             </span>
                           )}
                           {measurement.pricePerUnit > 0 && (
