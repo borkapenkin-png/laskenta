@@ -502,25 +502,30 @@ function App() {
         : f
     ));
     
+    const newFloorId = `floor-${Date.now()}`;
+    const newFloorName = `${floors.length + 1}. kerros`;
+    
     const newFloor = {
-      id: `floor-${Date.now()}`,
-      name: `${floors.length + 1}. kerros`,
+      id: newFloorId,
+      name: newFloorName,
       pdfDataUrl: null,
       pdfDocument: null,
       scale: null,
       zoom: 1
     };
-    setFloors(prev => [...prev, newFloor]);
-    setActiveFloorId(newFloor.id);
     
-    // Clear current PDF for new floor
+    // Add new floor
+    setFloors(prev => [...prev, newFloor]);
+    
+    // Clear current state and switch to new floor
     setPdfFile(null);
     setPdfDocument(null);
     setScale(null);
     setZoom(1);
     setCurrentPage(1);
+    setActiveFloorId(newFloorId);
     
-    toast.success(`Lisätty: ${newFloor.name} - Lataa pohjakuva tälle kerrokselle`);
+    toast.success(`Lisätty: ${newFloorName} - Lataa pohjakuva tälle kerrokselle`);
   };
 
   const handleUpdateFloor = (floorId, updates) => {
