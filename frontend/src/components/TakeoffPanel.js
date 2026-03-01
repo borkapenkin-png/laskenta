@@ -697,6 +697,25 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
         )}
       </ScrollArea>
 
+      {/* Grouped Summary */}
+      {measurements.length > 0 && groupedArray.length > 0 && (
+        <div className="border-t border-gray-200 pt-3 mt-3">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Yhteenveto tyypeittäin</h3>
+          <div className="space-y-1 max-h-40 overflow-y-auto">
+            {groupedArray.map((group, idx) => (
+              <div key={idx} className="flex justify-between text-xs bg-gray-50 rounded px-2 py-1">
+                <span className="truncate flex-1 mr-2">
+                  {group.label} 
+                  {group.count > 1 && <span className="text-gray-400 ml-1">({group.count})</span>}
+                </span>
+                <span className="text-gray-600 mr-2">{formatNumber(group.totalQuantity)} {group.unit}</span>
+                <span className="font-medium">{formatNumber(group.totalCost)} €</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Totals */}
       {measurements.length > 0 && (
         <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
