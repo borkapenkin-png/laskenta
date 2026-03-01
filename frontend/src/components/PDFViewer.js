@@ -74,11 +74,18 @@ export const PDFViewer = ({
   useEffect(() => {
     if (!pdfDocument || !canvasRef.current) return;
 
+    let cancelled = false;
+    let renderTask = null;
+
     const renderPage = async () => {
       setRendering(true);
       try {
         const page = await pdfDocument.getPage(currentPage);
+        if (cancelled) return;
+        
         const canvas = canvasRef.current;
+        if (!canvas) return;
+        
         const context = canvas.getContext('2d');
         
         // Use zoom for viewport scaling (NOT CSS transform)
@@ -112,10 +119,14 @@ export const PDFViewer = ({
           });
         }
 
-        await page.render({
+        if (cancelled) return;
+
+        renderTask = page.render({
           canvasContext: context,
           viewport: viewport
-        }).promise;
+        });
+        
+        await renderTask.promise;
         
       } catch (error) {
         console.error('Error rendering page:', error);
