@@ -32,7 +32,6 @@ export const Toolbar = ({
   onSaveProject,
   onLoadProject,
   onExportPDF,
-  onExportPDFQuantitiesOnly,
   onCreateTarjous,
   currentTool,
   onToolSelect,
