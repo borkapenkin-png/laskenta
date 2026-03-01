@@ -164,8 +164,8 @@ export const TakeoffPanel = ({
     return num.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  // Group measurements by label for summary
-  const groupedMeasurements = measurements.reduce((acc, m) => {
+  // Group measurements by label for summary - use all measurements for project total
+  const groupedMeasurements = allMeasurements.reduce((acc, m) => {
     const key = m.label || 'Muu';
     if (!acc[key]) {
       acc[key] = {
@@ -185,6 +185,17 @@ export const TakeoffPanel = ({
   }, {});
 
   const groupedArray = Object.values(groupedMeasurements).sort((a, b) => b.totalCost - a.totalCost);
+
+  // Calculate totals from all measurements (project total)
+  const totals = allMeasurements.reduce((acc, m) => {
+    const calc = calculateRow(m);
+    return {
+      totalCost: acc.totalCost + calc.totalCost
+    };
+  }, { totalCost: 0 });
+
+  const vatPercentage = settings?.vatPercentage || 25.5;
+  const totalWithVat = totals.totalCost * (1 + vatPercentage / 100);
 
   return (
     <div ref={containerRef} className="h-full flex flex-col p-4">
