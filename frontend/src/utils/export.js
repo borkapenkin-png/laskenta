@@ -344,28 +344,41 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   
   // Price section
   doc.setFillColor(...BRAND_TEAL);
-  doc.roundedRect(20, yPos, pageWidth - 40, 35, 2, 2, 'F');
+  doc.roundedRect(20, yPos, pageWidth - 40, showWithVat ? 35 : 20, 2, 2, 'F');
   
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Urakkahinta (ALV 0%):', 30, yPos + 12);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text(formatCurrency(totalCost), pageWidth - 30, yPos + 12, { align: 'right' });
   
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text(`ALV ${vatPercentage}%:`, 30, yPos + 22);
-  doc.text(formatCurrency(vatAmount), pageWidth - 30, yPos + 22, { align: 'right' });
-  
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text('Urakkahinta yhteensä (sis. ALV):', 30, yPos + 32);
-  doc.setFontSize(16);
-  doc.text(formatCurrency(totalWithVat), pageWidth - 30, yPos + 32, { align: 'right' });
-  
-  yPos += 50;
+  if (showWithVat) {
+    // Show with VAT
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Urakkahinta (ALV 0%):', 30, yPos + 12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(formatCurrency(totalCost), pageWidth - 30, yPos + 12, { align: 'right' });
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`ALV ${vatPercentage}%:`, 30, yPos + 22);
+    doc.text(formatCurrency(vatAmount), pageWidth - 30, yPos + 22, { align: 'right' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Urakkahinta yhteensä (sis. ALV):', 30, yPos + 32);
+    doc.setFontSize(16);
+    doc.text(formatCurrency(totalWithVat), pageWidth - 30, yPos + 32, { align: 'right' });
+    
+    yPos += 50;
+  } else {
+    // Show ALV 0% only
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Urakkahinta (ALV 0%):', 30, yPos + 13);
+    doc.setFontSize(16);
+    doc.text(formatCurrency(totalCost), pageWidth - 30, yPos + 13, { align: 'right' });
+    
+    yPos += 35;
+  }
   
   // Extra work hourly rate
   doc.setTextColor(60, 60, 60);
