@@ -84,7 +84,7 @@ export const CalculatorPanel = ({ measurements, settings, onSettingsChange, onGl
 
           {/* Cost summary */}
           <div className="space-y-2">
-            <h3 className="font-medium text-sm text-gray-700">Kustannukset</h3>
+            <h3 className="font-medium text-sm text-gray-700">Yhteenveto</h3>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm">Yhteensä (alv 0%)</span>
