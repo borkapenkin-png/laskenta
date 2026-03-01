@@ -19,6 +19,25 @@ export const MeasurementOverlay = ({
   const [mousePos, setMousePos] = useState(null);
   const [snapEnabled, setSnapEnabled] = useState(false);
 
+  // Get current zoom from canvasSize
+  const currentZoom = canvasSize?.zoom || 1;
+
+  // Helper: convert screen coordinates to normalized (zoom=1) coordinates
+  const toNormalizedCoords = (screenCoords) => {
+    return {
+      x: screenCoords.x / currentZoom,
+      y: screenCoords.y / currentZoom
+    };
+  };
+
+  // Helper: convert normalized coordinates to screen (current zoom) coordinates
+  const toScreenCoords = (normalizedCoords) => {
+    return {
+      x: normalizedCoords.x * currentZoom,
+      y: normalizedCoords.y * currentZoom
+    };
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Shift') setSnapEnabled(true);
