@@ -38,13 +38,23 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
       const openings = m.openings || 0;
       effectiveQuantity = bruttoM2 - openings;
     }
+    
+    // For Pystykotelot: show jm but calculate total based on height for display
+    // Price is per jm, so we use original quantity for cost
+    let costQuantity = m.quantity || 0;
+    if (m.isPystykotelot && m.wallHeight) {
+      // Display shows total m² but price is per jm
+      effectiveQuantity = m.quantity; // Keep original jm for display
+    }
 
     const pricePerUnit = m.pricePerUnit || 0;
-    const totalCost = effectiveQuantity * pricePerUnit;
+    const totalCost = costQuantity * pricePerUnit;
 
     return {
       effectiveQuantity,
-      totalCost
+      totalCost,
+      // For Pystykotelot, also calculate total m² for info
+      totalM2: m.isPystykotelot && m.wallHeight ? m.quantity * m.wallHeight : null
     };
   };
 
