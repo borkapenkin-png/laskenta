@@ -19,18 +19,30 @@ const DEFAULT_PRESETS = {
     { id: 'wall-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   rectangle: [
-    { id: 'rect-1', name: 'Kattomaalaus', price: 12, unit: 'm²' },
-    { id: 'rect-2', name: 'Lattiamaalaus', price: 10, unit: 'm²' },
+    { id: 'rect-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
+    { id: 'rect-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
+    { id: 'rect-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
+    { id: 'rect-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+    { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
+    { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
+    { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
     { id: 'rect-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   polygon: [
-    { id: 'poly-1', name: 'Erikoisalue maalaus', price: 18, unit: 'm²' },
-    { id: 'poly-2', name: 'Erikoisalue tasoitus', price: 14, unit: 'm²' },
+    { id: 'poly-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
+    { id: 'poly-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
+    { id: 'poly-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
+    { id: 'poly-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+    { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
+    { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
+    { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
     { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   count: [
     { id: 'count-1', name: 'Ovi', price: 25, unit: 'kpl' },
     { id: 'count-2', name: 'Ikkuna', price: 20, unit: 'kpl' },
+    { id: 'count-3', name: 'Pystykotelot rakennus', price: 40, unit: 'jm', isPystykotelot: true },
+    { id: 'count-4', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'jm', isPystykotelot: true },
     { id: 'count-other', name: 'Muu', price: 0, unit: 'kpl', isCustom: true }
   ]
 };
