@@ -194,12 +194,9 @@ export const ToolPresetSelector = ({
               <button
                 key={preset.id}
                 onClick={() => handlePresetClick(preset)}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors flex justify-between items-center"
+                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
               >
                 <span className="text-sm">{preset.name}</span>
-                <span className="text-sm text-gray-500 font-mono">
-                  {preset.price > 0 ? `${preset.price} €/${preset.unit}` : `0 €`}
-                </span>
               </button>
             ))}
           </div>
