@@ -171,8 +171,8 @@ function App() {
     const newMeasurement = {
       ...measurement,
       id: `measurement-${Date.now()}`,
-      label: '', // User can set name later
-      pricePerUnit: 0, // User can set price later
+      label: pendingPreset?.label || '',
+      pricePerUnit: pendingPreset?.pricePerUnit || 0,
       wallHeight: measurement.type === 'wall' ? (settings?.defaultWallHeight || 2.6) : null,
       bothSides: false,
       openings: 0,
@@ -181,6 +181,38 @@ function App() {
 
     setMeasurements(prev => [...prev, newMeasurement]);
     toast.success(`Mittaus lisätty: ${measurement.quantity.toFixed(2)} ${measurement.unit}`);
+  };
+
+  // Handle tool selection - show preset menu first
+  const handleToolSelect = (tool, event) => {
+    if (!tool) {
+      // Hand tool - no preset needed
+      setCurrentTool(null);
+      setPendingPreset(null);
+      return;
+    }
+
+    // Get click position for preset menu
+    const rect = event?.currentTarget?.getBoundingClientRect();
+    setToolPresetPosition({
+      x: rect ? rect.left : 100,
+      y: rect ? rect.bottom + 5 : 100
+    });
+
+    setPendingTool(tool);
+    setToolPresetOpen(true);
+  };
+
+  const handlePresetSelect = (preset) => {
+    setPendingPreset(preset);
+    setCurrentTool(pendingTool);
+    setToolPresetOpen(false);
+    setPendingTool(null);
+  };
+
+  const handlePresetClose = () => {
+    setToolPresetOpen(false);
+    setPendingTool(null);
   };
 
   const handleUpdateMeasurement = (id, updatedData) => {
