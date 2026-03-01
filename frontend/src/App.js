@@ -457,25 +457,23 @@ function App() {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleOpenPDFExportDialog = () => {
     if (measurements.length === 0) {
       toast.error('Ei mittauksia vietäväksi');
       return;
     }
-
-    const summary = calculateSummary();
-    exportToPDF(project, measurements, summary, settings);
-    toast.success('PDF-raportti luotu (hinnoilla)');
+    setPdfExportDialogOpen(true);
   };
 
-  const handleExportPDFQuantitiesOnly = () => {
-    if (measurements.length === 0) {
-      toast.error('Ei mittauksia vietäväksi');
-      return;
+  const handleExportPDF = (includePrices) => {
+    if (includePrices) {
+      const summary = calculateSummary();
+      exportToPDF(project, measurements, summary, settings);
+      toast.success('PDF-raportti luotu (hinnoilla)');
+    } else {
+      exportToPDFQuantitiesOnly(project, measurements, settings);
+      toast.success('PDF-raportti luotu (vain määrät)');
     }
-
-    exportToPDFQuantitiesOnly(project, measurements, settings);
-    toast.success('PDF-raportti luotu (vain määrät)');
   };
 
   const handleCreateTarjous = () => {
