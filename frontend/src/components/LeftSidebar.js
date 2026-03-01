@@ -80,7 +80,7 @@ export const LeftSidebar = ({
       {/* Sidebar container */}
       <div
         ref={containerRef}
-        className="relative bg-gray-100 border-r border-gray-300 transition-all duration-300 overflow-y-auto"
+        className="relative bg-gray-100 border-r border-gray-300 transition-all duration-300 overflow-y-auto pb-16"
         style={{
           width: isOpen ? '200px' : '0px',
           minWidth: isOpen ? '200px' : '0px',
