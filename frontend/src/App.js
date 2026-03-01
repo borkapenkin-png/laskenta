@@ -168,19 +168,26 @@ function App() {
   };
 
   const handleMeasurementComplete = (measurement) => {
+    // Check if this is a Pystykotelot measurement (from count tool with isPystykotelot flag)
+    const isPystykotelot = pendingPreset?.isPystykotelot || false;
+    
     const newMeasurement = {
       ...measurement,
       id: `measurement-${Date.now()}`,
       label: pendingPreset?.label || '',
       pricePerUnit: pendingPreset?.pricePerUnit || 0,
-      wallHeight: measurement.type === 'wall' ? (settings?.defaultWallHeight || 2.6) : null,
+      // Set unit from preset if available
+      unit: pendingPreset?.unit || measurement.unit,
+      // Wall and Pystykotelot have height
+      wallHeight: (measurement.type === 'wall' || isPystykotelot) ? (settings?.defaultWallHeight || 2.6) : null,
+      isPystykotelot: isPystykotelot,
       bothSides: false,
       openings: 0,
       page: currentPage
     };
 
     setMeasurements(prev => [...prev, newMeasurement]);
-    toast.success(`Mittaus lisätty: ${measurement.quantity.toFixed(2)} ${measurement.unit}`);
+    toast.success(`Mittaus lisätty: ${measurement.quantity.toFixed(2)} ${newMeasurement.unit}`);
   };
 
   // Handle tool selection - show preset menu first
