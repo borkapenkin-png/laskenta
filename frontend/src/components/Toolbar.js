@@ -58,7 +58,6 @@ export const Toolbar = ({
 
   const currentScaleDisplay = scale ? 
     (scale.ratio || `1:${scale.scaleValue || '?'}`) : 
-    'Ei asetettu'; 
     'Ei asetettu';
 
   return (
