@@ -226,6 +226,11 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                         </div>
                         <div className="text-xs text-gray-500">
                           {formatNumber(calc.effectiveQuantity)} {measurement.unit}
+                          {measurement.isPystykotelot && measurement.wallHeight && (
+                            <span className="ml-1 text-gray-400">
+                              (h: {measurement.wallHeight}m = {formatNumber(calc.totalM2)} m²)
+                            </span>
+                          )}
                           {measurement.pricePerUnit > 0 && (
                             <span className="ml-2">× {formatNumber(measurement.pricePerUnit)} €</span>
                           )}
