@@ -718,7 +718,8 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
 
       {/* Totals */}
       {measurements.length > 0 && (
-        <div className="border-t border-gray-200 pt-4 mt-4 space-y-2">
+        <div className="border-t border-gray-200 pt-4 mt-2 space-y-2">
+          <h3 className="text-sm font-semibold text-gray-700">Yhteenveto</h3>
           <div className="flex justify-between text-sm">
             <span>Yhteensä (alv 0%)</span>
             <span className="font-semibold">{formatNumber(totals.totalCost)} €</span>
