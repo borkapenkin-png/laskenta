@@ -310,6 +310,11 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                               (h: {measurement.wallHeight}m = {formatNumber(calc.totalM2)} m²)
                             </span>
                           )}
+                          {measurement.isKuivatilaRakennus && (
+                            <span className="ml-1 text-blue-500">
+                              ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
+                            </span>
+                          )}
                           {measurement.pricePerUnit > 0 && (
                             <span className="ml-2">× {formatNumber(measurement.pricePerUnit)} €</span>
                           )}
