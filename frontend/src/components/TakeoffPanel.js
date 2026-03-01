@@ -627,13 +627,14 @@ export const TakeoffPanel = ({
                       </div>
                     </div>
                   ) : (
-                    // View mode
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">
+                    // View mode - No prices shown, action buttons always visible
+                    <div className="flex items-center gap-2">
+                      {/* Description area - truncates when too long */}
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <div className="font-medium text-sm truncate" title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}>
                           {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 truncate">
                           {formatNumber(calc.effectiveQuantity)} {measurement.unit}
                           {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && (
                             <span className="ml-1 text-gray-400">
@@ -646,17 +647,10 @@ export const TakeoffPanel = ({
                               {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
                             </span>
                           )}
-                          {measurement.pricePerUnit > 0 && (
-                            <span className="ml-2">× {formatNumber(measurement.pricePerUnit)} €</span>
-                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <div className="text-right mr-2">
-                          <div className="font-semibold text-sm">
-                            {formatNumber(calc.totalCost)} €
-                          </div>
-                        </div>
+                      {/* Action buttons - always visible, never wrap */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         {/* Jalkalista button for wall measurements */}
                         {measurement.type === 'wall' && onAddJalkalista && (
                           <Button
@@ -665,9 +659,9 @@ export const TakeoffPanel = ({
                             onClick={() => onAddJalkalista(measurement)}
                             className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
                             title="Lisää jalkalista maalaus"
+                            data-testid={`jalkalista-btn-${measurement.id}`}
                           >
-                            <Footprints className="h-4 w-4 mr-1" />
-                            <span className="text-xs">Jalkalista</span>
+                            <Footprints className="h-4 w-4" />
                           </Button>
                         )}
                         <Button
@@ -676,6 +670,7 @@ export const TakeoffPanel = ({
                           onClick={() => onCopy && onCopy(measurement)}
                           className="h-8 w-8 p-0 text-blue-500 hover:text-blue-700"
                           title="Kopioi"
+                          data-testid={`copy-btn-${measurement.id}`}
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
@@ -685,6 +680,7 @@ export const TakeoffPanel = ({
                           onClick={() => startEdit(measurement)}
                           className="h-8 w-8 p-0"
                           title="Muokkaa"
+                          data-testid={`edit-btn-${measurement.id}`}
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -694,6 +690,7 @@ export const TakeoffPanel = ({
                           onClick={() => onDelete(measurement.id)}
                           className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
                           title="Poista"
+                          data-testid={`delete-btn-${measurement.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
