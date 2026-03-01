@@ -9,6 +9,7 @@ import { TakeoffPanel } from '@/components/TakeoffPanel';
 import { CalculatorPanel } from '@/components/CalculatorPanel';
 import { CalibrateDialog } from '@/components/CalibrateDialog';
 import { TarjousDialog } from '@/components/TarjousDialog';
+import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
