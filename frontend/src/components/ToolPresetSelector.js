@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 // Default presets for each tool type
 const DEFAULT_PRESETS = {
   line: [
-    { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 40, unit: 'jm' },
+    { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 0, unit: 'jm', isKuivatilaRakennus: true },
     { id: 'line-2', name: 'Kuivatila kotelot tasoitus ja maalaus', price: 45, unit: 'jm' },
     { id: 'line-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
   ],
