@@ -214,7 +214,8 @@ function App() {
       lagiPaneeli: isMarkatilaAK ? false : null,
       bothSides: false,
       openings: 0,
-      page: currentPage
+      page: currentPage,
+      floorId: activeFloorId
     };
 
     setMeasurements(prev => [...prev, newMeasurement]);
