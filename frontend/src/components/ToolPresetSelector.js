@@ -26,6 +26,7 @@ const DEFAULT_PRESETS = {
     { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
     { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
     { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
+    { id: 'rect-8', name: 'AK Rakennustyöt', price: 0, unit: 'm²', isRakennustyo: true },
     { id: 'rect-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   polygon: [
@@ -36,6 +37,7 @@ const DEFAULT_PRESETS = {
     { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
     { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
     { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
+    { id: 'poly-8', name: 'AK Rakennustyöt', price: 0, unit: 'm²', isRakennustyo: true },
     { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   count: [
