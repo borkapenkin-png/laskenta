@@ -13,7 +13,20 @@ import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { saveProject, getSettings, saveSettings, getPresets, savePresets, exportProjectToJSON, importProjectFromJSON } from '@/utils/storage';
+import { 
+  saveAutosave, 
+  loadAutosave,
+  getSettings, 
+  saveSettings, 
+  getPresets, 
+  savePresets, 
+  exportProjectToJSON, 
+  importProjectFromJSON,
+  createProjectData,
+  parseProjectData,
+  base64ToBlob,
+  validateProjectData
+} from '@/utils/storage';
 import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF } from '@/utils/export';
 
 function App() {
