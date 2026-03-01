@@ -611,7 +611,7 @@ function App() {
             currentTool={currentTool}
             onPdfLoad={setPdfDocument}
             onMeasurementComplete={handleMeasurementComplete}
-            measurements={measurements}
+            measurements={currentFloorMeasurements}
             selectedMeasurementId={selectedMeasurementId}
             onMeasurementSelect={setSelectedMeasurementId}
             zoom={zoom}
