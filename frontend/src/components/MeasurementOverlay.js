@@ -123,29 +123,32 @@ export const MeasurementOverlay = ({
       ctx.lineWidth = 2;
       ctx.fillStyle = 'rgba(0, 82, 204, 0.1)';
 
+      // Convert stored normalized points to screen coords for drawing
+      const screenPoints = points.map(p => toScreenCoords(p));
+
       ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
+      ctx.moveTo(screenPoints[0].x, screenPoints[0].y);
       
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
+      for (let i = 1; i < screenPoints.length; i++) {
+        ctx.lineTo(screenPoints[i].x, screenPoints[i].y);
       }
       
       if (mousePos && currentTool !== 'count') {
         let targetPos = mousePos;
-        if (snapEnabled && points.length > 0) {
-          targetPos = snapToAngle(points[points.length - 1], mousePos, 45);
+        if (snapEnabled && screenPoints.length > 0) {
+          targetPos = snapToAngle(screenPoints[screenPoints.length - 1], mousePos, 45);
         }
         ctx.lineTo(targetPos.x, targetPos.y);
       }
 
-      if (currentTool === 'polygon' && points.length > 2) {
+      if (currentTool === 'polygon' && screenPoints.length > 2) {
         ctx.closePath();
         ctx.fill();
       }
       
       ctx.stroke();
 
-      points.forEach((point) => {
+      screenPoints.forEach((point) => {
         ctx.fillStyle = '#0052CC';
         ctx.beginPath();
         ctx.arc(point.x, point.y, 5, 0, 2 * Math.PI);
