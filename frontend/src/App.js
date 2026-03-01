@@ -504,6 +504,8 @@ function App() {
           onPageChange={setCurrentPage}
           isOpen={leftSidebarOpen}
           onToggle={toggleLeftSidebar}
+          projectName={project.name}
+          onProjectNameChange={(name) => setProject(prev => ({ ...prev, name }))}
         />
 
         <div className="flex-1 relative">
