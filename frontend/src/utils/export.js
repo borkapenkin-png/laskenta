@@ -138,11 +138,11 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
   doc.text(`Projekti: ${project.name || 'Nimetön projekti'}`, 20, 35);
   doc.text(`Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}`, 20, 42);
   
-  // Table data - grouped by type
+  // Table data - grouped by operation (NOT by unit type)
   let tableHeaders, tableData;
   
   if (includePrices) {
-    tableHeaders = [['Tyyppi', 'Määrä', 'Yksikkö', 'Hinta €/yks', 'Yhteensä €']];
+    tableHeaders = [['Operaatio', 'Määrä', 'Yksikkö', 'Hinta €/yks', 'Yhteensä €']];
     tableData = grouped.map(g => [
       g.label,
       formatNumber(g.totalQuantity),
@@ -151,7 +151,7 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
       formatNumber(g.totalCost)
     ]);
   } else {
-    tableHeaders = [['Tyyppi', 'Määrä', 'Yksikkö']];
+    tableHeaders = [['Operaatio', 'Määrä', 'Yksikkö']];
     tableData = grouped.map(g => [
       g.label,
       formatNumber(g.totalQuantity),
@@ -188,7 +188,7 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
     }
   });
 
-  // Summary section
+  // Summary section - operation-based, NO unit aggregation
   const finalY = doc.lastAutoTable.finalY + 15;
   
   doc.setFontSize(12);
@@ -199,37 +199,21 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
   doc.setFont('helvetica', 'normal');
   let yPos = finalY + 10;
   
-  // Quantity summary by unit
-  const quantityByUnit = {};
-  grouped.forEach(g => {
-    if (!quantityByUnit[g.unit]) {
-      quantityByUnit[g.unit] = 0;
-    }
-    quantityByUnit[g.unit] += g.totalQuantity;
-  });
-  
-  Object.entries(quantityByUnit).forEach(([unit, qty]) => {
-    doc.text(`${unit}: ${formatNumber(qty)}`, 20, yPos);
-    yPos += 7;
-  });
+  // Show operation count
+  doc.text(`Operaatioita yhteensä: ${grouped.length}`, 20, yPos);
+  yPos += 10;
   
   // Cost summary (only if prices included) - ALV 0% only
   if (includePrices) {
-    yPos += 5;
     const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
     
-    doc.setFont('helvetica', 'bold');
-    doc.text('Yhteenveto', 20, yPos);
-    yPos += 8;
-    
-    doc.setFont('helvetica', 'normal');
     doc.setFont('helvetica', 'bold');
     doc.text(`Yhteensä (ALV 0%): ${formatCurrency(totalCost)}`, 20, yPos);
   }
   
   // Save
   const suffix = includePrices ? '' : '_maarat';
-  doc.save(`${project.name || 'projekti'}${suffix}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`);
+  doc.save(`${project.name || 'projekti'}${suffix}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`)
 };
 
 // Company logo as Base64 - J&B Tasoitusmaalaus
