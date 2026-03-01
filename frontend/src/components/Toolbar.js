@@ -265,21 +265,6 @@ export const Toolbar = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  data-testid="export-csv-button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onExportCSV}
-                >
-                  <FileDown className="h-4 w-4 mr-2" />
-                  CSV
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Vie CSV</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
                   data-testid="export-pdf-button"
                   variant="outline"
                   size="sm"
