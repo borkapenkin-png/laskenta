@@ -243,13 +243,12 @@ export const exportTarjousPDF = async (project, measurements, settings, tarjousD
   const vatAmount = totalCost * vatPercentage / 100;
   const totalWithVat = totalCost + vatAmount;
   
-  // Load and add logo
+  // Add logo from base64
   try {
-    const logoImg = await loadImage(COMPANY_LOGO_URL);
     // Logo dimensions - maintain aspect ratio
     const logoWidth = 60;
     const logoHeight = 15;
-    doc.addImage(logoImg, 'PNG', 20, 15, logoWidth, logoHeight);
+    doc.addImage(COMPANY_LOGO_BASE64, 'PNG', 20, 15, logoWidth, logoHeight);
   } catch (e) {
     // Fallback: draw text logo if image fails
     doc.setFontSize(20);
