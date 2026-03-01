@@ -348,17 +348,6 @@ function App() {
     }
   };
 
-  const handleExportCSV = () => {
-    if (measurements.length === 0) {
-      toast.error('Ei mittauksia vietäväksi');
-      return;
-    }
-
-    const summary = calculateSummary();
-    exportToCSV(measurements, summary, settings);
-    toast.success('CSV viety onnistuneesti');
-  };
-
   const handleExportPDF = () => {
     if (measurements.length === 0) {
       toast.error('Ei mittauksia vietäväksi');
