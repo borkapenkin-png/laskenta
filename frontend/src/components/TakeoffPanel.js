@@ -1,11 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Trash2, Edit2, Check, X, Copy, Footprints } from 'lucide-react';
+import { Trash2, Edit2, Check, X, Copy, Footprints, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 
 // Jalkalista price constant
 const JALKALISTA_PRICE = 5; // €/jm
+
+// Rakennustyö presets - different construction types
+const RAKENNUSTYO_PRESETS = [
+  { name: 'Purkutyöt', price: 0 },
+  { name: 'Suojaustyöt', price: 0 },
+  { name: 'Siivoustyöt', price: 0 },
+  { name: 'Jätteenkäsittely', price: 0 },
+  { name: 'Kuljetustyöt', price: 0 },
+  { name: 'Nostotyöt', price: 0 },
+  { name: 'Telinetyöt', price: 0 },
+  { name: 'Korjaustyöt', price: 0 },
+  { name: 'Asennustyöt', price: 0 },
+];
 
 export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJalkalista, settings, selectedMeasurementId, onMeasurementSelect }) => {
   const [editingId, setEditingId] = useState(null);
