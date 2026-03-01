@@ -148,17 +148,6 @@ export const TakeoffPanel = ({
     };
   };
 
-  // Calculate totals
-  const totals = measurements.reduce((acc, m) => {
-    const calc = calculateRow(m);
-    return {
-      totalCost: acc.totalCost + calc.totalCost
-    };
-  }, { totalCost: 0 });
-
-  const vatPercentage = settings?.vatPercentage || 25.5;
-  const totalWithVat = totals.totalCost * (1 + vatPercentage / 100);
-
   const formatNumber = (num) => {
     if (num === undefined || num === null) return '0';
     return num.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
