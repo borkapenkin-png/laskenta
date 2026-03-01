@@ -147,6 +147,28 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
     return num.toLocaleString('fi-FI', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  // Group measurements by label for summary
+  const groupedMeasurements = measurements.reduce((acc, m) => {
+    const key = m.label || 'Muu';
+    if (!acc[key]) {
+      acc[key] = {
+        label: m.label || 'Muu',
+        unit: m.unit,
+        pricePerUnit: m.pricePerUnit || 0,
+        totalQuantity: 0,
+        totalCost: 0,
+        count: 0
+      };
+    }
+    const calc = calculateRow(m);
+    acc[key].totalQuantity += calc.effectiveQuantity;
+    acc[key].totalCost += calc.totalCost;
+    acc[key].count += 1;
+    return acc;
+  }, {});
+
+  const groupedArray = Object.values(groupedMeasurements).sort((a, b) => b.totalCost - a.totalCost);
+
   return (
     <div ref={containerRef} className="h-full flex flex-col p-4">
       <div className="flex items-center justify-between mb-4">
