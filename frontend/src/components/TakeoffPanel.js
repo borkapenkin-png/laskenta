@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Trash2, Edit2, Check, X, Copy } from 'lucide-react';
+import { Trash2, Edit2, Check, X, Copy, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, settings, selectedMeasurementId, onMeasurementSelect }) => {
+// Jalkalista price constant
+const JALKALISTA_PRICE = 5; // €/jm
+
+export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJalkalista, settings, selectedMeasurementId, onMeasurementSelect }) => {
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
   const containerRef = useRef(null);
