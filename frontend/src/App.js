@@ -771,6 +771,12 @@ function App() {
         projectName={project.name}
       />
 
+      <PDFExportDialog
+        open={pdfExportDialogOpen}
+        onClose={() => setPdfExportDialogOpen(false)}
+        onExport={handleExportPDF}
+      />
+
       <input
         ref={fileInputRef}
         type="file"
