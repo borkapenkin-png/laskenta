@@ -466,6 +466,55 @@ function App() {
     }
   };
 
+  // Floor management functions
+  const handleAddFloor = () => {
+    const newFloor = {
+      id: `floor-${Date.now()}`,
+      name: `${floors.length + 1}. kerros`,
+      pageStart: numPages > 0 ? currentPage : 1,
+      pageEnd: numPages > 0 ? currentPage : 1
+    };
+    setFloors(prev => [...prev, newFloor]);
+    setActiveFloorId(newFloor.id);
+    toast.success(`Lisätty: ${newFloor.name}`);
+  };
+
+  const handleUpdateFloor = (floorId, updates) => {
+    setFloors(prev => prev.map(f => f.id === floorId ? { ...f, ...updates } : f));
+  };
+
+  const handleDeleteFloor = (floorId) => {
+    if (floors.length <= 1) {
+      toast.error('Vähintään yksi kerros vaaditaan');
+      return;
+    }
+    // Delete floor and its measurements
+    const floorToDelete = floors.find(f => f.id === floorId);
+    if (floorToDelete) {
+      setMeasurements(prev => prev.filter(m => m.floorId !== floorId));
+      setFloors(prev => prev.filter(f => f.id !== floorId));
+      // Set active to first remaining floor
+      const remaining = floors.filter(f => f.id !== floorId);
+      if (remaining.length > 0) {
+        setActiveFloorId(remaining[0].id);
+      }
+      toast.success(`Kerros "${floorToDelete.name}" poistettu`);
+    }
+  };
+
+  const handleSelectFloor = (floorId) => {
+    setActiveFloorId(floorId);
+    const floor = floors.find(f => f.id === floorId);
+    if (floor && floor.pageStart && pdfDocument) {
+      setCurrentPage(floor.pageStart);
+    }
+  };
+
+  // Get measurements for current floor
+  const currentFloorMeasurements = measurements.filter(m => m.floorId === activeFloorId);
+  // Get active floor
+  const activeFloor = floors.find(f => f.id === activeFloorId);
+
   const toggleRightPanel = () => {
     const newState = !rightPanelOpen;
     setRightPanelOpen(newState);
