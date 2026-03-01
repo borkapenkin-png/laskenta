@@ -195,6 +195,16 @@ function App() {
     toast.success('Mittaus poistettu');
   };
 
+  const handleCopyMeasurement = (measurement) => {
+    const copiedMeasurement = {
+      ...measurement,
+      id: `measurement-${Date.now()}`,
+      label: measurement.label ? `${measurement.label} (kopio)` : ''
+    };
+    setMeasurements(prev => [...prev, copiedMeasurement]);
+    toast.success('Mittaus kopioitu');
+  };
+
   const handleDeleteCurrentPage = () => {
     if (measurements.filter(m => m.page === currentPage).length === 0) {
       toast.error('Ei mittauksia tällä sivulla');
