@@ -129,14 +129,25 @@ export const PDFViewer = ({
         await renderTask.promise;
         
       } catch (error) {
-        console.error('Error rendering page:', error);
+        if (!cancelled) {
+          console.error('Error rendering page:', error);
+        }
       } finally {
-        setRendering(false);
+        if (!cancelled) {
+          setRendering(false);
+        }
       }
     };
 
     renderPage();
-  }, [pdfDocument, currentPage, zoom, scale, onScaleChange]);
+    
+    return () => {
+      cancelled = true;
+      if (renderTask) {
+        renderTask.cancel();
+      }
+    };
+  }, [pdfDocument, currentPage, zoom, onRenderInfoChange]);
 
   const handleMouseDown = (e) => {
     // Pan with: middle mouse, right mouse, OR left mouse when no tool is selected
