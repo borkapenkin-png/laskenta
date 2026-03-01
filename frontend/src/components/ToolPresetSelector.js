@@ -11,9 +11,12 @@ const DEFAULT_PRESETS = {
     { id: 'line-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
   ],
   wall: [
-    { id: 'wall-1', name: 'Seinämaalaus', price: 15, unit: 'jm' },
-    { id: 'wall-2', name: 'Seinätasoitus', price: 12, unit: 'jm' },
-    { id: 'wall-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
+    { id: 'wall-1', name: 'Huoltomaalaus', price: 10, unit: 'm²' },
+    { id: 'wall-2', name: 'Kipsiseinä tasoitus ja maalaus', price: 20, unit: 'm²' },
+    { id: 'wall-3', name: 'Verkkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+    { id: 'wall-4', name: 'Tapetointi', price: 20, unit: 'm²' },
+    { id: 'wall-5', name: 'Mikrotsementi', price: 85, unit: 'm²' },
+    { id: 'wall-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
   ],
   rectangle: [
     { id: 'rect-1', name: 'Kattomaalaus', price: 12, unit: 'm²' },
