@@ -160,6 +160,9 @@ export const MeasurementOverlay = ({
   const drawMeasurement = (ctx, measurement, isSelected = false) => {
     if (!measurement.points || measurement.points.length === 0) return;
 
+    // Convert normalized points to screen coordinates
+    const screenPoints = measurement.points.map(p => toScreenCoords(p));
+
     const strokeWidth = isSelected ? 4 : 2;
     const strokeColor = isSelected ? '#FF6B00' : (measurement.color || '#0052CC');
     const fillColor = isSelected ? 'rgba(255, 107, 0, 0.2)' : (measurement.fillColor || 'rgba(0, 82, 204, 0.1)');
@@ -169,10 +172,10 @@ export const MeasurementOverlay = ({
     ctx.fillStyle = fillColor;
 
     ctx.beginPath();
-    ctx.moveTo(measurement.points[0].x, measurement.points[0].y);
+    ctx.moveTo(screenPoints[0].x, screenPoints[0].y);
     
-    for (let i = 1; i < measurement.points.length; i++) {
-      ctx.lineTo(measurement.points[i].x, measurement.points[i].y);
+    for (let i = 1; i < screenPoints.length; i++) {
+      ctx.lineTo(screenPoints[i].x, screenPoints[i].y);
     }
 
     if (measurement.type === 'polygon' || measurement.type === 'rectangle') {
@@ -183,7 +186,7 @@ export const MeasurementOverlay = ({
     ctx.stroke();
 
     if (isSelected) {
-      measurement.points.forEach((point) => {
+      screenPoints.forEach((point) => {
         ctx.fillStyle = '#FF6B00';
         ctx.beginPath();
         ctx.arc(point.x, point.y, 6, 0, 2 * Math.PI);
@@ -194,9 +197,9 @@ export const MeasurementOverlay = ({
       });
     }
 
-    if (measurement.points.length > 0) {
-      const centerX = measurement.points.reduce((sum, p) => sum + p.x, 0) / measurement.points.length;
-      const centerY = measurement.points.reduce((sum, p) => sum + p.y, 0) / measurement.points.length;
+    if (screenPoints.length > 0) {
+      const centerX = screenPoints.reduce((sum, p) => sum + p.x, 0) / screenPoints.length;
+      const centerY = screenPoints.reduce((sum, p) => sum + p.y, 0) / screenPoints.length;
       
       let label = '';
       if (measurement.quantity) {
