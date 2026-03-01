@@ -463,8 +463,8 @@ export const exportFloorPDF = (project, measurements, floor, settings) => {
   doc.text(`Kerros: ${floor.name}`, 20, 42);
   doc.text(`Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}`, 20, 49);
   
-  // Table data - grouped by type, prices as ALV 0%
-  const tableHeaders = [['Tyyppi', 'Määrä', 'Yksikkö', 'Hinta €/yks (ALV 0%)', 'Yhteensä € (ALV 0%)']];
+  // Table data - grouped by operation, prices as ALV 0%
+  const tableHeaders = [['Operaatio', 'Määrä', 'Yksikkö', 'Hinta €/yks (ALV 0%)', 'Yhteensä € (ALV 0%)']];
   const tableData = grouped.map(g => [
     g.label,
     formatNumber(g.totalQuantity),
@@ -498,7 +498,7 @@ export const exportFloorPDF = (project, measurements, floor, settings) => {
     }
   });
 
-  // Summary section
+  // Summary section - NO unit aggregation
   const finalY = doc.lastAutoTable.finalY + 15;
   const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
   
@@ -509,22 +509,10 @@ export const exportFloorPDF = (project, measurements, floor, settings) => {
   doc.setFontSize(10);
   let yPos = finalY + 10;
   
-  // Quantity summary by unit
-  const quantityByUnit = {};
-  grouped.forEach(g => {
-    if (!quantityByUnit[g.unit]) {
-      quantityByUnit[g.unit] = 0;
-    }
-    quantityByUnit[g.unit] += g.totalQuantity;
-  });
-  
   doc.setFont('helvetica', 'normal');
-  Object.entries(quantityByUnit).forEach(([unit, qty]) => {
-    doc.text(`${unit}: ${formatNumber(qty)}`, 20, yPos);
-    yPos += 7;
-  });
+  doc.text(`Operaatioita yhteensä: ${grouped.length}`, 20, yPos);
+  yPos += 10;
   
-  yPos += 5;
   doc.setFont('helvetica', 'bold');
   doc.text(`Yhteensä (ALV 0%): ${formatCurrency(totalCost)}`, 20, yPos);
   
