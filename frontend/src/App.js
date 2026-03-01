@@ -622,8 +622,7 @@ function App() {
             <div className="flex-1 overflow-hidden">
               <TabsContent value="takeoff" className="h-full m-0">
                 <TakeoffPanel
-                  measurements={currentFloorMeasurements}
-                  allMeasurements={measurements}
+                  measurements={measurements}
                   onUpdate={handleUpdateMeasurement}
                   onDelete={handleDeleteMeasurement}
                   onCopy={handleCopyMeasurement}
@@ -631,8 +630,6 @@ function App() {
                   settings={settings}
                   selectedMeasurementId={selectedMeasurementId}
                   onMeasurementSelect={setSelectedMeasurementId}
-                  floors={floors}
-                  activeFloorId={activeFloorId}
                 />
               </TabsContent>
 
