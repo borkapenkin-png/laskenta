@@ -679,6 +679,9 @@ export const TakeoffPanel = ({
                           {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
                         </div>
                         <div className="text-xs text-gray-500">
+                          {viewMode === 'all' && measurementFloor && (
+                            <span className="text-blue-600 mr-1">[{measurementFloor.name}]</span>
+                          )}
                           {formatNumber(calc.effectiveQuantity)} {measurement.unit}
                           {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && (
                             <span className="ml-1 text-gray-400">
