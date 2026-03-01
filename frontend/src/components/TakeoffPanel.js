@@ -245,6 +245,37 @@ export const TakeoffPanel = ({ measurements, onUpdate, onDelete, onCopy, onAddJa
                         </div>
                       )}
 
+                      {/* Kuivatila rakennus settings */}
+                      {editData.isKuivatilaRakennus && (
+                        <div className="space-y-2 p-2 bg-blue-50 rounded-lg">
+                          <div className="text-xs font-medium text-blue-800">Kuivatila asetukset</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-gray-500">Ranka</label>
+                              <select
+                                value={editData.rankaType || 'metall'}
+                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="metall">Metall</option>
+                                <option value="kertapuu">Kertapuu</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">Kipsi</label>
+                              <select
+                                value={editData.kipsiType || '1-kertainen'}
+                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
+                                className="w-full h-8 text-sm border rounded px-2"
+                              >
+                                <option value="1-kertainen">1-kertainen</option>
+                                <option value="2-kertainen">2-kertainen</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <label className="text-xs text-gray-500">Hinta (€ / {editData.unit || 'yks'})</label>
                         <Input
