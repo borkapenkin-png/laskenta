@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +18,8 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     asiakas: '',
     kohde: '',
     lisatyoHinta: '55',
-    lisatiedot: ''
+    lisatiedot: '',
+    sisallaAlv: true  // ALV included by default
   });
 
   const handleChange = (field, value) => {
