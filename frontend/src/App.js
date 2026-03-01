@@ -168,9 +168,10 @@ function App() {
   };
 
   const handleMeasurementComplete = (measurement) => {
-    // Check if this is a Pystykotelot measurement (from count tool with isPystykotelot flag)
+    // Check special measurement types
     const isPystykotelot = pendingPreset?.isPystykotelot || false;
     const isRakennustyo = pendingPreset?.isRakennustyo || false;
+    const isKuivatilaRakennus = pendingPreset?.isKuivatilaRakennus || false;
     
     const newMeasurement = {
       ...measurement,
@@ -183,6 +184,10 @@ function App() {
       wallHeight: (measurement.type === 'wall' || isPystykotelot) ? (settings?.defaultWallHeight || 2.6) : null,
       isPystykotelot: isPystykotelot,
       isRakennustyo: isRakennustyo,
+      isKuivatilaRakennus: isKuivatilaRakennus,
+      // Kuivatila defaults
+      rankaType: isKuivatilaRakennus ? 'metall' : null,
+      kipsiType: isKuivatilaRakennus ? '1-kertainen' : null,
       bothSides: false,
       openings: 0,
       page: currentPage
