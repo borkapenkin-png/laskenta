@@ -170,24 +170,42 @@ function App() {
   const handleMeasurementComplete = (measurement) => {
     // Check special measurement types
     const isPystykotelot = pendingPreset?.isPystykotelot || false;
-    const isRakennustyo = pendingPreset?.isRakennustyo || false;
     const isKuivatilaRakennus = pendingPreset?.isKuivatilaRakennus || false;
+    const isPRHRakennus = pendingPreset?.isPRHRakennus || false;
+    const isKuivatilaAK = pendingPreset?.isKuivatilaAK || false;
+    const isMarkatilaAK = pendingPreset?.isMarkatilaAK || false;
+    const isPRHAK = pendingPreset?.isPRHAK || false;
+    const isKuivatilaPystykotelo = pendingPreset?.isKuivatilaPystykotelo || false;
+    const isPRHPystykotelo = pendingPreset?.isPRHPystykotelo || false;
+    
+    // Check if this type needs Ranka/Kipsi options
+    const hasRankaKipsi = isKuivatilaRakennus || isPRHRakennus || isKuivatilaAK || isMarkatilaAK || isPRHAK || isKuivatilaPystykotelo || isPRHPystykotelo;
+    // Check if needs height (Pystykotelot types)
+    const needsHeight = isPystykotelot || isKuivatilaPystykotelo || isPRHPystykotelo || measurement.type === 'wall';
     
     const newMeasurement = {
       ...measurement,
       id: `measurement-${Date.now()}`,
       label: pendingPreset?.label || '',
       pricePerUnit: pendingPreset?.pricePerUnit || 0,
-      // Set unit from preset if available
       unit: pendingPreset?.unit || measurement.unit,
-      // Wall and Pystykotelot have height
-      wallHeight: (measurement.type === 'wall' || isPystykotelot) ? (settings?.defaultWallHeight || 2.6) : null,
-      isPystykotelot: isPystykotelot,
-      isRakennustyo: isRakennustyo,
-      isKuivatilaRakennus: isKuivatilaRakennus,
-      // Kuivatila defaults
-      rankaType: isKuivatilaRakennus ? 'metall' : null,
-      kipsiType: isKuivatilaRakennus ? '1-kertainen' : null,
+      // Height for wall and pystykotelo types
+      wallHeight: needsHeight ? (settings?.defaultWallHeight || 2.6) : null,
+      // Type flags
+      isPystykotelot,
+      isKuivatilaRakennus,
+      isPRHRakennus,
+      isKuivatilaAK,
+      isMarkatilaAK,
+      isPRHAK,
+      isKuivatilaPystykotelo,
+      isPRHPystykotelo,
+      hasRankaKipsi,
+      // Ranka/Kipsi defaults
+      rankaType: hasRankaKipsi ? 'metall' : null,
+      kipsiType: hasRankaKipsi ? '1-kertainen' : null,
+      // Märkätila extra option
+      lagiPaneeli: isMarkatilaAK ? false : null,
       bothSides: false,
       openings: 0,
       page: currentPage
