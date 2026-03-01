@@ -211,7 +211,7 @@ export const LeftSidebar = ({
                         ? 'bg-white hover:bg-gray-200 text-gray-700'
                         : 'bg-gray-50 hover:bg-gray-200 text-gray-500 border border-dashed border-gray-300'
                   }`}
-                  onClick={() => !editingFloorId && onFloorSelect(floor.id)}
+                  onClick={() => !editingFloorId && handleFloorClick(floor.id)}
                   data-testid={`floor-${floor.id}`}
                 >
                   {editingFloorId === floor.id ? (
