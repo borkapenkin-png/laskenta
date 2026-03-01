@@ -584,7 +584,7 @@ function App() {
       />
 
       <div className="flex flex-1 relative" style={{ overflow: 'hidden' }}>
-        {/* Left Sidebar with Thumbnails */}
+        {/* Left Sidebar with Thumbnails and Floors */}
         <LeftSidebar
           pdfDocument={pdfDocument}
           currentPage={currentPage}
@@ -593,6 +593,12 @@ function App() {
           onToggle={toggleLeftSidebar}
           projectName={project.name}
           onProjectNameChange={(name) => setProject(prev => ({ ...prev, name }))}
+          floors={floors}
+          activeFloorId={activeFloorId}
+          onFloorSelect={handleSelectFloor}
+          onFloorAdd={handleAddFloor}
+          onFloorUpdate={handleUpdateFloor}
+          onFloorDelete={handleDeleteFloor}
         />
 
         <div className="flex-1 relative">
