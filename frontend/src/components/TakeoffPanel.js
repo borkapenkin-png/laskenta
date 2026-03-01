@@ -633,79 +633,100 @@ export const TakeoffPanel = ({
                       </div>
                     </div>
                   ) : (
-                    // View mode - Bulletproof layout: buttons always visible
-                    <div>
-                      {/* Row 1: Title and action buttons with fixed layout */}
-                      <div className="flex items-start">
-                        {/* Text area - takes remaining space, truncates */}
-                        <div className="flex-1 min-w-0 overflow-hidden" style={{ maxWidth: 'calc(100% - 100px)' }}>
-                          <div 
-                            className="font-medium text-sm truncate" 
-                            title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
-                          >
-                            {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
-                          </div>
-                          {/* Details row */}
-                          <div className="text-xs text-gray-500 truncate">
-                            {formatNumber(calc.effectiveQuantity)} {measurement.unit}
-                            {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
-                              <span className="ml-1 text-gray-400">
-                                × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
-                              </span>
-                            )}
-                            {measurement.hasRankaKipsi && (
-                              <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
-                                ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
-                                {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
-                              </span>
-                            )}
-                          </div>
+                    // View mode - Professional responsive layout
+                    // Row: flex container with space-between, gap for spacing
+                    // Left: flex-1 min-w-0 (shrinks, allows ellipsis)
+                    // Right: flex-none whitespace-nowrap (fixed, never hidden)
+                    <div 
+                      className="flex items-center justify-between gap-2"
+                      style={{ minHeight: '44px' }}
+                    >
+                      {/* LEFT: Content area - shrinks to fit, allows ellipsis */}
+                      <div 
+                        className="flex-1 min-w-0 overflow-hidden"
+                        title={measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
+                      >
+                        {/* Title - 2 line clamp with ellipsis */}
+                        <div 
+                          className="font-medium text-sm leading-tight"
+                          style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            wordBreak: 'break-word'
+                          }}
+                        >
+                          {measurement.label || `Mittaus ${measurement.id.slice(-4)}`}
                         </div>
-                        {/* Action buttons - FIXED 100px width, always visible */}
-                        <div className="flex items-center justify-end" style={{ width: '100px', minWidth: '100px' }}>
-                          {measurement.type === 'wall' && onAddJalkalista && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => onAddJalkalista(measurement)}
-                              className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                              title="Lisää jalkalista maalaus"
-                              data-testid={`jalkalista-btn-${measurement.id}`}
-                            >
-                              <Footprints className="h-3.5 w-3.5" />
-                            </Button>
+                        {/* Details row - single line ellipsis */}
+                        <div 
+                          className="text-xs text-gray-500 truncate mt-0.5"
+                          style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          {formatNumber(calc.effectiveQuantity)} {measurement.unit}
+                          {(measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight && calc.totalJm && (
+                            <span className="ml-1 text-gray-400">
+                              × {measurement.wallHeight}m = {formatNumber(calc.totalJm)} jm
+                            </span>
                           )}
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => onCopy && onCopy(measurement)}
-                            className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
-                            title="Kopioi"
-                            data-testid={`copy-btn-${measurement.id}`}
-                          >
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => startEdit(measurement)}
-                            className="h-6 w-6 p-0 text-gray-600 hover:text-gray-800"
-                            title="Muokkaa"
-                            data-testid={`edit-btn-${measurement.id}`}
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => onDelete(measurement.id)}
-                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                            title="Poista"
-                            data-testid={`delete-btn-${measurement.id}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          {measurement.hasRankaKipsi && (
+                            <span className={`ml-1 ${measurement.isPRHRakennus || measurement.isPRHAK || measurement.isPRHPystykotelo ? 'text-purple-500' : measurement.isMarkatilaAK ? 'text-cyan-500' : 'text-blue-500'}`}>
+                              ({measurement.rankaType || 'metall'}, {measurement.kipsiType || '1-kert.'})
+                              {measurement.isMarkatilaAK && measurement.lagiPaneeli && ' + paneeli'}
+                            </span>
+                          )}
                         </div>
+                      </div>
+                      
+                      {/* RIGHT: Actions area - NEVER hidden, fixed width */}
+                      <div 
+                        className="flex items-center gap-1"
+                        style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }}
+                      >
+                        {measurement.type === 'wall' && onAddJalkalista && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onAddJalkalista(measurement)}
+                            className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 flex-shrink-0"
+                            title="Lisää jalkalista maalaus"
+                            data-testid={`jalkalista-btn-${measurement.id}`}
+                          >
+                            <Footprints className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onCopy && onCopy(measurement)}
+                          className="h-7 w-7 p-0 text-blue-500 hover:text-blue-700 hover:bg-blue-50 flex-shrink-0"
+                          title="Kopioi"
+                          data-testid={`copy-btn-${measurement.id}`}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => startEdit(measurement)}
+                          className="h-7 w-7 p-0 text-gray-600 hover:text-gray-800 hover:bg-gray-100 flex-shrink-0"
+                          title="Muokkaa"
+                          data-testid={`edit-btn-${measurement.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onDelete(measurement.id)}
+                          className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                          title="Poista"
+                          data-testid={`delete-btn-${measurement.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   )}
