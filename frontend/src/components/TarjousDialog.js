@@ -19,7 +19,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     kohde: '',
     lisatyoHinta: '55',
     lisatiedot: '',
-    sisallaAlv: true  // ALV included by default
+    sisallaAlv: false  // ALV 0% by default, checkbox adds VAT
   });
 
   const handleChange = (field, value) => {
