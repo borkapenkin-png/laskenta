@@ -303,6 +303,22 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm">Tarjouksen laatija</Label>
+                <Select
+                  value={formData.offerAuthor}
+                  onValueChange={(v) => handleChange('offerAuthor', v)}
+                >
+                  <SelectTrigger data-testid="tarjous-author">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boris">Boris Penkin</SelectItem>
+                    <SelectItem value="joosep">Joosep Rohusaar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
