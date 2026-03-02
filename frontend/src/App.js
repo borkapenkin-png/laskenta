@@ -30,7 +30,7 @@ import {
   validateProjectData,
   saveTarjousSnapshot
 } from '@/utils/storage';
-import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF } from '@/utils/export';
+import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF, exportKoontitarjousPDF } from '@/utils/export';
 
 function App() {
   const [pdfFile, setPdfFile] = useState(null);
