@@ -197,6 +197,9 @@ function App() {
   };
 
   const handleMeasurementComplete = (measurement) => {
+    // Save current state to undo stack before adding
+    saveToUndoStack();
+    
     // Check special measurement types
     const isPystykotelot = pendingPreset?.isPystykotelot || false;
     const isKuivatilaRakennus = pendingPreset?.isKuivatilaRakennus || false;
@@ -277,6 +280,9 @@ function App() {
   };
 
   const handleUpdateMeasurement = (id, updatedData) => {
+    // Save current state to undo stack before updating
+    saveToUndoStack();
+    
     setMeasurements(prev =>
       prev.map(m => (m.id === id ? { ...m, ...updatedData } : m))
     );
@@ -284,15 +290,18 @@ function App() {
   };
 
   const handleDeleteMeasurement = (id) => {
-    if (undoStack.length > 0 || measurements.length > 0) {
-      saveToUndoStack();
-    }
+    // Save current state to undo stack before deleting
+    saveToUndoStack();
+    
     setMeasurements(prev => prev.filter(m => m.id !== id));
     setSelectedMeasurementId(null);
     toast.success('Mittaus poistettu');
   };
 
   const handleCopyMeasurement = (measurement) => {
+    // Save current state to undo stack before copying
+    saveToUndoStack();
+    
     const copiedMeasurement = {
       ...measurement,
       id: `measurement-${Date.now()}`,
@@ -304,6 +313,9 @@ function App() {
 
   // Create jalkalista (baseboard) measurement from wall measurement
   const handleAddJalkalista = (wallMeasurement) => {
+    // Save current state to undo stack before adding
+    saveToUndoStack();
+    
     // Use the original running meters (quantity) from the wall measurement
     const jalkalistaMeasurement = {
       id: `measurement-${Date.now()}`,
@@ -526,10 +538,10 @@ function App() {
     }
   };
 
-  const handleGenerateKoontitarjous = (snapshots, tarjousData) => {
+  const handleGenerateKoontitarjous = (koontitarjousData) => {
     try {
       toast.dismiss('koontitarjous-export');
-      exportKoontitarjousPDF(snapshots, tarjousData);
+      exportKoontitarjousPDF(koontitarjousData);
       toast.success('Koontitarjous PDF luotu!', { 
         id: 'koontitarjous-export',
         duration: 3000 

@@ -3,115 +3,107 @@ The user wants to build a modern, 100% client-side, browser-based PDF takeoff an
 
 **PRODUCT REQUIREMENTS:**
 - **Architecture:** No backend, no server, no user accounts. All logic is client-side.
-- **Storage:** Use  for autosaving and allow project import/export as  files.
+- **Storage:** Use  for autosaving and allow project import/export as  files. The saved project file must contain all data, including the base PDF, to allow for full restoration.
 - **Core Functionality:**
     - Open and view multi-page PDF floor plans.
-    - Calibrate the scale manually (two-point) or from presets.
+    - Calibrate the scale.
     - Measurement tools: Length (jm), Area (m²), and Count (kpl).
-    - A Wall tool to convert running meters (jm) to square meters (m²) using a specified height.
     - A context-sensitive preset system with predefined work items and prices.
     - Calculate total costs, including a configurable VAT.
-    - Generate a summary report and a professional PDF offer.
+    - Generate a summary report and a professional PDF offer. The offer system should be robust, including company branding and the ability to create summary offers from multiple project parts.
 - **UI/UX:**
-    - Modern, minimalist interface.
-    - Layout: Left sidebar (thumbnails), central PDF viewer, and a collapsible right panel.
+    - Modern, minimalist interface with a left sidebar (thumbnails), central PDF viewer, and a collapsible right panel.
     - Top toolbar for primary functions.
+    - All interactive elements must be responsive and professional, with no layout breaks on long text content.
 
 **User's preferred language**: The user communicates in a mix of **Finnish** and **Estonian**. The next agent MUST respond in these languages.
 
 **what currently exists?**
-A client-side React application built with  for rendering. The app supports PDF viewing, measurement tools (line, area, count), and a complex, context-sensitive preset system for cost estimation. Key features implemented include: project save/load via JSON, global wall height adjustment, two versions of PDF export (with and without prices), and a Tee tarjous (Create Offer) feature that generates a professional PDF quote with a company logo. A major bug related to measurement shifting on zoom has been fixed by normalizing all coordinates. A complex floors management feature was implemented but later removed entirely at the user's request due to bugs and complexity.
+A completely client-side React application that allows users to upload a PDF floor plan, perform measurements (area, length, count), and estimate costs using a detailed preset system. The application supports saving and loading entire projects as self-contained JSON files.
+
+The application features a highly advanced and professional Tee tarjous (Create Offer) feature that generates a polished PDF offer. This includes:
+- Two input modes: Laskennasta (automatic, from measurements) and Käsin (manual entry with an editable line-item table).
+- Consistent VAT logic (ALV 0% vs. sis. ALV).
+- Configurable material overhead percentage for change orders.
+- Professional PDF template with a header, customer info, content table, and totals.
+- Robust pagination to prevent text overlap, with updated professional terms and conditions (Vakioehdot).
+- An Offer Author selector that signs the PDF.
+
+A Koontitarjous (Summary Offer) feature is also present, designed to merge multiple project JSON files into a single combined offer.
 
 **Last working item**:
-- **Last item agent was working:** The agent was about to start implementing the user's request to modify the Määrälaskenta (Takeoff) list UI. The requirements are:
-    1.  Do not show prices in the measurement list itself.
-    2.  Ensure the action buttons (copy, delete, edit) are always visible for each item, even if the description text is long and truncated.
+- **Last item agent was working:** The agent was performing a complete overhaul of the Koontitarjous (Summary Offer) feature. The user requested to change its core logic: instead of merging saved *offer snapshots*, it should now allow uploading multiple *project JSON files*, parse them, merge identical line items, and generate a single consolidated offer PDF using the same professional template as the Tee tarjous feature. The agent created a new  with the file upload UI and rewrote the  function in . However, the agent noticed that the file replacement left some old code in  that needs to be cleaned up.
 - **Status:** IN PROGRESS
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** screenshot tool (This is a minor UI change, a single screenshot after implementation should be sufficient to verify).
+- **Which testing method agent to use?** Manual testing followed by . First, manually test the complete flow: save multiple projects, upload them into the new dialog, and generate a summary PDF. Once the basic functionality is confirmed, use the testing agent for a comprehensive test of this critical feature.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Modify Määrälaskenta Panel UI (P0 - HIGHEST)**
-- **Issue 2: Left Sidebar Thumbnails Render Empty (P1 - High)**
+- **Issue 1: Finalize and Test Koontitarjous Overhaul (P0 - HIGHEST)**
 
 **Issues Detail:**
-- **Issue 1: Modify Määrälaskenta Panel UI**
-    - **Description:** The user wants to remove the price from each measurement item in the right-hand Määrälaskenta list and ensure the action buttons (copy, edit, delete) are always visible.
-    - **Attempted fixes:** None. The agent just received the request.
+- **Issue 1: Finalize and Test Koontitarjous Overhaul**
+    - **Attempted fixes:** A new  component was created to handle multi-file JSON uploads. The  file was updated with a new  function designed to merge projects and reuse the main offer template. The agent's last action was an attempt to clean up  after a messy file replacement.
     - **Next debug checklist:**
-        1.  Edit .
-        2.  Locate the section that maps over  to render each item.
-        3.  Remove the element that displays the .
-        4.  Adjust the CSS (likely using Flexbox) for the container of the measurement item to ensure the button group does not wrap or get hidden. Use  on the button container and allow the text description to truncate (, , ).
-    - **Why fix this issue and what will be achieved with the fix?** To simplify the UI according to the user's preference and improve usability by making actions consistently accessible.
+        1.  **Clean up :** View  and remove the duplicated/old code for  that was left behind after the search_replace operation (as seen in ).
+        2.  **Manually Test the Flow:**
+            a.  Create and save at least two different project files () with some overlapping and some unique measurement operations.
+            b.  Open the Koontitarjous dialog.
+            c.  Upload the saved  files.
+            d.  Verify the dialog lists the uploaded projects and allows their titles to be edited.
+            e.  Fill in the customer details and generate the summary offer PDF.
+        3.  **Verify the PDF:** Check the generated PDF to ensure that quantities for identical operations have been summed correctly, the layout is identical to the Tee tarjous PDF, and all totals are accurate.
+    - **Why fix this issue and what will be achieved with the fix?** This is the final requested behavior for a key internal workflow, allowing the user to combine multiple smaller projects (e.g., different floors of a building) into a single master offer.
     - **Status:** IN PROGRESS
     - **Is recurring issue?** N
     - **Should Test frontend/backend/both after fix?** Frontend
     - **Blocked on other issue:** No
 
-- **Issue 2: Left Sidebar Thumbnails Render Empty (P1 - High)**
-    - **Description:** A long-standing bug from the initial handoff. When a multi-page PDF is loaded and the left sidebar is collapsed and then expanded, the page thumbnail canvases are blank.
-    - **Attempted fixes:** None.
-    - **Next debug checklist:**
-        1.  Verify the bug still exists.
-        2.  Inspect .
-        3.  The canvases likely need to be re-rendered when the sidebar becomes visible. The fix could involve using a  on the sidebar's container to trigger a re-render of thumbnails when its dimensions change from zero, or triggering the render function when the  prop changes to .
-    - **Why fix this issue and what will be achieved with the fix?** This is a core navigation feature for multi-page documents.
-    - **Status:** NOT STARTED
-    - **Is recurring issue?** Y
-    - **Should Test frontend/backend/both after fix?** Frontend
-    - **Blocked on other issue:** No
-
 **In progress Task List**:
-- **Task 1: Implement Määrälaskenta UI Changes**
-    - **Description:** This is the current .
-    - **Where to resume:** The agent needs to start editing .
-    - **What will be achieved with this?** A cleaner UI that matches the user's latest request.
+- **Task 1: Complete Koontitarjous Overhaul**
+    - **Where to resume:** Start by cleaning the  file to remove leftover code. Then proceed with testing the feature.
+    - **What will be achieved with this?** A fully functional summary offer system based on merging uploaded project files.
     - **Status:** IN PROGRESS
     - **Should Test frontend/backend/both after fix?** Frontend
     - **Blocked on something:** No
 
 **Upcoming and Future Tasks**
 **Upcoming Tasks:**
-- **User Verification (P0):** After implementing the current UI change, the next step is to let the user test all recently added features (Save/Load, PDF Exports, Global Height, Offer Generation, Zoom fix) and the latest UI tweak. The user has explicitly stated they will do this.
+- **User Verification (P0):** After the Koontitarjous overhaul is complete and tested, the user must verify this major feature.
 
 **Future Tasks:**
-- **Undo/Redo Functionality (P2):** The  hook and toolbar buttons exist but the functionality has not been tested or verified with the current complex state.
-- **Preset Configuration UI (P3):** The presets are hardcoded in . A future improvement would be to allow the user to create, edit, and save their own presets in .
-- **Offer PDF Template Refinement (P3):** The text and structure for the generated offer are hardcoded in . This could be made more configurable.
+- **Undo/Redo Functionality (P2):** The  hook exists but is not fully integrated or tested.
+- **Preset Configuration UI (P3):** Allow users to create, edit, and save their own measurement presets in .
 
 **Completed work in this session**
-- **Feature Revert: Floors Management:** A complex feature to manage multiple floors, each with its own PDF, was fully implemented. Due to persistent bugs (race conditions, state desynchronization), the user requested its complete removal. The agent successfully reverted the codebase, removing all related state, components, and logic from , , , etc.
-- **Bug Fix: Zoom & Scale Inaccuracy:** Fixed a critical bug where measurements would shift on the canvas and scale calculations would be incorrect when zooming. The solution involved normalizing all measurement coordinates and scale calculations to a zoom level of 1.0. This was a major fix involving , , and .
-- **Feature: Tee tarjous (Create Offer):**
-    - Added a Tee tarjous button and a  component to collect customer/offer details.
-    - Implemented  in  to create a professional-looking PDF quote using  and .
-    - Added the company logo as a base64 string to avoid CORS issues.
-    - Added a VAT (ALV) checkbox to include/exclude tax in the final offer price.
-- **Feature Batch Implementation:**
-    - **Project Save/Load (JSON):** Implemented  and  in  to use .
-    - **PDF Export Overhaul:** Implemented two separate PDF export buttons (PDF € and PDF) for versions with and without pricing.
-    - **UI Enhancements:** Added a project name input, grouped items in the Yhteenveto panel, and added a global setting for default wall height.
-- **Preset System Refinement:**
-    - Removed prices from the tool preset dropdown menu.
-    - Added a dropdown in the Määrälaskenta list to allow changing a measurement's preset type after it has been created.
-- **Code Cleanup:** Removed the CSV export functionality (, , ) as requested by the user.
+- **Tee tarjous Feature Overhaul:** Massively improved and professionalized the offer generation feature, including:
+    - Added two modes: automatic from calculations and manual entry.
+    - Implemented a professional PDF layout with robust pagination to prevent text overlap.
+    - Standardized VAT logic (ALV 0% vs. incl. VAT).
+    - Added configurable material overhead, an offer author selector, and a default hourly rate.
+    - Updated the standard terms (Vakioehdot) several times with professional legal text provided by the user (final version includes YSE 1998 & MaalausRYL 2012 clauses).
+- **Preset System Unification:**
+    - Added new presets for Kipsiseinä (drywall) and Kipsiotsa (drywall edge).
+    - Unified the structure, naming logic, and UI for all rakennus (construction) type presets to ensure consistency.
+- **Koontitarjous Feature Re-implementation:** Started the complete overhaul of the summary offer feature to work with uploaded project JSON files, creating the new UI and PDF logic.
+- **Logo Implementation Fix:** Refactored the PDF export to use an imported PNG logo directly instead of a large base64 string.
 
 **Earlier issues found/mentioned but not fixed**
-- The **Left Sidebar Thumbnail** rendering bug was identified in the initial handoff and remains unresolved.
+- **Issue 1: Left Sidebar Thumbnails Render Empty**
+    - This was a long-standing UI bug mentioned in the initial handoff.
+    - **Status: USER REJECTED.** The user stated seal pole mingit bugi mu arust (I dont think theres a bug there) in . Do not work on this unless the user brings it up again.
 
 **Known issue recurrence from previous fork**
-N/A
+- The Left Sidebar Thumbnail bug was a known recurring issue, but it has been dismissed by the user in this session.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Framework/Library:** React.js, , , 
-- **State Management:** All application state is managed in the  component using React Hooks (, , ).
+- **Framework/Library:** React.js, , , .
+- **State Management:** Centralized state in the  component using React Hooks. Dialogs manage their own internal form state.
 - **Data Storage:** Client-side  for project persistence.
-- **Coordinate System:** A custom system was implemented to normalize all drawn points against the PDF's native dimensions (at zoom=1.0) to fix scaling and panning issues. Screen coordinates are translated to normalized coordinates for storage and back for rendering.
+- **File Handling:**  is used to read user-uploaded PDFs and project JSONs. The entire application logic is client-side.
 
 **key DB schema**
 N/A. All data is in React state and .
@@ -120,52 +112,58 @@ N/A. All data is in React state and .
 None.
 
 **All files of reference**
-- : The God component containing almost all state and business logic. Was heavily modified to add/remove the floors feature and implement many new features.
-- : Renders the measurement list. Target for the current task.
-- : Contains the critical and complex logic for drawing and handling zoom-normalized coordinates.
-- : Contains all logic for generating different types of PDFs.
-- : Contains the thumbnail rendering bug.
-- : New component for the Create Offer feature.
+- : **Currently being modified.** Needs cleanup and testing.
+- : **Newly created.** Needs testing.
+- : Recently overhauled for the new offer features.
+- : Recently overhauled to unify construction presets.
+- : Contains the final version of the offer terms.
+- : Contains the top-level state and handlers for the modals.
 
 **Areas that need refactoring**:
-- ** God Component:** This file is extremely large and complex. It should be broken down using  or multiple context providers (, ) to separate concerns (e.g., measurements, project settings, UI state).
-- **Hardcoded Configuration:** Both the measurement presets in  and the offer text/structure in  are hardcoded. Extracting these into separate JSON configuration files would improve maintainability.
+- ** God Component:** This file still manages a large amount of application state and could benefit from being broken down using  or React Context.
+- **Hardcoded Configuration:** Presets in  and company info in  are hardcoded. While this was the requested approach, a future enhancement could make these configurable.
 
 **key api endpoints**
-N/A.
+N/A. The application is 100% client-side.
 
 **Critical Info for New Agent**
-- **User-Driven Reversals:** The user is willing to request the removal of large, recently-completed features if they are buggy or don't meet expectations (e.g., the Floors feature). Be prepared for major shifts in direction.
-- **Verify before Building:** The user will test the application after the current change. Do not start new features until they provide feedback.
-- **Zoom/Scale Logic is Sensitive:** The coordinate normalization logic in  was a difficult bug to fix. Be extremely cautious when making changes there.
-- **Focus on the Current Request:** The immediate task is a small UI change in . Complete this first.
+- **Your immediate task is to finalize the Koontitarjous feature.** This involves cleaning up the  file and then performing thorough manual testing of the entire project-merging workflow.
+- **The user provides extremely detailed, technical instructions.** Follow them precisely. The user's language is a mix of Finnish and Estonian; you must respond in these languages.
+- **The Left Sidebar Thumbnail Bug has been dismissed by the user.** Do not investigate or attempt to fix it unless the user explicitly asks for it again.
+- **All logic is client-side.** Do not introduce any backend dependencies. File parsing, data manipulation, and PDF generation all happen in the browser.
 
 **documents and test reports created in this job**
-- 
-- Numerous test reports in  from  up to .
+None.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks to remove the floors functionality entirely and revert to a simpler version.
-2.  **Agent:** Acknowledges and starts reverting the code.
-3.  **Agent:** Finishes reverting the code and confirms the simple version is restored.
-4.  **User:** Requests changes to the Määrälaskenta (Takeoff) panel: remove prices and make action buttons always visible. (This is the current task).
+1.  **Request:** Finalize and professionalize the Tee tarjous feature (add author, set default hourly rate, update terms). (Completed)
+2.  **Request:** Update the vakioehdot (standard terms) to a final version with YSE 1998 and MaalausRYL 2012 clauses. (Completed)
+3.  **Analysis:** Agent confirmed the final terms were implemented. (Completed)
+4.  **Request:** Add new Kipsirakenteet (drywall construction) presets and unify the structure and naming of all existing rakennus (construction) type presets. (Completed)
+5.  **Analysis:** Agent confirmed the new preset system was implemented and working correctly. (Completed)
+6.  **Request:** A major overhaul of the Koontitarjous feature to work by uploading and merging project JSON files, reusing the Tee tarjous PDF template and logic. (In Progress)
+7.  **Agent Action:** Began implementation of the Koontitarjous overhaul by creating a new . (In Progress)
+8.  **Agent Action:** Rewrote the  function in . (In Progress)
+9.  **Agent Action:** Attempted to clean up the  file after the previous replacement. (In Progress)
+10. **(No new user message)** The agent was in the middle of cleaning up the  file.
 
 **Project Health Check:**
-- **Broken:** The left sidebar thumbnail rendering is still broken.
+- **Broken:** The Koontitarjous feature is currently in a non-functional state pending code cleanup and testing.
+- **Mocked:** None.
 
 **3rd Party Integrations**
-- **:** PDF rendering engine.
-- **:** PDF generation library.
-- **:** A  plugin for creating tables in PDFs.
+- **:** For rendering PDF files in the browser.
+- **:** For generating PDF documents (offers, reports).
+- **:** A  plugin for creating tables within PDFs.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES. The agent was used extensively to test new features and debug complex issues, including the reverted floors feature.
+- **Testing agent used after significant changes:** NO
 - **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None.
-- **Known regressions:** The  error appeared in logs, which was supposedly fixed by the testing agent earlier. This might indicate a regression or an incomplete fix.
+- **Test files created:** NO
+- **Known regressions:** None. The one known bug (thumbnails) was dismissed by the user.
 
 **Credentials to test flow:**
 N/A
 
 **What agent forgot to execute**
-- The Left Sidebar Thumbnails Render Empty bug from the initial project setup has still not been addressed.</analysis>
+The agent has followed the user's requests diligently. The only pending action is the completion and testing of the last requested feature (Koontitarjous overhaul).</analysis>
