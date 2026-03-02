@@ -408,57 +408,105 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   
   yPos += 50;
   
-  // ==================== CONTENT TABLE ====================
+  // ==================== URAKAN SISÄLTÖ (Manual mode text) ====================
+  if (isManualMode && tarjousData.urakanSisalto) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(...BRAND_TEAL);
+    doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
+    
+    yPos += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
+    
+    // Split and wrap text properly
+    const scopeLines = doc.splitTextToSize(tarjousData.urakanSisalto, contentWidth);
+    scopeLines.forEach(line => {
+      yPos = checkPageBreak(doc, yPos, 5, pageHeight);
+      doc.text(line, MARGIN_LEFT, yPos);
+      yPos += 5;
+    });
+    
+    yPos += 8;
+  }
+  
+  // ==================== CONTENT TABLE / HINTA ====================
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(...BRAND_TEAL);
-  doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
+  doc.text(isManualMode ? 'Hinta' : 'Urakan sisältö', MARGIN_LEFT, yPos);
   
   yPos += 5;
   
-  // Table with prices
-  const tableData = grouped.map(g => [
-    g.label,
-    formatNumber(g.totalQuantity),
-    g.unit,
-    formatCurrency(g.pricePerUnit),
-    formatCurrency(g.totalCost)
-  ]);
-
-  autoTable(doc, {
-    startY: yPos,
-    head: [['Toimenpide', 'Määrä', 'Yksikkö', 'Yksikköhinta', 'Yhteensä']],
-    body: tableData,
-    styles: { 
-      fontSize: 9,
-      cellPadding: 4,
-      textColor: BRAND_DARK,
-      lineColor: [220, 220, 220],
-      lineWidth: 0.1
-    },
-    headStyles: { 
-      fillColor: BRAND_TEAL,
-      textColor: 255,
-      fontStyle: 'bold',
-      fontSize: 9
-    },
-    alternateRowStyles: {
-      fillColor: [250, 251, 252]
-    },
-    columnStyles: {
-      0: { cellWidth: 70 },
-      1: { halign: 'right', cellWidth: 25 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'right', cellWidth: 30 },
-      4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
-    },
-    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
-    didDrawPage: () => {
-      pageNumber++;
+  // Prepare table data based on mode
+  let tableData;
+  if (isManualMode) {
+    if (tarjousData.useKokonaishinta) {
+      // Single kokonaishinta - no table, just show total
+      tableData = null;
+    } else {
+      // Manual rows table
+      tableData = tarjousData.manualRows
+        .filter(r => r.toimenpide || r.maara)
+        .map(r => [
+          r.toimenpide || '',
+          r.maara || '',
+          r.yksikko || '',
+          r.yksikkohinta ? formatCurrency(parseFloat(r.yksikkohinta)) : '',
+          formatCurrency(r.yhteensa || 0)
+        ]);
     }
-  });
+  } else {
+    // Auto mode - grouped measurements
+    tableData = grouped.map(g => [
+      g.label,
+      formatNumber(g.totalQuantity),
+      g.unit,
+      formatCurrency(g.pricePerUnit),
+      formatCurrency(g.totalCost)
+    ]);
+  }
 
-  yPos = doc.lastAutoTable.finalY + 10;
+  // Only show table if we have data
+  if (tableData && tableData.length > 0) {
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Toimenpide', 'Määrä', 'Yksikkö', 'Yksikköhinta', 'Yhteensä']],
+      body: tableData,
+      styles: { 
+        fontSize: 9,
+        cellPadding: 4,
+        textColor: BRAND_DARK,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.1
+      },
+      headStyles: { 
+        fillColor: BRAND_TEAL,
+        textColor: 255,
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      alternateRowStyles: {
+        fillColor: [250, 251, 252]
+      },
+      columnStyles: {
+        0: { cellWidth: 70 },
+        1: { halign: 'right', cellWidth: 25 },
+        2: { halign: 'center', cellWidth: 20 },
+        3: { halign: 'right', cellWidth: 30 },
+        4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
+      },
+      margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
+      didDrawPage: () => {
+        pageNumber++;
+      }
+    });
+    yPos = doc.lastAutoTable.finalY + 10;
+  } else {
+    // No table (kokonaishinta mode)
+    yPos += 5;
+  }
   
   // ==================== TOTALS SECTION ====================
   yPos = checkPageBreak(doc, yPos, 50, pageHeight);
