@@ -26,7 +26,8 @@ import {
   createProjectData,
   parseProjectData,
   base64ToBlob,
-  validateProjectData
+  validateProjectData,
+  saveTarjousSnapshot
 } from '@/utils/storage';
 import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF } from '@/utils/export';
 
