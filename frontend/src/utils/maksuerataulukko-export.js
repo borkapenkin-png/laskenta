@@ -31,14 +31,14 @@ const formatPercent = (value) => {
 
 /**
  * Export Maksuerätaulukko PDF - minimal header, no company info, no date, no preset name
- * @param {Object} data - Contains urakkasumma, vatMode, kohde, rows
+ * @param {Object} data - Contains urakkasumma, vatMode, tilaaja, kohde, rows
  */
 export const exportMaksuerataulukkoPDF = (data) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
   
-  const { urakkasumma, vatMode, kohde, rows } = data;
+  const { urakkasumma, vatMode, tilaaja, kohde, rows } = data;
   const total = rows.reduce((sum, r) => sum + (r.summa || 0), 0);
   
   let yPos = MARGIN_TOP;
@@ -60,11 +60,21 @@ export const exportMaksuerataulukkoPDF = (data) => {
   
   // ==================== INFO BLOCK (minimal) ====================
   doc.setFillColor(...BRAND_LIGHT);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 24, 2, 2, 'F');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
   
   let infoY = yPos + 9;
   
   doc.setFontSize(10);
+  
+  // Tilaaja
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Tilaaja:', MARGIN_LEFT + 5, infoY);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(tilaaja || '-', MARGIN_LEFT + 48, infoY);
+  
+  infoY += 8;
   
   // Työmaa / Kohde
   doc.setTextColor(100, 100, 100);
@@ -85,7 +95,7 @@ export const exportMaksuerataulukkoPDF = (data) => {
   const vatText = vatMode === 'alv0' ? ' (ALV 0%)' : ' (sis. ALV 25,5%)';
   doc.text(formatCurrency(urakkasumma) + vatText, MARGIN_LEFT + 48, infoY);
   
-  yPos += 34;
+  yPos += 42;
   
   // ==================== TABLE ====================
   doc.setFont('helvetica', 'bold');

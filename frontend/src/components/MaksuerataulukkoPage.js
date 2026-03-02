@@ -99,6 +99,9 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
   const [urakkasumma, setUrakkasumma] = useState(() => {
     return localStorage.getItem('maksuerataulukko_urakkasumma') || '';
   });
+  const [tilaaja, setTilaaja] = useState(() => {
+    return localStorage.getItem('maksuerataulukko_tilaaja') || '';
+  });
   const [kohde, setKohde] = useState(() => {
     return localStorage.getItem('maksuerataulukko_kohde') || '';
   });
@@ -121,11 +124,12 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
   // Persist to localStorage
   useEffect(() => {
     localStorage.setItem('maksuerataulukko_urakkasumma', urakkasumma);
+    localStorage.setItem('maksuerataulukko_tilaaja', tilaaja);
     localStorage.setItem('maksuerataulukko_kohde', kohde);
     localStorage.setItem('maksuerataulukko_vatMode', vatMode);
     localStorage.setItem('maksuerataulukko_preset', selectedPreset);
     localStorage.setItem('maksuerataulukko_milestones', String(milestoneCount));
-  }, [urakkasumma, kohde, vatMode, selectedPreset, milestoneCount]);
+  }, [urakkasumma, tilaaja, kohde, vatMode, selectedPreset, milestoneCount]);
 
   // Calculate rows when preset changes
   const calculateRows = () => {
@@ -167,6 +171,10 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
     const amount = parseFloat(urakkasumma);
     if (!amount || amount <= 0) {
       toast.error('Syötä urakkasumma');
+      return;
+    }
+    if (!tilaaja.trim()) {
+      toast.error('Syötä tilaaja');
       return;
     }
     if (!kohde.trim()) {
@@ -281,6 +289,7 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
     const total = rows.reduce((sum, r) => sum + r.summa, 0);
     
     let text = 'Maksuerätaulukko\n';
+    text += `Tilaaja: ${tilaaja}\n`;
     text += `Työmaa / Kohde: ${kohde}\n`;
     text += `Urakkasumma: ${formatCurrency(baseAmount)} € (${vatMode === 'alv0' ? 'ALV 0%' : 'sis. ALV 25,5%'})\n\n`;
     text += 'Erä\tSelite\t%\tSumma €\n';
@@ -314,6 +323,7 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
       exportMaksuerataulukkoPDF({
         urakkasumma: baseAmount,
         vatMode,
+        tilaaja,
         kohde,
         rows
       });
@@ -422,9 +432,9 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className="min-h-screen h-auto bg-[#F9FAFB] overflow-y-auto">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -444,12 +454,48 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="max-w-4xl mx-auto p-6 pb-24 space-y-6">
         {/* INPUT SECTION */}
         <div className="bg-white rounded-lg border p-6 space-y-6" data-testid="maksuerataulukko-input">
           <h2 className="font-semibold text-gray-700 border-b pb-2">Syöttötiedot</h2>
           
+          {/* Row 1: Tilaaja + Työmaa/Kohde */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Tilaaja */}
+            <div className="space-y-2">
+              <Label htmlFor="tilaaja" className="text-sm font-medium">
+                Tilaaja <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="tilaaja"
+                type="text"
+                value={tilaaja}
+                onChange={(e) => setTilaaja(e.target.value)}
+                placeholder="Esim. Rakennusyhtiö Oy"
+                className="w-full"
+                data-testid="maksuerataulukko-tilaaja"
+              />
+            </div>
+
+            {/* Työmaa / Kohde */}
+            <div className="space-y-2">
+              <Label htmlFor="kohde" className="text-sm font-medium">
+                Työmaa / Kohde <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="kohde"
+                type="text"
+                value={kohde}
+                onChange={(e) => setKohde(e.target.value)}
+                placeholder="Esim. As Oy Esimerkki, Helsinki"
+                className="w-full"
+                data-testid="maksuerataulukko-kohde"
+              />
+            </div>
+          </div>
+          
+          {/* Row 2: Urakkasumma + ALV */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Urakkasumma */}
             <div className="space-y-2">
               <Label htmlFor="urakkasumma" className="text-sm font-medium">
@@ -466,24 +512,6 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
               />
             </div>
 
-            {/* Työmaa / Kohde */}
-            <div className="space-y-2">
-              <Label htmlFor="kohde" className="text-sm font-medium">
-                Työmaa / Kohde <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="kohde"
-                type="text"
-                value={kohde}
-                onChange={(e) => setKohde(e.target.value)}
-                placeholder="Esim. As Oy Esimerkki, Helsinki"
-                className="w-72"
-                data-testid="maksuerataulukko-kohde"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* ALV mode */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">ALV-käsittely</Label>
@@ -596,6 +624,9 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
 
             {/* Summary info - minimal */}
             <div className="flex flex-col gap-1 text-sm text-gray-600 bg-[#F5F7FA] p-3 rounded">
+              <span>
+                <strong>Tilaaja:</strong> {tilaaja}
+              </span>
               <span>
                 <strong>Työmaa / Kohde:</strong> {kohde}
               </span>
