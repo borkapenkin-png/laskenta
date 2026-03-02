@@ -160,6 +160,31 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* SOURCE MODE SELECTOR */}
+          <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+            <h3 className="font-semibold text-sm text-gray-700">Tarjouksen sisältö ja hinnat</h3>
+            <RadioGroup
+              value={formData.sourceMode}
+              onValueChange={(v) => handleChange('sourceMode', v)}
+              className="flex flex-col gap-3"
+            >
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="auto" id="mode-auto" />
+                <Label htmlFor="mode-auto" className="cursor-pointer font-normal flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-[#4A9BAD]" />
+                  Laskennasta (automaattinen)
+                </Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="manual" id="mode-manual" />
+                <Label htmlFor="mode-manual" className="cursor-pointer font-normal flex items-center gap-2">
+                  <Edit3 className="h-4 w-4 text-[#4A9BAD]" />
+                  Käsin (urakka sisältö + hinnat)
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+
           {/* A) Asiakastiedot */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-gray-700 border-b pb-2">Asiakastiedot</h3>
