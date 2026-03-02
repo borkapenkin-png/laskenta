@@ -115,12 +115,25 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
       return;
     }
     
+    // Validate manual mode
+    if (formData.sourceMode === 'manual') {
+      if (!formData.urakanSisalto.trim()) {
+        return; // Urakan sisältö required
+      }
+      if (!formData.useKokonaishinta && formData.manualRows.length === 0) {
+        return; // Need rows or kokonaishinta
+      }
+    }
+    
     setIsGenerating(true);
     try {
       await onGenerate({
         ...formData,
         isPreview,
         sisallaAlv: formData.vatMode === 'incl',
+        manualTotal: formData.useKokonaishinta 
+          ? parseFloat(formData.kokonaishinta) || 0 
+          : manualTotal,
       });
       if (!isPreview) {
         onClose();
@@ -130,7 +143,11 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     }
   };
 
-  const isValid = formData.asiakas.trim() && formData.kohde.trim();
+  // Validation
+  const isManualValid = formData.sourceMode === 'manual' 
+    ? (formData.urakanSisalto.trim() && (formData.useKokonaishinta ? formData.kokonaishinta : manualTotal > 0))
+    : true;
+  const isValid = formData.asiakas.trim() && formData.kohde.trim() && isManualValid;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
