@@ -465,6 +465,199 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   };
 };
 
+// Export koontitarjous (summary offer) PDF from multiple snapshots
+export const exportKoontitarjousPDF = (snapshots, tarjousData) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const vatPercentage = tarjousData.vatPercentage || 25.5;
+  const showWithVat = tarjousData.sisallaAlv !== false;
+  
+  // Calculate grand totals
+  let grandTotalCost = 0;
+  snapshots.forEach(s => {
+    grandTotalCost += s.totals?.totalCost || 0;
+  });
+  const grandVatAmount = showWithVat ? grandTotalCost * vatPercentage / 100 : 0;
+  const grandTotalWithVat = grandTotalCost + grandVatAmount;
+  
+  // Add logo
+  try {
+    const logoWidth = 60;
+    const logoHeight = 15;
+    doc.addImage(companyLogo, 'PNG', 20, 15, logoWidth, logoHeight);
+  } catch (e) {
+    doc.setFontSize(20);
+    doc.setTextColor(...BRAND_TEAL);
+    doc.setFont('helvetica', 'bold');
+    doc.text('J&B', 20, 25);
+    doc.setTextColor(...BRAND_GRAY);
+    doc.setFont('helvetica', 'italic');
+    doc.text('tasoitusmaalaus', 38, 25);
+  }
+  
+  // Company info
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('J&B Tasoitus Ja Maalaus Oy', pageWidth - 20, 18, { align: 'right' });
+  doc.text('Y-tunnus: XXXXXXX-X', pageWidth - 20, 23, { align: 'right' });
+  doc.text('puh. XXX XXX XXXX', pageWidth - 20, 28, { align: 'right' });
+  
+  // Header line
+  doc.setDrawColor(...BRAND_TEAL);
+  doc.setLineWidth(0.5);
+  doc.line(20, 38, pageWidth - 20, 38);
+  
+  // Title
+  doc.setFontSize(22);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.setFont('helvetica', 'bold');
+  doc.text('KOONTITARJOUS', 20, 52);
+  
+  // Date
+  const today = new Date().toLocaleDateString('fi-FI');
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 60);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Päivämäärä: ${today}`, pageWidth - 20, 52, { align: 'right' });
+  
+  // Customer info box
+  doc.setFillColor(245, 247, 250);
+  doc.roundedRect(20, 58, pageWidth - 40, 24, 2, 2, 'F');
+  
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 60);
+  doc.text('Asiakas:', 25, 67);
+  doc.setFont('helvetica', 'bold');
+  doc.text(tarjousData.asiakas || '', 50, 67);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.text('Kohde:', 25, 75);
+  doc.setFont('helvetica', 'bold');
+  doc.text(tarjousData.kohde || 'Koontitarjous', 50, 75);
+  
+  // Parts table
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.text('Tarjouksen osat', 20, 95);
+  
+  const tableData = snapshots.map(s => [
+    s.title || s.projectName || 'Tarjous',
+    new Date(s.createdAt).toLocaleDateString('fi-FI'),
+    formatCurrency(s.totals?.totalCost || 0)
+  ]);
+
+  autoTable(doc, {
+    startY: 100,
+    head: [['Osa / Kohde', 'Päivämäärä', 'Hinta (ALV 0%)']],
+    body: tableData,
+    styles: { 
+      fontSize: 9,
+      cellPadding: 4,
+      textColor: [60, 60, 60]
+    },
+    headStyles: { 
+      fillColor: BRAND_TEAL,
+      textColor: 255,
+      fontStyle: 'bold',
+      fontSize: 10
+    },
+    alternateRowStyles: {
+      fillColor: [250, 251, 252]
+    },
+    columnStyles: {
+      0: { cellWidth: 90 },
+      1: { cellWidth: 35, halign: 'center' },
+      2: { halign: 'right', cellWidth: 40 }
+    },
+    margin: { left: 20, right: 20 }
+  });
+
+  let yPos = doc.lastAutoTable.finalY + 15;
+  
+  // Grand total price section
+  doc.setFillColor(...BRAND_TEAL);
+  doc.roundedRect(20, yPos, pageWidth - 40, showWithVat ? 35 : 20, 2, 2, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  
+  if (showWithVat) {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Kokonaishinta (ALV 0%):', 30, yPos + 12);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text(formatCurrency(grandTotalCost), pageWidth - 30, yPos + 12, { align: 'right' });
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`ALV ${vatPercentage}%:`, 30, yPos + 22);
+    doc.text(formatCurrency(grandVatAmount), pageWidth - 30, yPos + 22, { align: 'right' });
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Kokonaishinta yhteensä (sis. ALV):', 30, yPos + 32);
+    doc.setFontSize(16);
+    doc.text(formatCurrency(grandTotalWithVat), pageWidth - 30, yPos + 32, { align: 'right' });
+    
+    yPos += 50;
+  } else {
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Kokonaishinta (ALV 0%):', 30, yPos + 13);
+    doc.setFontSize(16);
+    doc.text(formatCurrency(grandTotalCost), pageWidth - 30, yPos + 13, { align: 'right' });
+    
+    yPos += 35;
+  }
+  
+  // Terms
+  yPos += 10;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.text('Tarjouksen ehdot', 20, yPos);
+  
+  yPos += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+  
+  const terms = [
+    '• Tarjous on voimassa 30 päivää tarjouksen päivämäärästä.',
+    '• Koontitarjous sisältää yllä mainitut osat.',
+    '• Maksuehto: 14 pv netto.'
+  ];
+  
+  terms.forEach(term => {
+    doc.text(term, 20, yPos);
+    yPos += 6;
+  });
+  
+  // Footer
+  const footerY = pageHeight - 25;
+  doc.setDrawColor(...BRAND_TEAL);
+  doc.setLineWidth(0.3);
+  doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+  
+  doc.setFontSize(9);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.setFont('helvetica', 'bold');
+  doc.text('J&B Tasoitus Ja Maalaus Oy', 20, footerY);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.setFontSize(8);
+  doc.text('Kiitos mielenkiinnostanne!', 20, footerY + 6);
+  doc.text(`Sivu 1/1`, pageWidth - 20, footerY + 6, { align: 'right' });
+  
+  // Save
+  const fileName = `Koontitarjous_${tarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${today.replace(/\./g, '-')}.pdf`;
+  doc.save(fileName);
+};
+
 // Export PDF per floor
 export const exportFloorPDF = (project, measurements, floor, settings) => {
   const doc = new jsPDF();
