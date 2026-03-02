@@ -655,6 +655,7 @@ function App() {
         onLoadProject={handleLoadProject}
         onExportPDF={handleOpenPDFExportDialog}
         onCreateTarjous={handleCreateTarjous}
+        onCreateKoontitarjous={() => setKoontitarjousDialogOpen(true)}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
         selectedMeasurementId={selectedMeasurementId}
