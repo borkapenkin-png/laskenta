@@ -56,6 +56,7 @@ function App() {
   const [pendingPreset, setPendingPreset] = useState(null);
   const [toolPresetPosition, setToolPresetPosition] = useState({ x: 100, y: 100 });
   const [tarjousDialogOpen, setTarjousDialogOpen] = useState(false);
+  const [koontitarjousDialogOpen, setKoontitarjousDialogOpen] = useState(false);
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
