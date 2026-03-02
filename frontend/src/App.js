@@ -822,7 +822,7 @@ function App() {
         open={koontitarjousDialogOpen}
         onClose={() => setKoontitarjousDialogOpen(false)}
         onGenerate={handleGenerateKoontitarjous}
-        vatPercentage={settings.vatPercentage}
+        vatPercentage={settings?.vatPercentage || 25.5}
       />
 
       <PDFExportDialog
