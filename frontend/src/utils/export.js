@@ -248,7 +248,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
     // Logo dimensions - maintain aspect ratio
     const logoWidth = 60;
     const logoHeight = 15;
-    doc.addImage(COMPANY_LOGO_BASE64, 'PNG', 20, 15, logoWidth, logoHeight);
+    doc.addImage(companyLogo, 'PNG', 20, 15, logoWidth, logoHeight);
   } catch (e) {
     // Fallback: draw text logo if image fails
     doc.setFontSize(20);
