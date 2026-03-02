@@ -33,6 +33,7 @@ export const Toolbar = ({
   onLoadProject,
   onExportPDF,
   onCreateTarjous,
+  onCreateKoontitarjous,
   currentTool,
   onToolSelect,
   selectedMeasurementId,
