@@ -32,8 +32,8 @@ const PRESETS = {
       { selite: 'Työmaan käynnistys', percent: 10 },
       { selite: 'Valmistelut', percent: 15 },
       { selite: 'Pohjatyöt', percent: 20 },
-      { selite: 'Pintatyöt', percent: 20 },
-      { selite: 'Viimeistely', percent: 15 },
+      { selite: 'Pintatyöt', percent: 25 },
+      { selite: 'Viimeistely', percent: 20 },
       { selite: 'Luovutus / virheet korjattu', percent: 10 },
     ]
   },

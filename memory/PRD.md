@@ -46,6 +46,18 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Save state before: adding, updating, deleting, copying measurements
 - ✅ Works with all measurement operations
 
+### Maksuerätaulukko (Payment Schedule) - COMPLETED 2025-03-02
+- ✅ Standalone utility module with dedicated full-page view
+- ✅ Input: Urakkasumma (contract amount), ALV mode, Preset selector
+- ✅ Presets: YSE-6 (balanced), YSE-8 (detailed), 10-80-10 (valmisaste), Custom
+- ✅ 10-80-10 with configurable milestone count (4, 5, or 6 intermediate payments)
+- ✅ Custom tab for manual row editing with add/delete/normalize
+- ✅ Validation: % must sum to 100% with visual warnings
+- ✅ Copy to clipboard (formatted text for email)
+- ✅ PDF export with same Tarjous styling (company logo, teal accent, same fonts)
+- ✅ Rounding rules: display 2 decimals, last row adjusted for exact total
+- ✅ localStorage persistence for last used values
+
 ### Project Management
 - ✅ Save/Load projects as JSON (includes embedded PDF)
 - ✅ Autosave to localStorage
@@ -62,19 +74,22 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 ## File Structure
 ```
 /app/frontend/src/
-├── App.js                    # Main stateful component
+├── App.js                         # Main stateful component
 ├── components/
-│   ├── KoontitarjousDialog.js  # Summary offer from multiple JSONs
-│   ├── TarjousDialog.js        # Single offer generation
-│   ├── ToolPresetSelector.js   # Preset selection UI
-│   ├── TakeoffPanel.js         # Measurement list panel
-│   ├── PDFViewer.js            # PDF display component
+│   ├── MaksuerataulukkoPage.js    # Payment schedule utility (NEW)
+│   ├── KoontitarjousDialog.js     # Summary offer from multiple JSONs
+│   ├── TarjousDialog.js           # Single offer generation
+│   ├── ToolPresetSelector.js      # Preset selection UI
+│   ├── TakeoffPanel.js            # Measurement list panel
+│   ├── PDFViewer.js               # PDF display component
+│   ├── Toolbar.js                 # Top navigation bar
 │   └── ...
 ├── utils/
-│   ├── export.js               # PDF generation functions
-│   └── storage.js              # localStorage helpers
+│   ├── export.js                  # Tarjous/Koontitarjous PDF functions
+│   ├── maksuerataulukko-export.js # Payment schedule PDF (NEW)
+│   └── storage.js                 # localStorage helpers
 └── constants/
-    └── company.js              # Company info, terms
+    └── company.js                 # Company info, terms
 ```
 
 ## Backlog
@@ -95,7 +110,7 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 
 ## Testing
 - Test files: `/tmp/test_projects/projekt1.json`, `/tmp/test_projects/projekt2.json`
-- Test report: `/app/test_reports/iteration_8.json`
+- Test reports: `/app/test_reports/iteration_8.json`, `/app/test_reports/iteration_9.json`
 - All features verified working 2025-03-02
 
 ## Notes for Development
@@ -103,3 +118,4 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - Project JSON must include embedded PDF base64 for full restoration
 - VAT is always 25.5% in Finland
 - Prices are stored as ALV 0% internally
+- Maksuerätaulukko works independently (no project needed)
