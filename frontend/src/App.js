@@ -817,6 +817,13 @@ function App() {
         projectName={project.name}
       />
 
+      <KoontitarjousDialog
+        open={koontitarjousDialogOpen}
+        onClose={() => setKoontitarjousDialogOpen(false)}
+        onGenerate={handleGenerateKoontitarjous}
+        vatPercentage={settings.vatPercentage}
+      />
+
       <PDFExportDialog
         open={pdfExportDialogOpen}
         onClose={() => setPdfExportDialogOpen(false)}
