@@ -1,63 +1,354 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 
-// Default presets for each tool type
-const DEFAULT_PRESETS = {
-  line: [
-    { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 35, unit: 'jm', isKuivatilaRakennus: true },
-    { id: 'line-2', name: 'Kuivatila kotelot tasoitus ja maalaus', price: 45, unit: 'jm' },
-    { id: 'line-3', name: 'PRH Kotelo rakennus', price: 35, unit: 'jm', isPRHRakennus: true },
-    { id: 'line-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
-  ],
-  wall: [
-    { id: 'wall-1', name: 'Huoltomaalaus', price: 10, unit: 'm²' },
-    { id: 'wall-2', name: 'Kipsiseinä tasoitus ja maalaus', price: 20, unit: 'm²' },
-    { id: 'wall-3', name: 'Verkkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
-    { id: 'wall-4', name: 'Tapetointi', price: 20, unit: 'm²' },
-    { id: 'wall-5', name: 'Mikrotsementi', price: 85, unit: 'm²' },
-    { id: 'wall-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
-  ],
-  rectangle: [
-    { id: 'rect-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
-    { id: 'rect-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
-    { id: 'rect-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
-    { id: 'rect-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
-    { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
-    { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
-    { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
-    { id: 'rect-8', name: 'Kuivatila AK Rakennus', price: 35, unit: 'm²', isKuivatilaAK: true },
-    { id: 'rect-9', name: 'Märkätila AK Rakennus', price: 35, unit: 'm²', isMarkatilaAK: true },
-    { id: 'rect-10', name: 'PRH AK Rakennus', price: 35, unit: 'm²', isPRHAK: true },
-    { id: 'rect-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
-  ],
-  polygon: [
-    { id: 'poly-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
-    { id: 'poly-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
-    { id: 'poly-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
-    { id: 'poly-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
-    { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
-    { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
-    { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
-    { id: 'poly-8', name: 'Kuivatila AK Rakennus', price: 35, unit: 'm²', isKuivatilaAK: true },
-    { id: 'poly-9', name: 'Märkätila AK Rakennus', price: 35, unit: 'm²', isMarkatilaAK: true },
-    { id: 'poly-10', name: 'PRH AK Rakennus', price: 35, unit: 'm²', isPRHAK: true },
-    { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
-  ],
-  count: [
-    { id: 'count-1', name: 'Oven maalaus yheltä puolelta', price: 90, unit: 'kpl' },
-    { id: 'count-1b', name: 'Oven maalaus molemmilta puolelta', price: 180, unit: 'kpl' },
-    { id: 'count-2', name: 'Sisäikkuna sisäpuolelta', price: 70, unit: 'kpl' },
-    { id: 'count-2b', name: 'Sisäikkuna molemmilta puolelta', price: 140, unit: 'kpl' },
-    { id: 'count-2c', name: 'Sisä molemmin puolelta ja ulkoikkuna sisäpuolelta', price: 240, unit: 'kpl' },
-    { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 35, unit: 'kpl', isKuivatilaPystykotelo: true },
-    { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 35, unit: 'kpl', isPRHPystykotelo: true },
-    { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'kpl', isPystykotelot: true },
-    { id: 'count-other', name: 'Muu', price: 0, unit: 'kpl', isCustom: true }
-  ]
+// ==================== UNIFIED CONSTRUCTION OPTIONS ====================
+const FRAME_OPTIONS = [
+  { value: 'puurunko', label: 'Puurunko (kertapuu)' },
+  { value: 'metalliranka', label: 'Metalliranka' }
+];
+
+const INSULATION_OPTIONS = [
+  { value: 'ilman', label: 'Ilman villaa' },
+  { value: 'villalla', label: 'Villalla' }
+];
+
+const GYPSUM_OPTIONS = [
+  { value: '1', label: '1 x kipsi' },
+  { value: '2', label: '2 x kipsi' }
+];
+
+// ==================== PRESET PRICE MATRIX (base prices) ====================
+const CONSTRUCTION_PRICES = {
+  kipsiseina: {
+    base: 25,
+    metalli: 5,  // +5 for metal frame
+    villa: 8,    // +8 for insulation
+    kipsi2: 12   // +12 for 2x gypsum
+  },
+  kipsiotsa: {
+    base: 20,
+    metalli: 3,
+    villa: 5,
+    kipsi2: 8
+  },
+  kuivatilaKotelo: {
+    base: 35,
+    metalli: 0,
+    villa: 0,
+    kipsi2: 0
+  },
+  prhKotelo: {
+    base: 35,
+    metalli: 0,
+    villa: 0,
+    kipsi2: 0
+  },
+  kuivatilaAK: {
+    base: 35,
+    metalli: 0,
+    villa: 5,
+    kipsi2: 10
+  },
+  markatilaAK: {
+    base: 35,
+    metalli: 0,
+    villa: 5,
+    kipsi2: 10
+  },
+  prhAK: {
+    base: 35,
+    metalli: 0,
+    villa: 5,
+    kipsi2: 10
+  },
+  kuivatilaPystykotelo: {
+    base: 35,
+    metalli: 0,
+    villa: 0,
+    kipsi2: 0
+  },
+  prhPystykotelo: {
+    base: 35,
+    metalli: 0,
+    villa: 0,
+    kipsi2: 0
+  }
 };
 
+// Calculate price based on options
+const calculateConstructionPrice = (type, options) => {
+  const prices = CONSTRUCTION_PRICES[type];
+  if (!prices) return 35;
+  
+  let price = prices.base;
+  if (options.frameType === 'metalliranka') price += prices.metalli;
+  if (options.insulation === 'villalla') price += prices.villa;
+  if (options.gypsumLayers === '2') price += prices.kipsi2;
+  
+  return price;
+};
+
+// Generate unified name
+const generateConstructionName = (baseType, options) => {
+  const parts = [baseType];
+  
+  if (options.frameType) {
+    parts.push(options.frameType === 'metalliranka' ? 'metalliranka' : 'puurunko');
+  }
+  if (options.insulation) {
+    parts.push(options.insulation === 'villalla' ? 'villalla' : 'ilman villaa');
+  }
+  if (options.gypsumLayers) {
+    parts.push(`${options.gypsumLayers}x kipsi`);
+  }
+  
+  return parts.join(', ');
+};
+
+// ==================== DEFAULT PRESETS ====================
+const DEFAULT_PRESETS = {
+  line: {
+    groups: [
+      {
+        name: 'Kotelot',
+        items: [
+          { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 35, unit: 'jm', constructionType: 'kuivatilaKotelo', hasOptions: true },
+          { id: 'line-2', name: 'Kuivatila kotelot tasoitus ja maalaus', price: 45, unit: 'jm' },
+          { id: 'line-3', name: 'PRH Kotelo rakennus', price: 35, unit: 'jm', constructionType: 'prhKotelo', hasOptions: true },
+        ]
+      },
+      {
+        name: 'Seinä',
+        items: [
+          { id: 'line-seina-1', name: 'Kipsiotsa rakennus', price: 20, unit: 'jm', constructionType: 'kipsiotsa', hasOptions: true, isKipsiRakennus: true },
+        ]
+      },
+      {
+        name: 'Muu',
+        items: [
+          { id: 'line-other', name: 'Muu', price: 0, unit: 'jm', isCustom: true }
+        ]
+      }
+    ]
+  },
+  wall: {
+    groups: [
+      {
+        name: 'Maalaus ja tasoitus',
+        items: [
+          { id: 'wall-1', name: 'Huoltomaalaus', price: 10, unit: 'm²' },
+          { id: 'wall-2', name: 'Kipsiseinä tasoitus ja maalaus', price: 20, unit: 'm²' },
+          { id: 'wall-3', name: 'Verkkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+          { id: 'wall-4', name: 'Tapetointi', price: 20, unit: 'm²' },
+          { id: 'wall-5', name: 'Mikrotsementi', price: 85, unit: 'm²' },
+        ]
+      },
+      {
+        name: 'Seinä rakennus',
+        items: [
+          { id: 'wall-seina-1', name: 'Kipsiseinä rakennus', price: 25, unit: 'm²', constructionType: 'kipsiseina', hasOptions: true, isKipsiRakennus: true },
+        ]
+      },
+      {
+        name: 'Muu',
+        items: [
+          { id: 'wall-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
+        ]
+      }
+    ]
+  },
+  rectangle: {
+    groups: [
+      {
+        name: 'Katto',
+        items: [
+          { id: 'rect-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
+          { id: 'rect-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
+          { id: 'rect-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
+          { id: 'rect-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+        ]
+      },
+      {
+        name: 'Lattia',
+        items: [
+          { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
+          { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
+          { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
+        ]
+      },
+      {
+        name: 'Alakatto rakennus',
+        items: [
+          { id: 'rect-8', name: 'Kuivatila AK rakennus', price: 35, unit: 'm²', constructionType: 'kuivatilaAK', hasOptions: true },
+          { id: 'rect-9', name: 'Märkätila AK rakennus', price: 35, unit: 'm²', constructionType: 'markatilaAK', hasOptions: true },
+          { id: 'rect-10', name: 'PRH AK rakennus', price: 35, unit: 'm²', constructionType: 'prhAK', hasOptions: true },
+        ]
+      },
+      {
+        name: 'Muu',
+        items: [
+          { id: 'rect-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
+        ]
+      }
+    ]
+  },
+  polygon: {
+    groups: [
+      {
+        name: 'Katto',
+        items: [
+          { id: 'poly-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
+          { id: 'poly-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
+          { id: 'poly-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
+          { id: 'poly-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
+        ]
+      },
+      {
+        name: 'Lattia',
+        items: [
+          { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
+          { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
+          { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
+        ]
+      },
+      {
+        name: 'Alakatto rakennus',
+        items: [
+          { id: 'poly-8', name: 'Kuivatila AK rakennus', price: 35, unit: 'm²', constructionType: 'kuivatilaAK', hasOptions: true },
+          { id: 'poly-9', name: 'Märkätila AK rakennus', price: 35, unit: 'm²', constructionType: 'markatilaAK', hasOptions: true },
+          { id: 'poly-10', name: 'PRH AK rakennus', price: 35, unit: 'm²', constructionType: 'prhAK', hasOptions: true },
+        ]
+      },
+      {
+        name: 'Muu',
+        items: [
+          { id: 'poly-other', name: 'Muu', price: 0, unit: 'm²', isCustom: true }
+        ]
+      }
+    ]
+  },
+  count: {
+    groups: [
+      {
+        name: 'Ovet ja ikkunat',
+        items: [
+          { id: 'count-1', name: 'Oven maalaus yheltä puolelta', price: 90, unit: 'kpl' },
+          { id: 'count-1b', name: 'Oven maalaus molemmilta puolelta', price: 180, unit: 'kpl' },
+          { id: 'count-2', name: 'Sisäikkuna sisäpuolelta', price: 70, unit: 'kpl' },
+          { id: 'count-2b', name: 'Sisäikkuna molemmilta puolelta', price: 140, unit: 'kpl' },
+          { id: 'count-2c', name: 'Sisä molemmin puolelta ja ulkoikkuna sisäpuolelta', price: 240, unit: 'kpl' },
+        ]
+      },
+      {
+        name: 'Pystykotelot rakennus',
+        items: [
+          { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 35, unit: 'kpl', constructionType: 'kuivatilaPystykotelo', hasOptions: true },
+          { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 35, unit: 'kpl', constructionType: 'prhPystykotelo', hasOptions: true },
+          { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'kpl', isPystykotelot: true },
+        ]
+      },
+      {
+        name: 'Muu',
+        items: [
+          { id: 'count-other', name: 'Muu', price: 0, unit: 'kpl', isCustom: true }
+        ]
+      }
+    ]
+  }
+};
+
+// ==================== CONSTRUCTION OPTIONS PANEL ====================
+const ConstructionOptionsPanel = ({ preset, options, onChange, onConfirm, onBack }) => {
+  const baseTypeName = preset.name.replace(' rakennus', '');
+  const currentName = generateConstructionName(baseTypeName, options);
+  const currentPrice = calculateConstructionPrice(preset.constructionType, options);
+  
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 pb-2 border-b">
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={onBack}
+          className="h-7 w-7 p-0"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="font-medium text-sm">{preset.name}</span>
+      </div>
+      
+      {/* Live preview */}
+      <div className="p-2 bg-[#4A9BAD]/10 rounded text-sm">
+        <div className="font-medium text-[#4A9BAD]">{currentName}</div>
+        <div className="text-gray-600">{currentPrice} € / {preset.unit}</div>
+      </div>
+      
+      {/* Frame type */}
+      <div className="space-y-1">
+        <Label className="text-xs text-gray-500">Karkass</Label>
+        <Select value={options.frameType} onValueChange={(v) => onChange('frameType', v)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FRAME_OPTIONS.map(opt => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Insulation */}
+      <div className="space-y-1">
+        <Label className="text-xs text-gray-500">Villa</Label>
+        <Select value={options.insulation} onValueChange={(v) => onChange('insulation', v)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {INSULATION_OPTIONS.map(opt => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Gypsum layers */}
+      <div className="space-y-1">
+        <Label className="text-xs text-gray-500">Kipsilevytys</Label>
+        <Select value={options.gypsumLayers} onValueChange={(v) => onChange('gypsumLayers', v)}>
+          <SelectTrigger className="h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {GYPSUM_OPTIONS.map(opt => (
+              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <Button 
+        onClick={() => onConfirm(currentName, currentPrice)}
+        className="w-full bg-[#4A9BAD] hover:bg-[#3d8494]"
+      >
+        Valitse
+      </Button>
+    </div>
+  );
+};
+
+// ==================== MAIN COMPONENT ====================
 export const ToolPresetSelector = ({ 
   isOpen, 
   toolType, 
@@ -68,15 +359,28 @@ export const ToolPresetSelector = ({
   const [customName, setCustomName] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
+  const [showOptions, setShowOptions] = useState(false);
+  const [constructionOptions, setConstructionOptions] = useState({
+    frameType: 'puurunko',
+    insulation: 'ilman',
+    gypsumLayers: '1'
+  });
   const containerRef = useRef(null);
 
-  const presets = DEFAULT_PRESETS[toolType] || [];
+  const presetConfig = DEFAULT_PRESETS[toolType];
+  const groups = presetConfig?.groups || [];
 
   useEffect(() => {
     if (!isOpen) {
       setShowCustomInput(false);
+      setShowOptions(false);
       setCustomName('');
       setSelectedPreset(null);
+      setConstructionOptions({
+        frameType: 'puurunko',
+        insulation: 'ilman',
+        gypsumLayers: '1'
+      });
     }
   }, [isOpen]);
 
@@ -97,22 +401,34 @@ export const ToolPresetSelector = ({
     if (preset.isCustom) {
       setSelectedPreset(preset);
       setShowCustomInput(true);
+    } else if (preset.hasOptions) {
+      setSelectedPreset(preset);
+      setShowOptions(true);
     } else {
       onSelect({
         label: preset.name,
         pricePerUnit: preset.price,
         unit: preset.unit,
         isPystykotelot: preset.isPystykotelot || false,
-        isRakennustyo: preset.isRakennustyo || false,
-        isKuivatilaRakennus: preset.isKuivatilaRakennus || false,
-        isPRHRakennus: preset.isPRHRakennus || false,
-        isKuivatilaAK: preset.isKuivatilaAK || false,
-        isMarkatilaAK: preset.isMarkatilaAK || false,
-        isPRHAK: preset.isPRHAK || false,
-        isKuivatilaPystykotelo: preset.isKuivatilaPystykotelo || false,
-        isPRHPystykotelo: preset.isPRHPystykotelo || false
+        constructionType: preset.constructionType || null,
+        constructionOptions: null
       });
     }
+  };
+
+  const handleOptionChange = (field, value) => {
+    setConstructionOptions(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleConstructionConfirm = (name, price) => {
+    onSelect({
+      label: name,
+      pricePerUnit: price,
+      unit: selectedPreset.unit,
+      constructionType: selectedPreset.constructionType,
+      constructionOptions: { ...constructionOptions },
+      isKipsiRakennus: selectedPreset.isKipsiRakennus || false
+    });
   };
 
   const handleCustomSubmit = () => {
@@ -122,14 +438,8 @@ export const ToolPresetSelector = ({
         pricePerUnit: selectedPreset.price,
         unit: selectedPreset.unit,
         isPystykotelot: selectedPreset.isPystykotelot || false,
-        isRakennustyo: selectedPreset.isRakennustyo || false,
-        isKuivatilaRakennus: selectedPreset.isKuivatilaRakennus || false,
-        isPRHRakennus: selectedPreset.isPRHRakennus || false,
-        isKuivatilaAK: selectedPreset.isKuivatilaAK || false,
-        isMarkatilaAK: selectedPreset.isMarkatilaAK || false,
-        isPRHAK: selectedPreset.isPRHAK || false,
-        isKuivatilaPystykotelo: selectedPreset.isKuivatilaPystykotelo || false,
-        isPRHPystykotelo: selectedPreset.isPRHPystykotelo || false
+        constructionType: null,
+        constructionOptions: null
       });
     }
   };
@@ -139,7 +449,7 @@ export const ToolPresetSelector = ({
   return (
     <div 
       ref={containerRef}
-      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 min-w-[280px]"
+      className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-200 min-w-[300px] max-w-[340px]"
       style={{ 
         left: position?.x || 100, 
         top: position?.y || 100 
@@ -157,8 +467,19 @@ export const ToolPresetSelector = ({
         </Button>
       </div>
       
-      <div className="p-2">
-        {showCustomInput ? (
+      <div className="p-2 max-h-[400px] overflow-y-auto">
+        {showOptions && selectedPreset ? (
+          <ConstructionOptionsPanel
+            preset={selectedPreset}
+            options={constructionOptions}
+            onChange={handleOptionChange}
+            onConfirm={handleConstructionConfirm}
+            onBack={() => {
+              setShowOptions(false);
+              setSelectedPreset(null);
+            }}
+          />
+        ) : showCustomInput ? (
           <div className="space-y-2">
             <Input
               autoFocus
@@ -175,7 +496,7 @@ export const ToolPresetSelector = ({
               <Button 
                 size="sm" 
                 onClick={handleCustomSubmit}
-                className="flex-1 bg-[#0052CC]"
+                className="flex-1 bg-[#4A9BAD]"
               >
                 OK
               </Button>
@@ -192,15 +513,27 @@ export const ToolPresetSelector = ({
             </div>
           </div>
         ) : (
-          <div className="space-y-1">
-            {presets.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => handlePresetClick(preset)}
-                className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
-              >
-                <span className="text-sm">{preset.name}</span>
-              </button>
+          <div className="space-y-3">
+            {groups.map((group, groupIdx) => (
+              <div key={groupIdx}>
+                <div className="text-xs font-medium text-gray-400 uppercase tracking-wide px-2 mb-1">
+                  {group.name}
+                </div>
+                <div className="space-y-0.5">
+                  {group.items.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => handlePresetClick(preset)}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center justify-between group"
+                    >
+                      <span className="text-sm">{preset.name}</span>
+                      {preset.hasOptions && (
+                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
