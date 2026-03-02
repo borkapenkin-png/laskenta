@@ -659,14 +659,33 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   doc.save(fileName);
   
   // Return data for snapshot
-  return {
-    operations: grouped.map(g => ({
+  let operations;
+  if (isManualMode) {
+    if (tarjousData.useKokonaishinta) {
+      operations = [{ label: 'Kokonaishinta', quantity: 1, unit: 'erä', totalCost: totalCost }];
+    } else {
+      operations = tarjousData.manualRows
+        .filter(r => r.toimenpide || r.maara)
+        .map(r => ({
+          label: r.toimenpide || 'Työ',
+          quantity: parseFloat(r.maara) || 0,
+          unit: r.yksikko || '',
+          pricePerUnit: parseFloat(r.yksikkohinta) || 0,
+          totalCost: r.yhteensa || 0,
+        }));
+    }
+  } else {
+    operations = grouped.map(g => ({
       label: g.label,
       quantity: g.totalQuantity,
       unit: g.unit,
       pricePerUnit: g.pricePerUnit,
       totalCost: g.totalCost,
-    })),
+    }));
+  }
+  
+  return {
+    operations,
     totals: {
       totalCost,
       vatPercentage: showWithVat ? vatPercentage : 0,
