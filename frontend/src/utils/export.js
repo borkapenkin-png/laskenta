@@ -581,31 +581,32 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   
   // ==================== TARJOUKSEN EHDOT ====================
   if (tarjousData.kaytaVakioehtoja !== false) {
-    yPos = checkPageBreak(doc, yPos, 80, pageHeight);
+    yPos = checkPageBreak(doc, yPos, 60, pageHeight);
     
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setTextColor(...BRAND_TEAL);
     doc.text('Tarjouksen ehdot', MARGIN_LEFT, yPos);
     
-    yPos += 7;
+    yPos += 6;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(...BRAND_DARK);
+    doc.setFontSize(7.5); // Smaller font for terms
+    doc.setTextColor(80, 80, 80);
     
     DEFAULT_TERMS.forEach((term, index) => {
-      // Check page break for each term
-      yPos = checkPageBreak(doc, yPos, 12, pageHeight);
-      
+      // Calculate needed height for this term
       const bulletText = `${index + 1}. ${term}`;
-      const splitText = doc.splitTextToSize(bulletText, contentWidth - 5);
+      const splitText = doc.splitTextToSize(bulletText, contentWidth - 8);
+      const neededHeight = splitText.length * 3.8 + 2;
+      
+      // Check page break before printing term
+      yPos = checkPageBreak(doc, yPos, neededHeight, pageHeight);
       
       splitText.forEach((line, lineIndex) => {
-        yPos = checkPageBreak(doc, yPos, 5, pageHeight);
-        doc.text(line, MARGIN_LEFT + (lineIndex === 0 ? 0 : 5), yPos);
-        yPos += 4.5;
+        doc.text(line, MARGIN_LEFT + (lineIndex === 0 ? 0 : 4), yPos);
+        yPos += 3.8;
       });
-      yPos += 1;
+      yPos += 1.5;
     });
   }
   
