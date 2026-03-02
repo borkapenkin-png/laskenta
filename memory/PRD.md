@@ -1,214 +1,105 @@
 # PDF Takeoff & Cost Estimation App - PRD
 
 ## Original Problem Statement
-Browser-based PDF takeoff and cost estimation application for a Finnish painting, plastering, and facade company. 100% client-side with no backend required.
+Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation application for a Finnish painting, plastering, and facade company (J&B Tasoitusmaalaus Oy).
 
 ## Core Requirements
-- **Architecture:** Pure client-side React app, no server or database
-- **Storage:** localStorage for autosaving + JSON import/export
-- **PDF:** View multi-page PDF floor plans with zoom and pan
-- **Measurement Tools:** Length (jm), Area (m²), Count (kpl), Wall tool (jm → m²)
-- **Cost Calculation:** Prices per unit, totals with VAT
-- **Export:** CSV and PDF reports (with prices / quantities only)
+- **Architecture:** No backend, no server, no user accounts. All logic is client-side.
+- **Storage:** Use `localStorage` for autosaving and allow project import/export as `.json` files.
+- **Language:** Finnish UI, user communicates in Finnish/Estonian mix.
 
-## Target Users
-Finnish painting/plastering companies who need to:
-- Open PDF floor plans
-- Take measurements directly on the PDF
-- Calculate labor and material costs
-- Generate quotes/reports
+## Implemented Features
 
-## UI Structure
-- Top toolbar: Tools + file operations + 2 PDF export buttons
-- Left sidebar: Project name input + PDF page thumbnails (collapsible)
-- Center: PDF viewer with measurement overlay
-- Right panel: Takeoff list with grouped summary, Calculator (collapsible)
-
----
-
-## Implemented Features (March 2026)
-
-### Core Features
-- [x] PDF loading and rendering (pdf.js)
-- [x] PDF zoom controls (+ / - buttons, Ctrl+scroll)
-- [x] PDF page navigation
-- [x] PDF panning (Hand tool)
-- [x] Collapsible left sidebar with thumbnails
-- [x] Collapsible right panel (Määrälaskenta, Laskenta tabs)
-- [x] Project name input field (left sidebar top)
-
-### Project Save/Load (December 2025 - ENHANCED)
-- [x] **Complete project export to JSON** including:
-  - PDF file as base64 (automatically restored on load)
-  - All measurements with coordinates and properties
-  - Scale/calibration data
-  - View state (zoom, page)
-  - Project metadata with schema version
-- [x] **Project import with automatic PDF restoration**
-- [x] **Race condition handling** - measurements applied only after PDF ready
-- [x] **Legacy format support** - old projects still work
-- [x] **Autosave to localStorage** (measurements, scale, not PDF)
-- [x] **Validation and error handling** with user feedback
-
-### Measurement Tools
-- [x] Line tool (jm)
-- [x] Rectangle tool (m²)
-- [x] Polygon tool (m²)
-- [x] Wall tool (jm → m² with height)
-- [x] Count tool (kpl)
-- [x] Snap to 45° angles (hold Shift)
+### Core PDF & Measurement Tools
+- ✅ Open and view multi-page PDF floor plans
+- ✅ Scale calibration (manual and two-point)
+- ✅ Measurement tools: Length (jm), Area (m²), Count (kpl)
+- ✅ Wall measurement with openings deduction
+- ✅ Context-sensitive preset system with predefined work items and prices
 
 ### Preset System
-- [x] Contextual preset dropdown (appears when tool selected)
-- [x] No prices shown in dropdown (clean UI)
-- [x] Change preset type in edit mode (Tyyppi dropdown)
-- [x] Complex presets with sub-settings (Kuivatila, Märkätila, PRH)
-- [x] Ranka/Kipsi options for construction types
+- ✅ Maalaus (painting) presets for walls, ceilings
+- ✅ Tasoitus (plastering) presets
+- ✅ Märkätila (wet room) presets
+- ✅ Kipsirakenteet (drywall construction) presets
+- ✅ Pystykotelot (vertical casings) presets
+- ✅ Unified naming convention across all presets
 
-### Measurement Management
-- [x] Selection from list (orange highlight)
-- [x] Delete via toolbar button / row trash icon / keyboard
-- [x] Undo/Redo (Ctrl+Z / Ctrl+Shift+Z)
-- [x] Copy measurement with edit capability
-- [x] Jalkalista (baseboard) button for wall measurements
+### Offer Generation ("Tee tarjous")
+- ✅ Two input modes: "Laskennasta" (automatic) and "Käsin" (manual entry)
+- ✅ Professional PDF template with company branding
+- ✅ Configurable VAT logic (ALV 0% vs. incl. ALV 25.5%)
+- ✅ Material overhead percentage for change orders
+- ✅ Offer author selector (Boris Penkin / Joosep Rohusaar)
+- ✅ Robust pagination preventing text overlap
+- ✅ Professional terms (YSE 1998 & MaalausRYL 2012)
 
-### Cost Calculation
-- [x] Price per unit calculation
-- [x] VAT calculation (configurable %)
-- [x] Per-measurement breakdown
-- [x] **Grouped summary by type** (Yhteenveto tyypeittäin)
+### Summary Offer ("Koontitarjous") - COMPLETED 2025-03-02
+- ✅ Upload multiple project JSON files
+- ✅ Parse and validate project data
+- ✅ Merge identical operations (same label + unit + price)
+- ✅ Generate consolidated PDF with same template as "Tee tarjous"
+- ✅ Customer info, offer details, pricing options
 
-### Data Persistence
-- [x] Auto-save to localStorage
-- [x] **Save project as JSON** (Tallenna button)
-- [x] **Load project from JSON** (Lataa button)
+### Undo/Redo Functionality - COMPLETED 2025-03-02
+- ✅ Undo/Redo buttons in toolbar with keyboard shortcuts (Ctrl+Z / Ctrl+Shift+Z)
+- ✅ Save state before: adding, updating, deleting, copying measurements
+- ✅ Works with all measurement operations
 
-### Export Features
-- [x] CSV export with grouped data
-- [x] **PDF export with prices** (PDF € button)
-- [x] **PDF export quantities only** (PDF button - for subcontractors)
-- [x] Same measurement types grouped in exports
+### Project Management
+- ✅ Save/Load projects as JSON (includes embedded PDF)
+- ✅ Autosave to localStorage
+- ✅ Project naming
 
-### Settings
-- [x] VAT percentage (ALV %)
-- [x] **Global wall height** - changes all walls when updated
-- [x] Helper text: "Muuttaa kaikkien seinien korkeuden"
+## Technical Stack
+- **Framework:** React.js (Create React App)
+- **PDF Rendering:** pdf.js
+- **PDF Generation:** jspdf, jspdf-autotable
+- **UI Components:** Shadcn/UI, Lucide icons
+- **State:** React Hooks (useState, useEffect)
+- **Storage:** Client-side localStorage
 
----
-
-## Bug Fixes (March 2026)
-
-### Fixed in Previous Sessions
-1. Right Panel Empty After Toggle
-2. PDF Panning Not Working
-3. Measurement Deletion Not Working
-4. Zoom & Scale Inaccuracy - coordinates normalized to zoom=1.0
-
-### Fixed in This Session
-- Toolbar duplicate line removed
-- Preset dropdown shows only names (no prices)
-- "Kustannukset" renamed to "Yhteenveto" everywhere
-
-### Fixed (December 2025)
-- **Määrälaskenta UI changes:**
-  - Removed prices from measurement list items (hinnat poistettu mittauslistasta)
-  - Action buttons (copy, edit, delete) always visible with flex-shrink-0
-  - Long description text truncates with ellipsis
-  - Added data-testid attributes for testing
-
----
-
-## Technical Architecture
-
+## File Structure
 ```
 /app/frontend/src/
-├── App.js                    # Main state, handlers
+├── App.js                    # Main stateful component
 ├── components/
-│   ├── Toolbar.js            # Top toolbar + 2 PDF buttons
-│   ├── PDFViewer.js          # PDF canvas + controls
-│   ├── MeasurementOverlay.js # Drawing canvas
-│   ├── TakeoffPanel.js       # Measurement list + grouped summary
-│   ├── CalculatorPanel.js    # Cost calculations + global height
-│   ├── LeftSidebar.js        # Project name + page thumbnails
-│   ├── CalibrateDialog.js    # Scale calibration
-│   └── ToolPresetSelector.js # Contextual preset dropdown
+│   ├── KoontitarjousDialog.js  # Summary offer from multiple JSONs
+│   ├── TarjousDialog.js        # Single offer generation
+│   ├── ToolPresetSelector.js   # Preset selection UI
+│   ├── TakeoffPanel.js         # Measurement list panel
+│   ├── PDFViewer.js            # PDF display component
+│   └── ...
 ├── utils/
-│   ├── geometry.js           # Math calculations
-│   ├── hitTesting.js         # Click detection
-│   ├── storage.js            # localStorage + JSON export/import
-│   ├── export.js             # CSV/PDF export with grouping
-│   └── pdfHelpers.js         # PDF utilities
-└── hooks/
-    └── use-toast.js          # Toast notifications
+│   ├── export.js               # PDF generation functions
+│   └── storage.js              # localStorage helpers
+└── constants/
+    └── company.js              # Company info, terms
 ```
 
-## Key Data Model
+## Backlog
 
-```javascript
-Measurement {
-  id: string,
-  type: 'line' | 'rectangle' | 'polygon' | 'wall' | 'count',
-  label: string,
-  unit: 'jm' | 'm²' | 'kpl',
-  quantity: number,
-  pricePerUnit: number,
-  points: [{x, y}],
-  wallHeight?: number,
-  bothSides?: boolean,
-  openings?: number,
-  // Special type flags
-  isPystykotelot?: boolean,
-  isKuivatilaRakennus?: boolean,
-  isPRHRakennus?: boolean,
-  isKuivatilaAK?: boolean,
-  isMarkatilaAK?: boolean,
-  isPRHAK?: boolean,
-  // Construction options
-  rankaType?: 'metall' | 'kertapuu',
-  kipsiType?: '1-kertainen' | '2-kertainen',
-  lagiPaneeli?: boolean,
-  page: number
-}
+### P2 - Nice to Have
+- [ ] Preset configuration UI (create/edit presets in app)
+- [ ] Export to CSV improvements
+- [ ] Multi-language support
 
-Project {
-  id: string,
-  name: string,
-  measurements: Measurement[],
-  scale: object | null,
-  createdAt: string,
-  updatedAt: string
-}
-```
+### P3 - Future
+- [ ] Cloud sync option
+- [ ] Team collaboration features
+- [ ] Invoice generation
 
----
+## Known Issues
+- Minor: DialogContent missing aria-describedby (accessibility warning, doesn't affect functionality)
+- User dismissed: Left sidebar thumbnail rendering issue - not a priority
 
-## Upcoming Tasks (P1)
+## Testing
+- Test files: `/tmp/test_projects/projekt1.json`, `/tmp/test_projects/projekt2.json`
+- Test report: `/app/test_reports/iteration_8.json`
+- All features verified working 2025-03-02
 
-### User Testing
-- [ ] User will test all features: Save/Load, PDF Exports, Global Height, Offer Generation, Zoom fix
-- [ ] Wait for user feedback before starting new features
-
-### Left Sidebar Thumbnails
-- [ ] Verify thumbnails render after collapse/expand (known issue from initial handoff)
-- ResizeObserver implementation exists - may need further testing
-
-### Further Tool Refinements
-- [ ] User wants to go through each tool one by one
-
----
-
-## Future Tasks (P2)
-
-### Advanced Measurement
-- [ ] Select measurement on canvas
-- [ ] Edit measurement points
-- [ ] Measurement labels on canvas
-
-### UI Polish
-- [ ] Loading indicators
-- [ ] Better error messages
-- [ ] Keyboard shortcuts help
-
-### Preset Management
-- [ ] Allow user to create/edit custom presets
-- [ ] Save presets to localStorage
+## Notes for Development
+- All changes are client-side only
+- Project JSON must include embedded PDF base64 for full restoration
+- VAT is always 25.5% in Finland
+- Prices are stored as ALV 0% internally
