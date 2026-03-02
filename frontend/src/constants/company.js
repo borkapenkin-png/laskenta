@@ -19,13 +19,15 @@ export const BRAND_COLORS = {
 
 // Default terms for tarjous - Professional construction offer terms
 export const DEFAULT_TERMS = [
-  "Tarjous on voimassa valitun ajan tarjouksen päiväyksestä, ellei toisin sovita kirjallisesti.",
-  "Urakkahinta perustuu tarjouksen laatimishetkellä käytettävissä oleviin suunnitelmiin, määrätietoihin ja kohteessa tehtyihin havaintoihin.",
-  "Urakkaan sisältyy tavanomaiset suojaukset ja työnaikainen siisteys. Poikkeavat suojausvaatimukset hinnoitellaan erikseen.",
-  "Lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan erikseen sovituin perustein (työ ja materiaalit).",
+  "Tarjous perustuu kohteesta saatuihin tietoihin, piirustuksiin sekä urakoitsijan tekemiin havaintoihin tarjouksen laadintahetkellä.",
+  "Urakkahinta sisältää sovitut maalaus- ja tasoitustyöt tarjouksen mukaisessa laajuudessa. Mahdolliset lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan erikseen sovituin perustein.",
+  "Urakkaan sisältyy normaalit työnaikaiset suojaukset ja siisteys. Erityissuojaukset, työskentely käytössä olevissa tiloissa, ilta- tai viikonlopputyöt hinnoitellaan erikseen.",
   "Tilaaja vastaa työalueen esteettömyydestä sekä sähkön ja veden saatavuudesta sovitusti.",
-  "Urakoitsija ei vastaa rakenteiden piilevistä virheistä tai alustan odottamattomista puutteista, joita ei ole voitu kohtuudella havaita tarjousta laadittaessa.",
-  "Maksuehto valitun mukaisesti. Viivästyskorko korkolain mukaisesti.",
+  "Urakoitsija myöntää työlle YSE:n mukaisten periaatteiden mukaisen takuun, ellei toisin sovita. Tavanomainen takuuaika maalaus- ja tasoitustöille on kaksi (2) vuotta työn valmistumisesta.",
+  "Takuu kattaa työn suorituksessa ilmenevät virheet, jotka johtuvat urakoitsijan työvirheestä tai materiaalin virheellisestä käsittelystä.",
+  "Takuu ei kata rakenteellisesta liikkeestä, alustan elämisestä, kosteusrasituksesta, rakennuksen painumisesta tai muista urakoitsijasta riippumattomista syistä johtuvia halkeamia, irtoamisia tai pintavaurioita.",
+  "Maksuehto sovitun mukaisesti. Viivästyskorko korkolain mukaisesti.",
+  "Tarjous on voimassa valitun ajan päiväyksestä.",
   "Mahdolliset erimielisyydet pyritään ratkaisemaan ensisijaisesti neuvottelemalla."
 ];
 
