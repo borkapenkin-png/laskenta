@@ -262,7 +262,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   const vatPercentage = settings?.vatPercentage || 25.5;
   const showWithVat = tarjousData.vatMode === 'incl';
   const materialHandlingPercent = tarjousData.materialHandlingPercent || 10;
-  const lisatyoHinta = tarjousData.lisatyoHinta || '55';
+  const lisatyoHinta = tarjousData.lisatyoHinta || '38';
   
   // Calculate totals (always internal ALV 0%)
   let totalCost;
