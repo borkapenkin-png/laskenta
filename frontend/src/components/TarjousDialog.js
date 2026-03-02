@@ -40,13 +40,18 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     // Tarjouksen tiedot (Offer details)
     paivamaara: new Date().toISOString().split('T')[0],
     voimassa: 30,
-    maksuehto: 14,
+    maksuehto: 21, // Default 21 days
     offerAuthor: 'boris', // 'boris' or 'joosep'
     
     // Hinnat (Prices)
     vatMode: 'alv0', // 'alv0' or 'incl'
     lisatyoHinta: '38', // Default 38 €/h
     materialHandlingPercent: 10, // 5-12% for material procurement overhead
+    
+    // New options
+    sisaltaaMateriaalit: true, // Default ON - includes materials
+    tuntityotEnabled: false, // Toggle for hour work
+    tuntityotMaara: '', // Hours count
     
     // Manual mode fields
     urakanSisalto: '', // Manual scope description
@@ -547,6 +552,45 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                   </Select>
                   <p className="text-xs text-gray-500">Lisätään materiaalien hankintahintaan</p>
                 </div>
+              </div>
+              
+              {/* Sisältää materiaalit checkbox */}
+              <div className="flex items-center gap-3 py-2 border-t pt-4">
+                <Switch
+                  id="sisaltaaMateriaalit"
+                  checked={formData.sisaltaaMateriaalit}
+                  onCheckedChange={(v) => handleChange('sisaltaaMateriaalit', v)}
+                  data-testid="tarjous-materiaalit-toggle"
+                />
+                <Label htmlFor="sisaltaaMateriaalit" className="cursor-pointer text-sm">
+                  Sisältää materiaalit (Fescon tasoitteet ja Teknos maalijärjestelmät)
+                </Label>
+              </div>
+              
+              {/* Tuntityöt toggle + input */}
+              <div className="flex items-center gap-3 py-2">
+                <Switch
+                  id="tuntityotEnabled"
+                  checked={formData.tuntityotEnabled}
+                  onCheckedChange={(v) => handleChange('tuntityotEnabled', v)}
+                  data-testid="tarjous-tuntityot-toggle"
+                />
+                <Label htmlFor="tuntityotEnabled" className="cursor-pointer text-sm">
+                  Urakkaan laskettu tuntityöt
+                </Label>
+                {formData.tuntityotEnabled && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <Input
+                      type="number"
+                      value={formData.tuntityotMaara}
+                      onChange={(e) => handleChange('tuntityotMaara', e.target.value)}
+                      placeholder="0"
+                      className="w-20"
+                      data-testid="tarjous-tuntityot-maara"
+                    />
+                    <span className="text-sm text-gray-500">h</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

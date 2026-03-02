@@ -299,20 +299,32 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
     doc.text('tasoitusmaalaus', MARGIN_LEFT + 18, yPos + 10);
   }
   
-  // Company info (right)
+  // Company info (right) - with text wrapping for long names
+  const companyInfoX = pageWidth - MARGIN_RIGHT;
+  const maxCompanyWidth = 80; // Max width for company info
   doc.setFontSize(9);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(COMPANY.name, pageWidth - MARGIN_RIGHT, yPos + 3, { align: 'right' });
+  
+  // Split company name if too long
+  const companyNameLines = doc.splitTextToSize(COMPANY.name, maxCompanyWidth);
+  let companyY = yPos + 3;
+  companyNameLines.forEach(line => {
+    doc.text(line, companyInfoX, companyY, { align: 'right' });
+    companyY += 4;
+  });
+  
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text(`Y-tunnus: ${COMPANY.businessId}`, pageWidth - MARGIN_RIGHT, yPos + 8, { align: 'right' });
-  doc.text(COMPANY.address, pageWidth - MARGIN_RIGHT, yPos + 13, { align: 'right' });
-  doc.text(COMPANY.zipCity, pageWidth - MARGIN_RIGHT, yPos + 18, { align: 'right' });
-  doc.text(COMPANY.phone, pageWidth - MARGIN_RIGHT, yPos + 23, { align: 'right' });
-  doc.text(COMPANY.email, pageWidth - MARGIN_RIGHT, yPos + 28, { align: 'right' });
+  doc.text(`Y-tunnus: ${COMPANY.businessId}`, companyInfoX, companyY + 1, { align: 'right' });
+  doc.text(COMPANY.address, companyInfoX, companyY + 6, { align: 'right' });
+  doc.text(COMPANY.zipCity, companyInfoX, companyY + 11, { align: 'right' });
+  doc.text(COMPANY.phone, companyInfoX, companyY + 16, { align: 'right' });
+  doc.text(COMPANY.email, companyInfoX, companyY + 21, { align: 'right' });
   
-  yPos += 35;
+  // Calculate header height based on company name lines
+  const headerHeight = Math.max(35, (companyNameLines.length - 1) * 4 + 35);
+  yPos += headerHeight;
   
   // Header line
   doc.setDrawColor(...BRAND_TEAL);
@@ -435,36 +447,51 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(...BRAND_TEAL);
-  doc.text(isManualMode ? 'Hinta' : 'Urakan sisältö', MARGIN_LEFT, yPos);
+  doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
   
   yPos += 5;
   
-  // Prepare table data based on mode
+  // Add materials info if enabled
+  if (tarjousData.sisaltaaMateriaalit) {
+    yPos += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text('Materiaalit: Fescon tasoitteet ja Teknos maalijärjestelmät', MARGIN_LEFT, yPos);
+    yPos += 5;
+  }
+  
+  // Add hour work info if enabled
+  if (tarjousData.tuntityotEnabled && tarjousData.tuntityotMaara) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text(`Urakka sisältää myös tuntityöt: ${tarjousData.tuntityotMaara} h`, MARGIN_LEFT, yPos);
+    yPos += 5;
+  }
+  
+  yPos += 3;
+  
+  // Prepare table data based on mode - ONLY show operation name and quantity (no prices)
   let tableData;
   if (isManualMode) {
     if (tarjousData.useKokonaishinta) {
       // Single kokonaishinta - no table, just show total
       tableData = null;
     } else {
-      // Manual rows table
+      // Manual rows table - show only name and quantity
       tableData = tarjousData.manualRows
         .filter(r => r.toimenpide || r.maara)
         .map(r => [
           r.toimenpide || '',
-          r.maara || '',
-          r.yksikko || '',
-          r.yksikkohinta ? formatCurrency(parseFloat(r.yksikkohinta)) : '',
-          formatCurrency(r.yhteensa || 0)
+          `${r.maara || ''} ${r.yksikko || ''}`.trim()
         ]);
     }
   } else {
-    // Auto mode - grouped measurements
+    // Auto mode - grouped measurements - show only name and quantity (no prices)
     tableData = grouped.map(g => [
       g.label,
-      formatNumber(g.totalQuantity),
-      g.unit,
-      formatCurrency(g.pricePerUnit),
-      formatCurrency(g.totalCost)
+      `${formatNumber(g.totalQuantity)} ${g.unit}`
     ]);
   }
 
@@ -472,7 +499,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   if (tableData && tableData.length > 0) {
     autoTable(doc, {
       startY: yPos,
-      head: [['Toimenpide', 'Määrä', 'Yksikkö', 'Yksikköhinta', 'Yhteensä']],
+      head: [['Toimenpide', 'Määrä']],
       body: tableData,
       styles: { 
         fontSize: 9,
@@ -491,11 +518,8 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
         fillColor: [250, 251, 252]
       },
       columnStyles: {
-        0: { cellWidth: 70 },
-        1: { halign: 'right', cellWidth: 25 },
-        2: { halign: 'center', cellWidth: 20 },
-        3: { halign: 'right', cellWidth: 30 },
-        4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
+        0: { cellWidth: 'auto' },
+        1: { halign: 'right', cellWidth: 50 }
       },
       margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
       didDrawPage: () => {

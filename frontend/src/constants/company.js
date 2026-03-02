@@ -43,6 +43,7 @@ export const VALIDITY_OPTIONS = [
 export const PAYMENT_TERM_OPTIONS = [
   { value: 7, label: "7 pv netto" },
   { value: 14, label: "14 pv netto" },
+  { value: 21, label: "21 pv netto" },
   { value: 30, label: "30 pv netto" }
 ];
 
