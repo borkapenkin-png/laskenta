@@ -40,7 +40,7 @@ function App() {
   const [currentTool, setCurrentTool] = useState(null);
   const [measurements, setMeasurements] = useState([]);
   const [presets, setPresets] = useState([]);
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState({ vatPercentage: 25.5, defaultWallHeight: 2.6 });
   const [activeTab, setActiveTab] = useState('takeoff');
   const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
