@@ -227,6 +227,23 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
 // Brand colors
 const BRAND_TEAL = [74, 155, 173]; // #4A9BAD
 const BRAND_GRAY = [128, 128, 128];
+const BRAND_DARK = [60, 60, 60];
+const BRAND_LIGHT = [245, 247, 250];
+
+// Page layout constants
+const MARGIN_LEFT = 20;
+const MARGIN_RIGHT = 20;
+const MARGIN_TOP = 15;
+const MARGIN_BOTTOM = 30;
+
+// Helper to check if we need a new page
+const checkPageBreak = (doc, yPos, neededHeight, pageHeight) => {
+  if (yPos + neededHeight > pageHeight - MARGIN_BOTTOM) {
+    doc.addPage();
+    return MARGIN_TOP + 10;
+  }
+  return yPos;
+};
 
 // Export professional tarjous (offer/quote) PDF
 export const exportTarjousPDF = (project, measurements, settings, tarjousData) => {
@@ -234,219 +251,353 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   const grouped = groupMeasurements(measurements);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
   
-  // Calculate totals - use ALV 0% if sisallaAlv is false
+  // VAT settings
   const vatPercentage = settings?.vatPercentage || 25.5;
-  const showWithVat = tarjousData.sisallaAlv !== false; // default to true
+  const showWithVat = tarjousData.vatMode === 'incl';
+  const materialHandlingPercent = tarjousData.materialHandlingPercent || 10;
+  const lisatyoHinta = tarjousData.lisatyoHinta || '55';
+  
+  // Calculate totals (always internal ALV 0%)
   const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
-  const vatAmount = showWithVat ? totalCost * vatPercentage / 100 : 0;
+  const vatAmount = totalCost * vatPercentage / 100;
   const totalWithVat = totalCost + vatAmount;
   
-  // Add logo from base64
+  // Format date
+  const offerDate = tarjousData.paivamaara 
+    ? new Date(tarjousData.paivamaara).toLocaleDateString('fi-FI')
+    : new Date().toLocaleDateString('fi-FI');
+  
+  let pageNumber = 1;
+  let yPos = MARGIN_TOP;
+  
+  // ==================== HEADER ====================
+  // Logo (left)
   try {
-    // Logo dimensions - maintain aspect ratio
-    const logoWidth = 60;
-    const logoHeight = 15;
-    doc.addImage(companyLogo, 'PNG', 20, 15, logoWidth, logoHeight);
+    const logoWidth = 55;
+    const logoHeight = 14;
+    doc.addImage(companyLogo, 'PNG', MARGIN_LEFT, yPos, logoWidth, logoHeight);
   } catch (e) {
-    // Fallback: draw text logo if image fails
-    doc.setFontSize(20);
+    doc.setFontSize(18);
     doc.setTextColor(...BRAND_TEAL);
     doc.setFont('helvetica', 'bold');
-    doc.text('J&B', 20, 25);
+    doc.text('J&B', MARGIN_LEFT, yPos + 10);
     doc.setTextColor(...BRAND_GRAY);
     doc.setFont('helvetica', 'italic');
-    doc.text('tasoitusmaalaus', 38, 25);
+    doc.setFontSize(12);
+    doc.text('tasoitusmaalaus', MARGIN_LEFT + 18, yPos + 10);
   }
   
-  // Company info - right aligned
+  // Company info (right)
   doc.setFontSize(9);
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(COMPANY.name, pageWidth - MARGIN_RIGHT, yPos + 3, { align: 'right' });
   doc.setFont('helvetica', 'normal');
-  doc.text('J&B Tasoitus Ja Maalaus Oy', pageWidth - 20, 18, { align: 'right' });
-  doc.text('Y-tunnus: XXXXXXX-X', pageWidth - 20, 23, { align: 'right' });
-  doc.text('puh. XXX XXX XXXX', pageWidth - 20, 28, { align: 'right' });
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Y-tunnus: ${COMPANY.businessId}`, pageWidth - MARGIN_RIGHT, yPos + 8, { align: 'right' });
+  doc.text(COMPANY.address, pageWidth - MARGIN_RIGHT, yPos + 13, { align: 'right' });
+  doc.text(COMPANY.zipCity, pageWidth - MARGIN_RIGHT, yPos + 18, { align: 'right' });
+  doc.text(COMPANY.phone, pageWidth - MARGIN_RIGHT, yPos + 23, { align: 'right' });
+  doc.text(COMPANY.email, pageWidth - MARGIN_RIGHT, yPos + 28, { align: 'right' });
+  
+  yPos += 35;
   
   // Header line
   doc.setDrawColor(...BRAND_TEAL);
-  doc.setLineWidth(0.5);
-  doc.line(20, 38, pageWidth - 20, 38);
+  doc.setLineWidth(0.8);
+  doc.line(MARGIN_LEFT, yPos, pageWidth - MARGIN_RIGHT, yPos);
   
-  // Title
-  doc.setFontSize(22);
+  yPos += 12;
+  
+  // ==================== TITLE SECTION ====================
+  doc.setFontSize(24);
   doc.setTextColor(...BRAND_TEAL);
   doc.setFont('helvetica', 'bold');
-  doc.text('TARJOUS', 20, 52);
-  
-  // Date
-  doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  doc.setFont('helvetica', 'normal');
-  const today = new Date().toLocaleDateString('fi-FI');
-  doc.text(`Päivämäärä: ${today}`, pageWidth - 20, 52, { align: 'right' });
-  
-  // Customer info box
-  doc.setFillColor(245, 247, 250);
-  doc.roundedRect(20, 58, pageWidth - 40, 24, 2, 2, 'F');
+  doc.text('TARJOUS', MARGIN_LEFT, yPos);
   
   doc.setFontSize(10);
-  doc.setTextColor(60, 60, 60);
-  doc.text('Asiakas:', 25, 67);
-  doc.setFont('helvetica', 'bold');
-  doc.text(tarjousData.asiakas || '', 50, 67);
-  
+  doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'normal');
-  doc.text('Kohde:', 25, 75);
-  doc.setFont('helvetica', 'bold');
-  doc.text(tarjousData.kohde || project.name || '', 50, 75);
+  doc.text(`Päivämäärä: ${offerDate}`, pageWidth - MARGIN_RIGHT, yPos - 5, { align: 'right' });
   
-  // Work items table
+  yPos += 12;
+  
+  // ==================== ASIAKASTIEDOT BLOCK ====================
+  doc.setFillColor(...BRAND_LIGHT);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'F');
+  
+  const col1X = MARGIN_LEFT + 5;
+  const col2X = MARGIN_LEFT + 50;
+  const col3X = pageWidth / 2 + 10;
+  const col4X = pageWidth / 2 + 55;
+  let infoY = yPos + 8;
+  
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  
+  // Row 1
+  doc.text('Asiakas:', col1X, infoY);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(tarjousData.asiakas || '', col2X, infoY);
+  
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Voimassa:', col3X, infoY);
+  doc.setTextColor(...BRAND_DARK);
+  doc.text(`${tarjousData.voimassa || 30} päivää`, col4X, infoY);
+  
+  infoY += 8;
+  
+  // Row 2
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Kohde:', col1X, infoY);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(tarjousData.kohde || project.name || '', col2X, infoY);
+  
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Maksuehto:', col3X, infoY);
+  doc.setTextColor(...BRAND_DARK);
+  doc.text(`${tarjousData.maksuehto || 14} pv netto`, col4X, infoY);
+  
+  infoY += 8;
+  
+  // Row 3 (optional)
+  if (tarjousData.yhteyshenkilo) {
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Yhteyshenkilö:', col1X, infoY);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text(tarjousData.yhteyshenkilo, col2X, infoY);
+  }
+  
+  if (tarjousData.email) {
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Sähköposti:', col3X, infoY);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text(tarjousData.email, col4X, infoY);
+  }
+  
+  infoY += 8;
+  
+  // Row 4 (phone)
+  if (tarjousData.puhelin) {
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Puhelin:', col1X, infoY);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text(tarjousData.puhelin, col2X, infoY);
+  }
+  
+  yPos += 50;
+  
+  // ==================== CONTENT TABLE ====================
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(...BRAND_TEAL);
-  doc.text('Urakan sisältö', 20, 95);
+  doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
   
+  yPos += 5;
+  
+  // Table with prices
   const tableData = grouped.map(g => [
     g.label,
     formatNumber(g.totalQuantity),
-    g.unit
+    g.unit,
+    formatCurrency(g.pricePerUnit),
+    formatCurrency(g.totalCost)
   ]);
 
   autoTable(doc, {
-    startY: 100,
-    head: [['Työ', 'Määrä', 'Yksikkö']],
+    startY: yPos,
+    head: [['Toimenpide', 'Määrä', 'Yksikkö', 'Yksikköhinta', 'Yhteensä']],
     body: tableData,
     styles: { 
       fontSize: 9,
       cellPadding: 4,
-      textColor: [60, 60, 60]
+      textColor: BRAND_DARK,
+      lineColor: [220, 220, 220],
+      lineWidth: 0.1
     },
     headStyles: { 
       fillColor: BRAND_TEAL,
       textColor: 255,
       fontStyle: 'bold',
-      fontSize: 10
+      fontSize: 9
     },
     alternateRowStyles: {
       fillColor: [250, 251, 252]
     },
     columnStyles: {
-      0: { cellWidth: 100 },
-      1: { halign: 'right', cellWidth: 30 },
-      2: { cellWidth: 25 }
+      0: { cellWidth: 70 },
+      1: { halign: 'right', cellWidth: 25 },
+      2: { halign: 'center', cellWidth: 20 },
+      3: { halign: 'right', cellWidth: 30 },
+      4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
     },
-    margin: { left: 20, right: 20 }
+    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
+    didDrawPage: () => {
+      pageNumber++;
+    }
   });
 
-  let yPos = doc.lastAutoTable.finalY + 15;
+  yPos = doc.lastAutoTable.finalY + 10;
   
-  // Price section
+  // ==================== TOTALS SECTION ====================
+  yPos = checkPageBreak(doc, yPos, 50, pageHeight);
+  
+  const totalsBoxHeight = showWithVat ? 40 : 22;
   doc.setFillColor(...BRAND_TEAL);
-  doc.roundedRect(20, yPos, pageWidth - 40, showWithVat ? 35 : 20, 2, 2, 'F');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, totalsBoxHeight, 2, 2, 'F');
   
   doc.setTextColor(255, 255, 255);
   
   if (showWithVat) {
-    // Show with VAT
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Urakkahinta (ALV 0%):', 30, yPos + 12);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text(formatCurrency(totalCost), pageWidth - 30, yPos + 12, { align: 'right' });
-    
-    doc.setFont('helvetica', 'normal');
+    // Show with VAT - 3 lines
+    let totY = yPos + 10;
     doc.setFontSize(10);
-    doc.text(`ALV ${vatPercentage}%:`, 30, yPos + 22);
-    doc.text(formatCurrency(vatAmount), pageWidth - 30, yPos + 22, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.text('Yhteensä (ALV 0%):', MARGIN_LEFT + 10, totY);
+    doc.setFont('helvetica', 'bold');
+    doc.text(formatCurrency(totalCost), pageWidth - MARGIN_RIGHT - 10, totY, { align: 'right' });
     
+    totY += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.text(`ALV ${vatPercentage} %:`, MARGIN_LEFT + 10, totY);
+    doc.text(formatCurrency(vatAmount), pageWidth - MARGIN_RIGHT - 10, totY, { align: 'right' });
+    
+    totY += 12;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('Urakkahinta yhteensä (sis. ALV):', 30, yPos + 32);
-    doc.setFontSize(16);
-    doc.text(formatCurrency(totalWithVat), pageWidth - 30, yPos + 32, { align: 'right' });
+    doc.text('Yhteensä (sis. ALV):', MARGIN_LEFT + 10, totY);
+    doc.setFontSize(14);
+    doc.text(formatCurrency(totalWithVat), pageWidth - MARGIN_RIGHT - 10, totY, { align: 'right' });
     
-    yPos += 50;
+    yPos += totalsBoxHeight + 12;
   } else {
-    // Show ALV 0% only
+    // ALV 0% only - single line
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    doc.text('Urakkahinta (ALV 0%):', 30, yPos + 13);
-    doc.setFontSize(16);
-    doc.text(formatCurrency(totalCost), pageWidth - 30, yPos + 13, { align: 'right' });
+    doc.text('Yhteensä (ALV 0%):', MARGIN_LEFT + 10, yPos + 14);
+    doc.setFontSize(14);
+    doc.text(formatCurrency(totalCost), pageWidth - MARGIN_RIGHT - 10, yPos + 14, { align: 'right' });
     
-    yPos += 35;
+    yPos += totalsBoxHeight + 12;
   }
   
-  // Extra work hourly rate
-  doc.setTextColor(60, 60, 60);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Muutos- ja lisätöiden tuntihinta: ${tarjousData.lisatyoHinta || '55'} €/h (+ ALV ${vatPercentage}%)`, 20, yPos);
+  // ==================== LISÄ- JA MUUTOSTYÖT SECTION ====================
+  yPos = checkPageBreak(doc, yPos, 35, pageHeight);
   
-  yPos += 15;
-  
-  // Terms section
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(...BRAND_TEAL);
-  doc.text('Tarjouksen ehdot', 20, yPos);
+  doc.text('Lisä- ja muutostyöt', MARGIN_LEFT, yPos);
   
-  yPos += 8;
+  yPos += 7;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor(60, 60, 60);
+  doc.setTextColor(...BRAND_DARK);
   
-  const terms = [
-    '• Tarjous on voimassa 30 päivää tarjouksen päivämäärästä.',
-    '• Yksityiskohtaiset työt ja materiaalit käydään läpi urakka- tai selontottoneuvottelussa.',
-    '• Urakkahinta perustuu tämänhetkisiin materiaalikustannuksiin.',
-    '• Tilaajan vastuulla on kohteen suojaus ennen töiden alkua, ellei toisin sovita.',
-    '• Maksuehto: 14 pv netto.',
-    '• Urakoitsija ei vastaa piilossa olevista vioista tai rakenteellisista ongelmista.'
-  ];
+  // Hourly rate - respect VAT mode
+  const hourlyRateText = showWithVat 
+    ? `Työ: ${lisatyoHinta} €/h (sis. ALV ${vatPercentage} %)`
+    : `Työ: ${lisatyoHinta} €/h (ALV 0%)`;
+  doc.text(hourlyRateText, MARGIN_LEFT, yPos);
   
-  terms.forEach(term => {
-    doc.text(term, 20, yPos);
-    yPos += 6;
-  });
+  yPos += 5;
+  doc.text(`Materiaalit: hankintahinta + ${materialHandlingPercent} % (materiaalihankinta ja yleiskulu)`, MARGIN_LEFT, yPos);
   
-  // Additional notes
+  yPos += 6;
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan toteutuneen mukaan.', MARGIN_LEFT, yPos);
+  
+  yPos += 12;
+  
+  // ==================== TARJOUKSEN EHDOT ====================
+  if (tarjousData.kaytaVakioehtoja !== false) {
+    yPos = checkPageBreak(doc, yPos, 80, pageHeight);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...BRAND_TEAL);
+    doc.text('Tarjouksen ehdot', MARGIN_LEFT, yPos);
+    
+    yPos += 7;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_DARK);
+    
+    DEFAULT_TERMS.forEach((term, index) => {
+      // Check page break for each term
+      yPos = checkPageBreak(doc, yPos, 12, pageHeight);
+      
+      const bulletText = `${index + 1}. ${term}`;
+      const splitText = doc.splitTextToSize(bulletText, contentWidth - 5);
+      
+      splitText.forEach((line, lineIndex) => {
+        yPos = checkPageBreak(doc, yPos, 5, pageHeight);
+        doc.text(line, MARGIN_LEFT + (lineIndex === 0 ? 0 : 5), yPos);
+        yPos += 4.5;
+      });
+      yPos += 1;
+    });
+  }
+  
+  // ==================== LISÄTIEDOT ====================
   if (tarjousData.lisatiedot) {
     yPos += 5;
+    yPos = checkPageBreak(doc, yPos, 25, pageHeight);
+    
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text('Lisätiedot:', 20, yPos);
+    doc.setTextColor(...BRAND_TEAL);
+    doc.text('Lisätiedot', MARGIN_LEFT, yPos);
+    
     yPos += 6;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
     
-    // Split long text into lines
-    const splitText = doc.splitTextToSize(tarjousData.lisatiedot, pageWidth - 40);
-    doc.text(splitText, 20, yPos);
-    yPos += splitText.length * 5;
+    const splitText = doc.splitTextToSize(tarjousData.lisatiedot, contentWidth);
+    splitText.forEach(line => {
+      yPos = checkPageBreak(doc, yPos, 5, pageHeight);
+      doc.text(line, MARGIN_LEFT, yPos);
+      yPos += 5;
+    });
   }
   
-  // Footer
-  const footerY = pageHeight - 25;
-  doc.setDrawColor(...BRAND_TEAL);
-  doc.setLineWidth(0.3);
-  doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-  
-  doc.setFontSize(9);
-  doc.setTextColor(...BRAND_TEAL);
-  doc.setFont('helvetica', 'bold');
-  doc.text('J&B Tasoitus Ja Maalaus Oy', 20, footerY);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.setFontSize(8);
-  doc.text('Kiitos mielenkiinnostanne! Vastaamme mielellämme lisäkysymyksiin.', 20, footerY + 6);
-  
-  doc.text(`Sivu 1/1`, pageWidth - 20, footerY + 6, { align: 'right' });
+  // ==================== FOOTER (on all pages) ====================
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    const footerY = pageHeight - 15;
+    
+    doc.setDrawColor(...BRAND_TEAL);
+    doc.setLineWidth(0.3);
+    doc.line(MARGIN_LEFT, footerY - 5, pageWidth - MARGIN_RIGHT, footerY - 5);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_TEAL);
+    doc.setFont('helvetica', 'bold');
+    doc.text(COMPANY.name, MARGIN_LEFT, footerY);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text('Kiitos mielenkiinnostanne!', MARGIN_LEFT, footerY + 5);
+    
+    doc.text(`Sivu ${i} / ${totalPages}`, pageWidth - MARGIN_RIGHT, footerY + 5, { align: 'right' });
+  }
   
   // Save
-  const fileName = `Tarjous_${tarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${today.replace(/\./g, '-')}.pdf`;
+  const fileName = `Tarjous_${tarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${offerDate.replace(/\./g, '-')}.pdf`;
   doc.save(fileName);
   
   // Return data for snapshot
@@ -455,12 +606,14 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
       label: g.label,
       quantity: g.totalQuantity,
       unit: g.unit,
+      pricePerUnit: g.pricePerUnit,
+      totalCost: g.totalCost,
     })),
     totals: {
       totalCost,
       vatPercentage: showWithVat ? vatPercentage : 0,
-      vatAmount,
-      totalWithVat,
+      vatAmount: showWithVat ? vatAmount : 0,
+      totalWithVat: showWithVat ? totalWithVat : totalCost,
     }
   };
 };
