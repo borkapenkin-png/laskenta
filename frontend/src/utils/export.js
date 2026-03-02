@@ -594,17 +594,22 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
     doc.setTextColor(80, 80, 80);
     
     DEFAULT_TERMS.forEach((term, index) => {
-      // Calculate needed height for this term
-      const bulletText = `${index + 1}. ${term}`;
-      const splitText = doc.splitTextToSize(bulletText, contentWidth - 8);
-      const neededHeight = splitText.length * 3.8 + 2;
+      // Split term by newlines for bullet points
+      const termLines = term.split('\n');
       
-      // Check page break before printing term
-      yPos = checkPageBreak(doc, yPos, neededHeight, pageHeight);
-      
-      splitText.forEach((line, lineIndex) => {
-        doc.text(line, MARGIN_LEFT + (lineIndex === 0 ? 0 : 4), yPos);
-        yPos += 3.8;
+      termLines.forEach((line, lineIdx) => {
+        const prefix = lineIdx === 0 ? `${index + 1}. ` : '   ';
+        const fullLine = prefix + line;
+        const splitText = doc.splitTextToSize(fullLine, contentWidth - 8);
+        const neededHeight = splitText.length * 3.8 + 1;
+        
+        // Check page break before printing
+        yPos = checkPageBreak(doc, yPos, neededHeight, pageHeight);
+        
+        splitText.forEach((textLine, textIdx) => {
+          doc.text(textLine, MARGIN_LEFT + (textIdx === 0 ? 0 : 4), yPos);
+          yPos += 3.8;
+        });
       });
       yPos += 1.5;
     });

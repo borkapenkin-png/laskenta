@@ -17,15 +17,16 @@ export const BRAND_COLORS = {
   lightGray: [245, 247, 250]
 };
 
-// Default terms for tarjous - Professional construction offer terms
+// Default terms for tarjous - Professional construction offer terms (YSE + MaalausRYL 2012)
 export const DEFAULT_TERMS = [
   "Tarjous perustuu kohteesta saatuihin tietoihin, piirustuksiin sekä urakoitsijan tekemiin havaintoihin tarjouksen laadintahetkellä.",
   "Urakkahinta sisältää sovitut maalaus- ja tasoitustyöt tarjouksen mukaisessa laajuudessa. Mahdolliset lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan erikseen sovituin perustein.",
   "Urakkaan sisältyy normaalit työnaikaiset suojaukset ja siisteys. Erityissuojaukset, työskentely käytössä olevissa tiloissa, ilta- tai viikonlopputyöt hinnoitellaan erikseen.",
   "Tilaaja vastaa työalueen esteettömyydestä sekä sähkön ja veden saatavuudesta sovitusti.",
-  "Urakoitsija myöntää työlle YSE:n mukaisten periaatteiden mukaisen takuun, ellei toisin sovita. Tavanomainen takuuaika maalaus- ja tasoitustöille on kaksi (2) vuotta työn valmistumisesta.",
-  "Takuu kattaa työn suorituksessa ilmenevät virheet, jotka johtuvat urakoitsijan työvirheestä tai materiaalin virheellisestä käsittelystä.",
-  "Takuu ei kata rakenteellisesta liikkeestä, alustan elämisestä, kosteusrasituksesta, rakennuksen painumisesta tai muista urakoitsijasta riippumattomista syistä johtuvia halkeamia, irtoamisia tai pintavaurioita.",
+  "Työn vastaanotto ja laadunarviointi suoritetaan MaalausRYL 2012 -julkaisun mukaisten periaatteiden ja tarkasteluetäisyyksien mukaisesti. Pintojen laatua arvioidaan normaalissa valaistuksessa ja normaalilta katseluetäisyydeltä.",
+  "Urakoitsija myöntää työlle kahden (2) vuoden takuun vastaanotosta lukien YSE 1998 -ehtojen periaatteiden mukaisesti, ellei toisin sovita.",
+  "Takuu kattaa työn suorituksessa ilmenevät virheet, jotka johtuvat urakoitsijan työvirheestä, virheellisestä työmenetelmästä tai materiaalin virheellisestä käsittelystä.",
+  "Takuu ei kata:\n– rakenteellisesta liikkeestä, rakennuksen painumisesta tai alustan elämisestä johtuvia halkeamia\n– kosteusrasituksesta tai rakenteellisista puutteista aiheutuvia vaurioita\n– normaalia kulumista tai mekaanisia vaurioita\n– tilaajan tai kolmannen osapuolen aiheuttamia vaurioita\n– alustan piileviä virheitä, joita ei ole voitu kohtuudella havaita ennen työn aloittamista",
   "Maksuehto sovitun mukaisesti. Viivästyskorko korkolain mukaisesti.",
   "Tarjous on voimassa valitun ajan päiväyksestä.",
   "Mahdolliset erimielisyydet pyritään ratkaisemaan ensisijaisesti neuvottelemalla."
