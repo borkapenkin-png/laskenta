@@ -6,6 +6,7 @@ import {
   FolderOpen, 
   FileDown,
   FileText,
+  Layers,
   Minus,
   Square,
   Pentagon,
