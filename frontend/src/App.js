@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import '@/App.css';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { KoontitarjousDialog } from '@/components/KoontitarjousDialog';
 import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
+import { QAPanel, useQAMode } from '@/components/QAPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -67,6 +68,9 @@ function App() {
     name: 'Uusi projekti',
     createdAt: new Date().toISOString()
   });
+  
+  // QA Mode (hidden developer feature)
+  const { isQAMode, isQAPanelOpen, setIsQAPanelOpen } = useQAMode();
   const fileInputRef = useRef(null);
   const projectInputRef = useRef(null);
 
@@ -887,6 +891,21 @@ function App() {
           className: 'toast-notification',
         }}
       />
+
+      {/* Hidden QA Panel for developers */}
+      {isQAMode && (
+        <QAPanel
+          isOpen={isQAPanelOpen}
+          onClose={() => setIsQAPanelOpen(false)}
+          measurements={measurements}
+          addMeasurement={(m) => setMeasurements(prev => [...prev, m])}
+          updateMeasurement={(id, data) => setMeasurements(prev => prev.map(m => m.id === id ? { ...m, ...data } : m))}
+          deleteMeasurement={(id) => setMeasurements(prev => prev.filter(m => m.id !== id))}
+          getMeasurements={() => measurements}
+          undo={handleUndo}
+          redo={handleRedo}
+        />
+      )}
     </div>
   );
 }
