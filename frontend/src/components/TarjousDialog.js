@@ -213,9 +213,9 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
             </div>
           </div>
 
-          {/* C) Hinnat */}
+          {/* C) Lisätyöt – veloitusperiaatteet */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-sm text-gray-700 border-b pb-2">Hinnat</h3>
+            <h3 className="font-semibold text-sm text-gray-700 border-b pb-2">Lisätyöt – veloitusperiaatteet</h3>
             
             <div className="space-y-4">
               <div className="space-y-3">
@@ -234,23 +234,46 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="incl" id="incl" />
                     <Label htmlFor="incl" className="cursor-pointer font-normal">
-                      Hinnat sis. ALV
+                      Hinnat sis. ALV (25,5%)
                     </Label>
                   </div>
                 </RadioGroup>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="lisatyoHinta" className="text-sm">
-                  Muutos- ja lisätyö tuntihinta (€/h)
-                </Label>
-                <Input
-                  id="lisatyoHinta"
-                  type="number"
-                  value={formData.lisatyoHinta}
-                  onChange={(e) => handleChange('lisatyoHinta', e.target.value)}
-                  className="w-32"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lisatyoHinta" className="text-sm">
+                    Muutos- ja lisätyö tuntihinta (€/h)
+                  </Label>
+                  <Input
+                    id="lisatyoHinta"
+                    type="number"
+                    value={formData.lisatyoHinta}
+                    onChange={(e) => handleChange('lisatyoHinta', e.target.value)}
+                    className="w-32"
+                    data-testid="tarjous-lisatyo-hinta"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm">Materiaalihankinta ja yleiskulu</Label>
+                  <Select
+                    value={String(formData.materialHandlingPercent)}
+                    onValueChange={(v) => handleChange('materialHandlingPercent', parseInt(v))}
+                  >
+                    <SelectTrigger className="w-32" data-testid="tarjous-material-percent">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[5, 6, 7, 8, 9, 10, 11, 12].map(pct => (
+                        <SelectItem key={pct} value={String(pct)}>
+                          {pct} %
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">Lisätään materiaalien hankintahintaan</p>
+                </div>
               </div>
             </div>
           </div>
