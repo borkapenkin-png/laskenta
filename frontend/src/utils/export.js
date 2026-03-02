@@ -448,6 +448,21 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   // Save
   const fileName = `Tarjous_${tarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${today.replace(/\./g, '-')}.pdf`;
   doc.save(fileName);
+  
+  // Return data for snapshot
+  return {
+    operations: grouped.map(g => ({
+      label: g.label,
+      quantity: g.totalQuantity,
+      unit: g.unit,
+    })),
+    totals: {
+      totalCost,
+      vatPercentage: showWithVat ? vatPercentage : 0,
+      vatAmount,
+      totalWithVat,
+    }
+  };
 };
 
 // Export PDF per floor
