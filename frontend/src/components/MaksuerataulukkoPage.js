@@ -99,6 +99,9 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
   const [urakkasumma, setUrakkasumma] = useState(() => {
     return localStorage.getItem('maksuerataulukko_urakkasumma') || '';
   });
+  const [kohde, setKohde] = useState(() => {
+    return localStorage.getItem('maksuerataulukko_kohde') || '';
+  });
   const [vatMode, setVatMode] = useState(() => {
     return localStorage.getItem('maksuerataulukko_vatMode') || 'alv0';
   });
@@ -118,10 +121,11 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
   // Persist to localStorage
   useEffect(() => {
     localStorage.setItem('maksuerataulukko_urakkasumma', urakkasumma);
+    localStorage.setItem('maksuerataulukko_kohde', kohde);
     localStorage.setItem('maksuerataulukko_vatMode', vatMode);
     localStorage.setItem('maksuerataulukko_preset', selectedPreset);
     localStorage.setItem('maksuerataulukko_milestones', String(milestoneCount));
-  }, [urakkasumma, vatMode, selectedPreset, milestoneCount]);
+  }, [urakkasumma, kohde, vatMode, selectedPreset, milestoneCount]);
 
   // Calculate rows when preset changes
   const calculateRows = () => {
@@ -163,6 +167,10 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
     const amount = parseFloat(urakkasumma);
     if (!amount || amount <= 0) {
       toast.error('Syötä urakkasumma');
+      return;
+    }
+    if (!kohde.trim()) {
+      toast.error('Syötä työmaa / kohde');
       return;
     }
     
@@ -273,6 +281,7 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
     const total = rows.reduce((sum, r) => sum + r.summa, 0);
     
     let text = 'Maksuerätaulukko\n';
+    text += `Työmaa / Kohde: ${kohde}\n`;
     text += `Urakkasumma: ${formatCurrency(baseAmount)} € (${vatMode === 'alv0' ? 'ALV 0%' : 'sis. ALV 25,5%'})\n\n`;
     text += 'Erä\tSelite\t%\tSumma €\n';
     text += '────────────────────────────────────\n';
@@ -305,7 +314,7 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
       exportMaksuerataulukkoPDF({
         urakkasumma: baseAmount,
         vatMode,
-        presetName: PRESETS[selectedPreset]?.name || 'Oma',
+        kohde,
         rows
       });
       toast.success('PDF luotu');
@@ -457,6 +466,24 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
               />
             </div>
 
+            {/* Työmaa / Kohde */}
+            <div className="space-y-2">
+              <Label htmlFor="kohde" className="text-sm font-medium">
+                Työmaa / Kohde <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="kohde"
+                type="text"
+                value={kohde}
+                onChange={(e) => setKohde(e.target.value)}
+                placeholder="Esim. As Oy Esimerkki, Helsinki"
+                className="w-72"
+                data-testid="maksuerataulukko-kohde"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* ALV mode */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">ALV-käsittely</Label>
@@ -479,9 +506,7 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
                 </div>
               </RadioGroup>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Preset selector */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Pohja</Label>
@@ -569,16 +594,13 @@ export const MaksuerataulukkoPage = ({ onBack }) => {
               </div>
             </div>
 
-            {/* Summary info */}
-            <div className="flex gap-6 text-sm text-gray-600 bg-[#F5F7FA] p-3 rounded">
+            {/* Summary info - minimal */}
+            <div className="flex flex-col gap-1 text-sm text-gray-600 bg-[#F5F7FA] p-3 rounded">
               <span>
-                <strong>Urakkasumma:</strong> {formatCurrency(parseFloat(urakkasumma) || 0)} €
+                <strong>Työmaa / Kohde:</strong> {kohde}
               </span>
               <span>
-                <strong>ALV:</strong> {vatMode === 'alv0' ? 'ALV 0%' : 'Sis. ALV 25,5%'}
-              </span>
-              <span>
-                <strong>Pohja:</strong> {PRESETS[selectedPreset]?.name || 'Oma'}
+                <strong>Urakkasumma:</strong> {formatCurrency(parseFloat(urakkasumma) || 0)} € ({vatMode === 'alv0' ? 'ALV 0%' : 'sis. ALV 25,5%'})
               </span>
             </div>
 
