@@ -71,6 +71,45 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Manual row handlers
+  const handleRowChange = (rowId, field, value) => {
+    setFormData(prev => {
+      const newRows = prev.manualRows.map(row => {
+        if (row.id === rowId) {
+          const updated = { ...row, [field]: value };
+          // Auto-calc yhteensa
+          if (field === 'maara' || field === 'yksikkohinta') {
+            const maara = parseFloat(field === 'maara' ? value : row.maara) || 0;
+            const hinta = parseFloat(field === 'yksikkohinta' ? value : row.yksikkohinta) || 0;
+            updated.yhteensa = maara * hinta;
+          }
+          return updated;
+        }
+        return row;
+      });
+      return { ...prev, manualRows: newRows };
+    });
+  };
+
+  const addRow = () => {
+    setFormData(prev => ({
+      ...prev,
+      manualRows: [
+        ...prev.manualRows,
+        { id: Date.now(), toimenpide: '', maara: '', yksikko: 'm²', yksikkohinta: '', yhteensa: 0 }
+      ]
+    }));
+  };
+
+  const removeRow = (rowId) => {
+    setFormData(prev => ({
+      ...prev,
+      manualRows: prev.manualRows.filter(r => r.id !== rowId)
+    }));
+  };
+
+  const manualTotal = formData.manualRows.reduce((sum, r) => sum + (r.yhteensa || 0), 0);
+
   const handleGenerate = async (isPreview = false) => {
     if (!formData.asiakas.trim()) {
       return;
