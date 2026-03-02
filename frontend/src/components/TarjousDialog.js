@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Eye, Loader2 } from 'lucide-react';
+import { FileText, Eye, Loader2, Plus, Trash2, Calculator, Edit3 } from 'lucide-react';
 import { VALIDITY_OPTIONS, PAYMENT_TERM_OPTIONS } from '@/constants/company';
 
 export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
