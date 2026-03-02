@@ -63,6 +63,15 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Autosave to localStorage
 - ✅ Project naming
 
+### Responsive Toolbar - COMPLETED 2025-03-02
+- ✅ Breakpoint-based responsive design (1200px, 950px)
+- ✅ Left group: File operations (icon-only on narrow screens)
+- ✅ Middle group: Tools with horizontal scroll if needed
+- ✅ Right group: Primary action always visible + overflow menu
+- ✅ "Lisää" dropdown menu for secondary actions (Koontitarjous, Maksuerätaulukko, Vie PDF)
+- ✅ No buttons cut off at any viewport width
+- ✅ Hidden scrollbar for clean appearance
+
 ## Technical Stack
 - **Framework:** React.js (Create React App)
 - **PDF Rendering:** pdf.js
