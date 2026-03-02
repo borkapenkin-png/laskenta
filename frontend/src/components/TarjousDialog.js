@@ -41,10 +41,11 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     paivamaara: new Date().toISOString().split('T')[0],
     voimassa: 30,
     maksuehto: 14,
+    offerAuthor: 'boris', // 'boris' or 'joosep'
     
     // Hinnat (Prices)
     vatMode: 'alv0', // 'alv0' or 'incl'
-    lisatyoHinta: '55',
+    lisatyoHinta: '38', // Default 38 €/h
     materialHandlingPercent: 10, // 5-12% for material procurement overhead
     
     // Manual mode fields
