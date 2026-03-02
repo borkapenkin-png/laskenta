@@ -489,9 +489,9 @@ function App() {
   };
 
   const handleCreateTarjous = () => {
+    // Allow opening dialog even without measurements for testing/preview
     if (measurements.length === 0) {
-      toast.error('Ei mittauksia - lisää mittauksia ensin', { duration: 5000 });
-      return;
+      toast.info('Tarjous on tühi - lisää mittauksia projektiin', { duration: 3000 });
     }
     setTarjousDialogOpen(true);
   };
