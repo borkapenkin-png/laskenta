@@ -634,24 +634,34 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   
   // ==================== FOOTER (on all pages) ====================
   const totalPages = doc.internal.getNumberOfPages();
+  
+  // Author name mapping
+  const authorName = tarjousData.offerAuthor === 'joosep' ? 'Joosep Rohusaar' : 'Boris Penkin';
+  
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    const footerY = pageHeight - 15;
+    const footerY = pageHeight - 20;
     
     doc.setDrawColor(...BRAND_TEAL);
     doc.setLineWidth(0.3);
-    doc.line(MARGIN_LEFT, footerY - 5, pageWidth - MARGIN_RIGHT, footerY - 5);
+    doc.line(MARGIN_LEFT, footerY - 8, pageWidth - MARGIN_RIGHT, footerY - 8);
     
-    doc.setFontSize(8);
-    doc.setTextColor(...BRAND_TEAL);
+    // Left side - Author greeting
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Ystävällisin terveisin,', MARGIN_LEFT, footerY);
+    
     doc.setFont('helvetica', 'bold');
-    doc.text(COMPANY.name, MARGIN_LEFT, footerY);
+    doc.text(authorName, MARGIN_LEFT, footerY + 5);
     
     doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text('Kiitos mielenkiinnostanne!', MARGIN_LEFT, footerY + 5);
+    doc.text(COMPANY.name, MARGIN_LEFT, footerY + 10);
     
-    doc.text(`Sivu ${i} / ${totalPages}`, pageWidth - MARGIN_RIGHT, footerY + 5, { align: 'right' });
+    // Right side - page number
+    doc.text(`Sivu ${i} / ${totalPages}`, pageWidth - MARGIN_RIGHT, footerY + 10, { align: 'right' });
   }
   
   // Save
