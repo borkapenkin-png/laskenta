@@ -498,8 +498,23 @@ function App() {
     try {
       // Dismiss any existing tarjous toast
       toast.dismiss('tarjous-export');
-      exportTarjousPDF(project, measurements, settings, tarjousData);
-      toast.success('Tarjous PDF luotu!', { 
+      
+      // Generate the PDF
+      const tarjousResult = exportTarjousPDF(project, measurements, settings, tarjousData);
+      
+      // Save snapshot for koontitarjous if generation was successful
+      if (tarjousResult) {
+        saveTarjousSnapshot({
+          projectName: project.name,
+          title: tarjousData.title || project.name,
+          customerName: tarjousData.customerName || '',
+          customerAddress: tarjousData.customerAddress || '',
+          operations: tarjousResult.operations || [],
+          totals: tarjousResult.totals || {},
+        });
+      }
+      
+      toast.success('Tarjous PDF luotu ja tallennettu!', { 
         id: 'tarjous-export',
         duration: 3000 
       });
