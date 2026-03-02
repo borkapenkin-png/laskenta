@@ -305,6 +305,170 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
             </div>
           </div>
 
+          {/* MANUAL MODE FIELDS */}
+          {formData.sourceMode === 'manual' && (
+            <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-sm text-gray-700 border-b border-blue-200 pb-2">
+                Urakan sisältö ja hinnat (käsin)
+              </h3>
+              
+              {/* Urakan sisältö textarea */}
+              <div className="space-y-2">
+                <Label htmlFor="urakanSisalto" className="text-sm">
+                  Urakan sisältö <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="urakanSisalto"
+                  value={formData.urakanSisalto}
+                  onChange={(e) => handleChange('urakanSisalto', e.target.value)}
+                  placeholder="Kuvaa urakan laajuus, rajaukset ja huomiot..."
+                  rows={4}
+                  className="bg-white"
+                  data-testid="tarjous-urakan-sisalto"
+                />
+              </div>
+              
+              {/* Kokonaishinta toggle */}
+              <div className="flex items-center gap-3 py-2">
+                <Switch
+                  id="useKokonaishinta"
+                  checked={formData.useKokonaishinta}
+                  onCheckedChange={(v) => handleChange('useKokonaishinta', v)}
+                  data-testid="tarjous-kokonaishinta-toggle"
+                />
+                <Label htmlFor="useKokonaishinta" className="cursor-pointer text-sm">
+                  Kokonaishinta ilman erittelyä
+                </Label>
+              </div>
+              
+              {formData.useKokonaishinta ? (
+                /* Single kokonaishinta input */
+                <div className="space-y-2">
+                  <Label htmlFor="kokonaishinta" className="text-sm">
+                    Urakkahinta (ALV 0%) <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="kokonaishinta"
+                      type="number"
+                      value={formData.kokonaishinta}
+                      onChange={(e) => handleChange('kokonaishinta', e.target.value)}
+                      placeholder="0"
+                      className="w-40 bg-white"
+                      data-testid="tarjous-kokonaishinta"
+                    />
+                    <span className="text-gray-600">€</span>
+                  </div>
+                </div>
+              ) : (
+                /* Hintaerittely table */
+                <div className="space-y-3">
+                  <Label className="text-sm">Hintaerittely</Label>
+                  
+                  <div className="bg-white rounded border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="text-left p-2 font-medium">Toimenpide</th>
+                          <th className="text-right p-2 font-medium w-20">Määrä</th>
+                          <th className="text-center p-2 font-medium w-20">Yksikkö</th>
+                          <th className="text-right p-2 font-medium w-24">Yks.hinta €</th>
+                          <th className="text-right p-2 font-medium w-24">Yhteensä €</th>
+                          <th className="w-10"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {formData.manualRows.map((row) => (
+                          <tr key={row.id} className="border-t">
+                            <td className="p-1">
+                              <Input
+                                value={row.toimenpide}
+                                onChange={(e) => handleRowChange(row.id, 'toimenpide', e.target.value)}
+                                placeholder="Työn kuvaus"
+                                className="h-8 text-sm"
+                              />
+                            </td>
+                            <td className="p-1">
+                              <Input
+                                type="number"
+                                value={row.maara}
+                                onChange={(e) => handleRowChange(row.id, 'maara', e.target.value)}
+                                className="h-8 text-sm text-right"
+                              />
+                            </td>
+                            <td className="p-1">
+                              <Select
+                                value={row.yksikko}
+                                onValueChange={(v) => handleRowChange(row.id, 'yksikko', v)}
+                              >
+                                <SelectTrigger className="h-8 text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="m²">m²</SelectItem>
+                                  <SelectItem value="jm">jm</SelectItem>
+                                  <SelectItem value="kpl">kpl</SelectItem>
+                                  <SelectItem value="h">h</SelectItem>
+                                  <SelectItem value="erä">erä</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </td>
+                            <td className="p-1">
+                              <Input
+                                type="number"
+                                value={row.yksikkohinta}
+                                onChange={(e) => handleRowChange(row.id, 'yksikkohinta', e.target.value)}
+                                className="h-8 text-sm text-right"
+                              />
+                            </td>
+                            <td className="p-1 text-right pr-2 font-medium">
+                              {row.yhteensa.toLocaleString('fi-FI', { minimumFractionDigits: 2 })}
+                            </td>
+                            <td className="p-1">
+                              {formData.manualRows.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeRow(row.id)}
+                                  className="h-8 w-8 text-gray-400 hover:text-red-500"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-50 border-t">
+                        <tr>
+                          <td colSpan={4} className="p-2 text-right font-semibold">
+                            Yhteensä (ALV 0%):
+                          </td>
+                          <td className="p-2 text-right font-bold text-[#4A9BAD]">
+                            {manualTotal.toLocaleString('fi-FI', { minimumFractionDigits: 2 })} €
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addRow}
+                    className="flex items-center gap-1"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Lisää rivi
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* C) Lisätyöt – veloitusperiaatteet */}
           <div className="space-y-4">
             <h3 className="font-semibold text-sm text-gray-700 border-b pb-2">Lisätyöt – veloitusperiaatteet</h3>
