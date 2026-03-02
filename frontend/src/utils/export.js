@@ -234,7 +234,7 @@ const BRAND_LIGHT = [245, 247, 250];
 const MARGIN_LEFT = 20;
 const MARGIN_RIGHT = 20;
 const MARGIN_TOP = 15;
-const MARGIN_BOTTOM = 30;
+const MARGIN_BOTTOM = 35; // Increased for author footer
 
 // Helper to check if we need a new page
 const checkPageBreak = (doc, yPos, neededHeight, pageHeight) => {
