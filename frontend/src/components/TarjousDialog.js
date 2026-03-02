@@ -42,6 +42,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     // Hinnat (Prices)
     vatMode: 'alv0', // 'alv0' or 'incl'
     lisatyoHinta: '55',
+    materialHandlingPercent: 10, // 5-12% for material procurement overhead
     
     // Lisätiedot (Additional info)
     lisatiedot: '',
