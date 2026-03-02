@@ -282,6 +282,22 @@ export const Toolbar = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  data-testid="create-koontitarjous-button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onCreateKoontitarjous}
+                  className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10"
+                >
+                  <Layers className="h-4 w-4 mr-2" />
+                  Koontitarjous
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Yhdistä useita tarjouksia yhdeksi koontitarjoukseksi</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
                   data-testid="export-pdf-button"
                   variant="outline"
                   size="sm"
