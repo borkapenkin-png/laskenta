@@ -248,10 +248,15 @@ const checkPageBreak = (doc, yPos, neededHeight, pageHeight) => {
 // Export professional tarjous (offer/quote) PDF
 export const exportTarjousPDF = (project, measurements, settings, tarjousData) => {
   const doc = new jsPDF();
-  const grouped = groupMeasurements(measurements);
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
+  
+  // Determine mode
+  const isManualMode = tarjousData.sourceMode === 'manual';
+  
+  // Get grouped measurements only for auto mode
+  const grouped = isManualMode ? [] : groupMeasurements(measurements);
   
   // VAT settings
   const vatPercentage = settings?.vatPercentage || 25.5;
@@ -260,7 +265,12 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   const lisatyoHinta = tarjousData.lisatyoHinta || '55';
   
   // Calculate totals (always internal ALV 0%)
-  const totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
+  let totalCost;
+  if (isManualMode) {
+    totalCost = tarjousData.manualTotal || 0;
+  } else {
+    totalCost = grouped.reduce((sum, g) => sum + g.totalCost, 0);
+  }
   const vatAmount = totalCost * vatPercentage / 100;
   const totalWithVat = totalCost + vatAmount;
   
