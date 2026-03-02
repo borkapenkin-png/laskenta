@@ -526,6 +526,20 @@ function App() {
     }
   };
 
+  const handleGenerateKoontitarjous = (snapshots, tarjousData) => {
+    try {
+      toast.dismiss('koontitarjous-export');
+      exportKoontitarjousPDF(snapshots, tarjousData);
+      toast.success('Koontitarjous PDF luotu!', { 
+        id: 'koontitarjous-export',
+        duration: 3000 
+      });
+    } catch (error) {
+      console.error('Koontitarjous generation error:', error);
+      toast.error('Koontitarjouksen luominen epäonnistui', { duration: 8000 });
+    }
+  };
+
   const calculateSummary = () => {
     let totalCost = 0;
 
