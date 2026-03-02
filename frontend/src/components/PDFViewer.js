@@ -2,8 +2,9 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { MeasurementOverlay } from '@/components/MeasurementOverlay';
 
-// Set worker source to use local file
-pdfjsLib.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL}/pdf.worker.min.mjs`;
+// Set worker source - use unpkg CDN for better compatibility with custom domains
+// unpkg serves all npm versions directly
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.624/build/pdf.worker.min.mjs`;
 
 export const PDFViewer = ({ 
   pdfFile, 
