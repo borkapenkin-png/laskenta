@@ -27,6 +27,9 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
   
   // Form state
   const [formData, setFormData] = useState({
+    // Source mode
+    sourceMode: 'auto', // 'auto' (laskennasta) or 'manual' (käsin)
+    
     // Asiakastiedot (Customer info)
     asiakas: '',
     kohde: projectName || '',
@@ -43,6 +46,14 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     vatMode: 'alv0', // 'alv0' or 'incl'
     lisatyoHinta: '55',
     materialHandlingPercent: 10, // 5-12% for material procurement overhead
+    
+    // Manual mode fields
+    urakanSisalto: '', // Manual scope description
+    useKokonaishinta: false, // Toggle for single price vs table
+    kokonaishinta: '', // Single total price (ALV 0%)
+    manualRows: [
+      { id: 1, toimenpide: '', maara: '', yksikko: 'm²', yksikkohinta: '', yhteensa: 0 }
+    ],
     
     // Lisätiedot (Additional info)
     lisatiedot: '',
