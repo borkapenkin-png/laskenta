@@ -17,14 +17,16 @@ export const BRAND_COLORS = {
   lightGray: [245, 247, 250]
 };
 
-// Default terms for tarjous
+// Default terms for tarjous - Professional construction offer terms
 export const DEFAULT_TERMS = [
-  "Tarjous perustuu esitettyihin suunnitelmiin ja laskettuihin määriin.",
-  "Mahdolliset lisä- ja muutostyöt veloitetaan erikseen sovittavan tuntihinnan mukaisesti.",
-  "Tarjous on voimassa valitun ajan tarjouksen päiväyksestä.",
-  "Maksuehto: sovitun mukaisesti.",
-  "Tilaajan vastuulla on kohteen suojaus ennen töiden alkua, ellei toisin sovita.",
-  "Urakoitsija ei vastaa piilossa olevista vioista tai rakenteellisista ongelmista."
+  "Tarjous on voimassa valitun ajan tarjouksen päiväyksestä, ellei toisin sovita kirjallisesti.",
+  "Urakkahinta perustuu tarjouksen laatimishetkellä käytettävissä oleviin suunnitelmiin, määrätietoihin ja kohteessa tehtyihin havaintoihin.",
+  "Urakkaan sisältyy tavanomaiset suojaukset ja työnaikainen siisteys. Poikkeavat suojausvaatimukset hinnoitellaan erikseen.",
+  "Lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan erikseen sovituin perustein (työ ja materiaalit).",
+  "Tilaaja vastaa työalueen esteettömyydestä sekä sähkön ja veden saatavuudesta sovitusti.",
+  "Urakoitsija ei vastaa rakenteiden piilevistä virheistä tai alustan odottamattomista puutteista, joita ei ole voitu kohtuudella havaita tarjousta laadittaessa.",
+  "Maksuehto valitun mukaisesti. Viivästyskorko korkolain mukaisesti.",
+  "Mahdolliset erimielisyydet pyritään ratkaisemaan ensisijaisesti neuvottelemalla."
 ];
 
 // Validity options (days)
