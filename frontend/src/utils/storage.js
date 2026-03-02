@@ -453,3 +453,70 @@ export const validateProjectData = (data) => {
     warnings: errors.filter(e => e.includes('puuttuu')),
   };
 };
+
+// ==========================================
+// KOONTITARJOUS (Summary Offer) Functions
+// ==========================================
+
+const TARJOUS_SNAPSHOTS_KEY = 'rakenna_tarjous_snapshots';
+
+/**
+ * Save a tarjous snapshot to localStorage
+ */
+export const saveTarjousSnapshot = (snapshot) => {
+  try {
+    const snapshots = getTarjousSnapshots();
+    const newSnapshot = {
+      id: `tarjous-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      ...snapshot,
+    };
+    snapshots.push(newSnapshot);
+    localStorage.setItem(TARJOUS_SNAPSHOTS_KEY, JSON.stringify(snapshots));
+    return newSnapshot;
+  } catch (error) {
+    console.error('Error saving tarjous snapshot:', error);
+    return null;
+  }
+};
+
+/**
+ * Get all tarjous snapshots from localStorage
+ */
+export const getTarjousSnapshots = () => {
+  try {
+    const data = localStorage.getItem(TARJOUS_SNAPSHOTS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error('Error loading tarjous snapshots:', error);
+    return [];
+  }
+};
+
+/**
+ * Delete a tarjous snapshot by ID
+ */
+export const deleteTarjousSnapshot = (snapshotId) => {
+  try {
+    const snapshots = getTarjousSnapshots();
+    const filtered = snapshots.filter(s => s.id !== snapshotId);
+    localStorage.setItem(TARJOUS_SNAPSHOTS_KEY, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error deleting tarjous snapshot:', error);
+    return false;
+  }
+};
+
+/**
+ * Clear all tarjous snapshots
+ */
+export const clearTarjousSnapshots = () => {
+  try {
+    localStorage.removeItem(TARJOUS_SNAPSHOTS_KEY);
+    return true;
+  } catch (error) {
+    console.error('Error clearing tarjous snapshots:', error);
+    return false;
+  }
+};
