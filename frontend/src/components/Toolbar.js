@@ -17,7 +17,8 @@ import {
   Redo,
   Hand,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Calculator
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,6 +36,7 @@ export const Toolbar = ({
   onExportPDF,
   onCreateTarjous,
   onCreateKoontitarjous,
+  onOpenMaksuerataulukko,
   currentTool,
   onToolSelect,
   selectedMeasurementId,
@@ -293,6 +295,22 @@ export const Toolbar = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Yhdistä useita tarjouksia yhdeksi koontitarjoukseksi</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  data-testid="maksuerataulukko-button"
+                  size="sm"
+                  variant="outline"
+                  onClick={onOpenMaksuerataulukko}
+                  className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10"
+                >
+                  <Calculator className="h-4 w-4 mr-2" />
+                  Maksuerät
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Maksuerätaulukko - maksuaikataulu</TooltipContent>
             </Tooltip>
 
             <Tooltip>

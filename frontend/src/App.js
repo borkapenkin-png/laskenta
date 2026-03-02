@@ -12,6 +12,7 @@ import { TarjousDialog } from '@/components/TarjousDialog';
 import { KoontitarjousDialog } from '@/components/KoontitarjousDialog';
 import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
+import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -60,6 +61,7 @@ function App() {
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
+  const [currentView, setCurrentView] = useState('main'); // 'main' or 'maksuerataulukko'
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
@@ -658,6 +660,23 @@ function App() {
     toast.success(`Korkeus päivitetty kaikille seinille: ${newHeight}m`);
   };
 
+  // Show Maksuerätaulukko page
+  if (currentView === 'maksuerataulukko') {
+    return (
+      <div className="flex flex-col h-screen bg-[#F9FAFB]">
+        <MaksuerataulukkoPage onBack={() => setCurrentView('main')} />
+        <Toaster 
+          position="top-right" 
+          closeButton
+          toastOptions={{
+            duration: 4000,
+            className: 'toast-notification',
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-[#F9FAFB]">
       <Toolbar
@@ -668,6 +687,7 @@ function App() {
         onExportPDF={handleOpenPDFExportDialog}
         onCreateTarjous={handleCreateTarjous}
         onCreateKoontitarjous={() => setKoontitarjousDialogOpen(true)}
+        onOpenMaksuerataulukko={() => setCurrentView('maksuerataulukko')}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
         selectedMeasurementId={selectedMeasurementId}

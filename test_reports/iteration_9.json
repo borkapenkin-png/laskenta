@@ -1,0 +1,65 @@
+{
+  "summary": "Frontend testing for Maksuerätaulukko (payment schedule table) feature. 14/16 tests passed. Found 2 critical bugs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "MaksuerataulukkoPage - YSE-6 preset",
+        "issue": "CRITICAL: Last row percentage (10%) doesn't match amount (20,000€). The last row shows 10% but amount is 20,000€ which is 20% of 100,000€. Total percentage shows 90% instead of 100% while total amount is correct at 100,000€. The code adjusts last row amount for rounding but doesn't update the percentage display.",
+        "selector": "[data-testid='maksuerataulukko-table']",
+        "priority": "HIGH",
+        "location": "/app/frontend/src/components/MaksuerataulukkoPage.js lines 142-156"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Copy to clipboard",
+        "issue": "Copy button shows 'Kopiointi epäonnistui' (Copy failed) in headless browser. May work in real browser with proper clipboard permissions.",
+        "affected_selectors": ["[data-testid='maksuerataulukko-copy']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_9.json"],
+  "action_items": [
+    "CRITICAL: Fix YSE-6 last row percentage calculation. When amount is adjusted for rounding, the percentage should also be recalculated to match: newPercent = (amount / baseAmount) * 100",
+    "MINOR: Consider adding error handling for clipboard copy failures with fallback behavior"
+  ],
+  "critical_code_review_comments": [
+    "BUG in calculateRows() at line 142-156: When last row amount is adjusted with remainder (baseAmount - runningTotal), the percentage is not updated. Row shows 10% but amount is 20,000€ (20%)",
+    "YSE-6 preset percentages (10,15,20,20,15,10) sum to 90%, not 100%. Either fix the preset or handle the remainder properly"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A - frontend only", "frontend": "87.5% (14/16 tests passed)"},
+  "test_credentials": "None required",
+  "seed_data_creation": "",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Maksuerätaulukko feature mostly working. Critical bug: YSE-6 preset last row shows incorrect percentage. Total % = 90% but total amount = 100,000€ is correct. 10-80-10 and YSE-8 presets work correctly with 100% total.",
+  "tests_executed": [
+    {"test": "Maksuerät button opens full-page view", "status": "PASSED", "details": "Button [data-testid='maksuerataulukko-button'] opens dedicated page with back button, input fields"},
+    {"test": "Urakkasumma input works", "status": "PASSED", "details": "Input [data-testid='maksuerataulukko-urakkasumma'] accepts numeric input (100000)"},
+    {"test": "ALV mode radio buttons visible", "status": "PASSED", "details": "ALV 0% and Sis. ALV 25,5% radio buttons visible and selectable"},
+    {"test": "Preset selector works", "status": "PASSED", "details": "Select [data-testid='maksuerataulukko-preset'] shows YSE-6, YSE-8, 10-80-10, Custom options"},
+    {"test": "YSE-6 preset default", "status": "PASSED", "details": "YSE-6 (balanced) is selected by default"},
+    {"test": "Generate table button works", "status": "PASSED", "details": "Button [data-testid='maksuerataulukko-generate'] creates table with data"},
+    {"test": "YSE-6 generates 6 rows", "status": "PASSED", "details": "6 rows generated with correct descriptions"},
+    {"test": "YSE-6 100000 EUR amounts", "status": "FAILED", "details": "Last row shows 10% = 20,000€ (should be 10% = 10,000€). Total % = 90% instead of 100%"},
+    {"test": "Table Tarjous-style design (teal header)", "status": "PASSED", "details": "Header background rgb(74,155,173) = #4A9BAD teal color"},
+    {"test": "Alternating row colors", "status": "PASSED", "details": "Row 1: white, Row 2: rgb(245,247,250) - alternating correctly"},
+    {"test": "Custom tab editing", "status": "PASSED", "details": "Muokattava tab has 18 editable inputs for customizing rows"},
+    {"test": "Copy button", "status": "PARTIAL", "details": "Button clicked but shows 'Kopiointi epäonnistui' - clipboard permission issue in headless browser"},
+    {"test": "PDF export", "status": "PASSED", "details": "PDF generated, toast shows 'PDF luotu'"},
+    {"test": "Back button returns to main", "status": "PASSED", "details": "Button [data-testid='maksuerataulukko-back'] returns to main view"},
+    {"test": "10-80-10 preset with milestone selector", "status": "PASSED", "details": "Selecting 10-80-10 shows milestone count dropdown [data-testid='maksuerataulukko-milestones'] with 4,5,6 options. Generates 8 rows with 100% total"},
+    {"test": "YSE-8 preset", "status": "PASSED", "details": "YSE-8 generates 8 rows with correct percentages summing to 100%"}
+  ],
+  "rca_of_issue": {
+    "bug": "YSE-6 last row percentage/amount mismatch",
+    "root_cause": "In calculateRows() function (line 144-156), the last row amount is calculated as baseAmount - runningTotal to handle rounding, but the percentage is not updated. For YSE-6, first 5 rows: 10000+15000+20000+20000+15000 = 80000. Last row gets 100000-80000 = 20000 (20%) but displays original 10% from preset.",
+    "suggested_fix": "After calculating last row amount, also update the percentage: if (index === rows.length - 1) { amount = baseAmount - runningTotal; percent = (amount / baseAmount) * 100; }"
+  }
+}
