@@ -119,8 +119,16 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 
 ## Testing
 - Test files: `/tmp/test_projects/projekt1.json`, `/tmp/test_projects/projekt2.json`
-- Test reports: `/app/test_reports/iteration_8.json`, `/app/test_reports/iteration_9.json`
-- All features verified working 2025-03-02
+- Test reports: `/app/test_reports/iteration_8.json`, `/app/test_reports/iteration_9.json`, `/app/test_reports/iteration_10.json`
+- All features verified working 2025-03-03
+
+## Completed: Rakennus Options Unification - 2025-03-03
+- ✅ Removed configuration options (Karkass, Villa, Kipsi) from ToolPresetSelector modal
+- ✅ "Rakennus" type presets now create measurements with default options immediately
+- ✅ Added unified ConstructionOptionsEditor in TakeoffPanel for editing options
+- ✅ Price recalculation works when options are changed
+- ✅ Label auto-updates based on selected options
+- ✅ All 6 tests passed in iteration_10
 
 ## Notes for Development
 - All changes are client-side only
