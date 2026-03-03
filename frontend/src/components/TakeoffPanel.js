@@ -264,10 +264,12 @@ export const TakeoffPanel = ({
       effectiveQuantity = bruttoM2 - openings;
     }
     
+    // Determine costQuantity - the quantity used for cost calculation
+    let costQuantity = effectiveQuantity;
+    let totalJm = null;
+    
     // For Pystykotelot types: kpl × height = jm (running meters)
     // Display shows kpl count, but also calculate total jm
-    let totalJm = null;
-    let costQuantity = m.quantity || 0;
     if ((m.isPystykotelot || m.isKuivatilaPystykotelo || m.isPRHPystykotelo) && m.wallHeight) {
       totalJm = m.quantity * m.wallHeight; // kpl × height = jm
       costQuantity = totalJm; // Price is per jm, so cost is based on total jm
