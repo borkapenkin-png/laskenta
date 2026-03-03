@@ -1,0 +1,67 @@
+{
+  "summary": "Bug fix verification PASSED: PDF annotation labels for wall measurements now show calculated m² value instead of raw jm. Testing confirmed labels match TakeoffPanel values.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_12.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Bug fix verified in MeasurementOverlay.js lines 215-221: Wall type measurements now calculate effectiveM2 = (quantity × wallHeight × bothSidesFactor) - openings for PDF label display",
+    "Calculation logic matches TakeoffPanel.calculateRow() ensuring consistent values between PDF annotation and panel"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A - frontend only", "frontend": "100% (4/4 tests passed)"},
+  "test_credentials": "None required",
+  "seed_data_creation": "Used /app/frontend/public/test.pdf for PDF loading, Scale 1:50",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bug fix for PDF annotation labels showing wrong values is verified. Wall measurements now display calculated m² on both PDF canvas and TakeoffPanel, matching exactly.",
+  "tests_executed": [
+    {
+      "test": "Create wall measurement and verify PDF annotation shows calculated m²",
+      "status": "PASSED",
+      "details": "Created wall (Huoltomaalaus) with default height 2.6m. PDF annotation showed '16.08 m²' matching panel value. Raw jm was ~6.19, calculated m² = 6.19 × 2.6 = 16.09 m²"
+    },
+    {
+      "test": "Rectangle/polygon measurements show correct m² values",
+      "status": "PASSED",
+      "details": "Created rectangle (Kipsikatto). PDF annotation showed '6.18 m²' matching panel value exactly. Rectangle area calculation working correctly."
+    },
+    {
+      "test": "Edit wall measurement height and openings - verify PDF annotation updates",
+      "status": "PASSED",
+      "details": "Changed wall height from 2.6m to 3.5m and added 2.5 m² openings. PDF annotation and panel both updated to show new calculated value."
+    },
+    {
+      "test": "PDF annotation label matches TakeoffPanel value",
+      "status": "PASSED",
+      "details": "All created measurements (wall and rectangle) showed identical values on PDF canvas annotation and in right-side TakeoffPanel. Summary totals also matched."
+    }
+  ],
+  "bug_fix_verification": {
+    "original_issue": "PDF annotation labels showed raw quantity (jm) for wall measurements instead of calculated m²",
+    "root_cause": "MeasurementOverlay.drawMeasurement() was displaying measurement.quantity directly for wall types instead of calculating effectiveM2",
+    "fix_applied": "Lines 215-221 in MeasurementOverlay.js now check for wall type and calculate: bruttoM2 = quantity × wallHeight × bothSidesFactor, then effectiveM2 = bruttoM2 - openings",
+    "verification_result": "PASSED - PDF annotations now show calculated m² matching TakeoffPanel values",
+    "tested_scenarios": [
+      "Wall measurement creation (default settings)",
+      "Wall measurement with modified height (3.5m)",
+      "Wall measurement with openings (2.5 m²)",
+      "Rectangle area measurement (comparison baseline)",
+      "Value consistency between PDF annotation and TakeoffPanel"
+    ]
+  },
+  "code_review": {
+    "MeasurementOverlay.js": {
+      "wall_label_fix": "Lines 215-221: Correctly calculates effectiveM2 for wall type before displaying label",
+      "calculation": "effectiveM2 = (quantity × wallHeight × bothSidesFactor) - openings",
+      "consistent_with_panel": "Same calculation logic as TakeoffPanel.calculateRow()"
+    }
+  }
+}

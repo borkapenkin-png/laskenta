@@ -210,7 +210,16 @@ export const MeasurementOverlay = ({
         if ((measurement.isPystykotelot || measurement.isKuivatilaPystykotelo || measurement.isPRHPystykotelo) && measurement.wallHeight) {
           const totalJm = measurement.quantity * measurement.wallHeight;
           label = `${measurement.quantity} × ${measurement.wallHeight}m = ${totalJm.toFixed(2)} jm`;
-        } else {
+        } 
+        // For wall type: show calculated m² (jm × height × bothSides - openings)
+        else if (measurement.type === 'wall' && measurement.wallHeight) {
+          const bothSidesFactor = measurement.bothSides ? 2 : 1;
+          const bruttoM2 = measurement.quantity * measurement.wallHeight * bothSidesFactor;
+          const openings = measurement.openings || 0;
+          const effectiveM2 = bruttoM2 - openings;
+          label = `${effectiveM2.toFixed(2)} ${measurement.unit}`;
+        }
+        else {
           label = `${measurement.quantity.toFixed(2)} ${measurement.unit}`;
         }
       }
