@@ -136,6 +136,12 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Määrälaskenta and Laskenta tabs now show identical totals
 - ✅ All 5 tests passed in iteration_11
 
+## Bug Fix: PDF Annotation Labels Showing Wrong Values - 2025-03-03
+- ✅ Fixed MeasurementOverlay.js to calculate effectiveM² for wall type measurements
+- ✅ PDF annotation labels now show calculated m² instead of raw jm for wall measurements
+- ✅ Labels on PDF now match values shown in TakeoffPanel
+- ✅ All 4 tests passed in iteration_12
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration
