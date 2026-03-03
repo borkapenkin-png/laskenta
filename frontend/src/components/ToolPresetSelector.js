@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { X } from 'lucide-react';
 
 // ==================== UNIFIED CONSTRUCTION OPTIONS ====================
 const FRAME_OPTIONS = [
@@ -267,86 +259,12 @@ const DEFAULT_PRESETS = {
   }
 };
 
-// ==================== CONSTRUCTION OPTIONS PANEL ====================
-const ConstructionOptionsPanel = ({ preset, options, onChange, onConfirm, onBack }) => {
-  const baseTypeName = preset.name.replace(' rakennus', '');
-  const currentName = generateConstructionName(baseTypeName, options);
-  const currentPrice = calculateConstructionPrice(preset.constructionType, options);
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 pb-2 border-b">
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          onClick={onBack}
-          className="h-7 w-7 p-0"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="font-medium text-sm">{preset.name}</span>
-      </div>
-      
-      {/* Live preview */}
-      <div className="p-2 bg-[#4A9BAD]/10 rounded text-sm">
-        <div className="font-medium text-[#4A9BAD]">{currentName}</div>
-        <div className="text-gray-600">{currentPrice} € / {preset.unit}</div>
-      </div>
-      
-      {/* Frame type */}
-      <div className="space-y-1">
-        <Label className="text-xs text-gray-500">Karkass</Label>
-        <Select value={options.frameType} onValueChange={(v) => onChange('frameType', v)}>
-          <SelectTrigger className="h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {FRAME_OPTIONS.map(opt => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Insulation */}
-      <div className="space-y-1">
-        <Label className="text-xs text-gray-500">Villa</Label>
-        <Select value={options.insulation} onValueChange={(v) => onChange('insulation', v)}>
-          <SelectTrigger className="h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {INSULATION_OPTIONS.map(opt => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {/* Gypsum layers */}
-      <div className="space-y-1">
-        <Label className="text-xs text-gray-500">Kipsilevytys</Label>
-        <Select value={options.gypsumLayers} onValueChange={(v) => onChange('gypsumLayers', v)}>
-          <SelectTrigger className="h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {GYPSUM_OPTIONS.map(opt => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <Button 
-        onClick={() => onConfirm(currentName, currentPrice)}
-        className="w-full bg-[#4A9BAD] hover:bg-[#3d8494]"
-      >
-        Valitse
-      </Button>
-    </div>
-  );
-};
+// ==================== CONSTRUCTION OPTIONS (exported for TakeoffPanel) ====================
+export const FRAME_OPTIONS_EXPORT = FRAME_OPTIONS;
+export const INSULATION_OPTIONS_EXPORT = INSULATION_OPTIONS;
+export const GYPSUM_OPTIONS_EXPORT = GYPSUM_OPTIONS;
+export const CONSTRUCTION_PRICES_EXPORT = CONSTRUCTION_PRICES;
+export const calculateConstructionPriceExport = calculateConstructionPrice;
 
 // ==================== MAIN COMPONENT ====================
 export const ToolPresetSelector = ({ 
@@ -359,12 +277,6 @@ export const ToolPresetSelector = ({
   const [customName, setCustomName] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
-  const [showOptions, setShowOptions] = useState(false);
-  const [constructionOptions, setConstructionOptions] = useState({
-    frameType: 'puurunko',
-    insulation: 'ilman',
-    gypsumLayers: '1'
-  });
   const containerRef = useRef(null);
 
   const presetConfig = DEFAULT_PRESETS[toolType];
@@ -373,14 +285,8 @@ export const ToolPresetSelector = ({
   useEffect(() => {
     if (!isOpen) {
       setShowCustomInput(false);
-      setShowOptions(false);
       setCustomName('');
       setSelectedPreset(null);
-      setConstructionOptions({
-        frameType: 'puurunko',
-        insulation: 'ilman',
-        gypsumLayers: '1'
-      });
     }
   }, [isOpen]);
 
@@ -402,8 +308,24 @@ export const ToolPresetSelector = ({
       setSelectedPreset(preset);
       setShowCustomInput(true);
     } else if (preset.hasOptions) {
-      setSelectedPreset(preset);
-      setShowOptions(true);
+      // For construction presets: use default options and let user edit in TakeoffPanel
+      const defaultOptions = {
+        frameType: 'puurunko',
+        insulation: 'ilman',
+        gypsumLayers: '1'
+      };
+      const basePrice = calculateConstructionPrice(preset.constructionType, defaultOptions);
+      const baseTypeName = preset.name.replace(' rakennus', '');
+      const generatedName = generateConstructionName(baseTypeName, defaultOptions);
+      
+      onSelect({
+        label: generatedName,
+        pricePerUnit: basePrice,
+        unit: preset.unit,
+        constructionType: preset.constructionType,
+        constructionOptions: defaultOptions,
+        isKipsiRakennus: preset.isKipsiRakennus || false
+      });
     } else {
       onSelect({
         label: preset.name,
@@ -414,21 +336,6 @@ export const ToolPresetSelector = ({
         constructionOptions: null
       });
     }
-  };
-
-  const handleOptionChange = (field, value) => {
-    setConstructionOptions(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleConstructionConfirm = (name, price) => {
-    onSelect({
-      label: name,
-      pricePerUnit: price,
-      unit: selectedPreset.unit,
-      constructionType: selectedPreset.constructionType,
-      constructionOptions: { ...constructionOptions },
-      isKipsiRakennus: selectedPreset.isKipsiRakennus || false
-    });
   };
 
   const handleCustomSubmit = () => {
@@ -468,18 +375,7 @@ export const ToolPresetSelector = ({
       </div>
       
       <div className="p-2 max-h-[400px] overflow-y-auto">
-        {showOptions && selectedPreset ? (
-          <ConstructionOptionsPanel
-            preset={selectedPreset}
-            options={constructionOptions}
-            onChange={handleOptionChange}
-            onConfirm={handleConstructionConfirm}
-            onBack={() => {
-              setShowOptions(false);
-              setSelectedPreset(null);
-            }}
-          />
-        ) : showCustomInput ? (
+        {showCustomInput ? (
           <div className="space-y-2">
             <Input
               autoFocus
@@ -527,9 +423,6 @@ export const ToolPresetSelector = ({
                       className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center justify-between group"
                     >
                       <span className="text-sm">{preset.name}</span>
-                      {preset.hasOptions && (
-                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
-                      )}
                     </button>
                   ))}
                 </div>

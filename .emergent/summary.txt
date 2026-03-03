@@ -19,151 +19,154 @@ The user wants to build a modern, 100% client-side, browser-based PDF takeoff an
 **User's preferred language**: The user communicates in a mix of **Finnish** and **Estonian**. The next agent MUST respond in these languages.
 
 **what currently exists?**
-A completely client-side React application that allows users to upload a PDF floor plan, perform measurements (area, length, count), and estimate costs using a detailed preset system. The application supports saving and loading entire projects as self-contained JSON files.
+A feature-rich, 100% client-side React application for construction cost estimation. The app allows users to upload PDF floor plans, perform measurements, and calculate costs using a detailed preset system. It supports saving/loading projects as JSON files.
 
-The application features a highly advanced and professional Tee tarjous (Create Offer) feature that generates a polished PDF offer. This includes:
-- Two input modes: Laskennasta (automatic, from measurements) and Käsin (manual entry with an editable line-item table).
-- Consistent VAT logic (ALV 0% vs. sis. ALV).
-- Configurable material overhead percentage for change orders.
-- Professional PDF template with a header, customer info, content table, and totals.
-- Robust pagination to prevent text overlap, with updated professional terms and conditions (Vakioehdot).
-- An Offer Author selector that signs the PDF.
-
-A Koontitarjous (Summary Offer) feature is also present, designed to merge multiple project JSON files into a single combined offer.
+Key features implemented:
+- A professional Tee tarjous (Create Offer) feature that generates polished PDF offers with configurable options (materials, hourly work, payment terms) and a robust layout that prevents text overlap.
+- A Koontitarjous (Summary Offer) feature to merge multiple project JSON files into a single consolidated offer.
+- A standalone Maksuerätaulukko (Payment Schedule) module with its own UI and PDF export functionality, styled to match the main application.
+- A responsive top toolbar that collapses actions into an overflow menu on smaller screens.
+- A hidden QA Test Suite (activated by ) for automated system checks.
+- A minimal FastAPI backend exists solely to provide a  endpoint for Kubernetes deployment readiness checks; all application logic remains on the client-side.
 
 **Last working item**:
-- **Last item agent was working:** The agent was performing a complete overhaul of the Koontitarjous (Summary Offer) feature. The user requested to change its core logic: instead of merging saved *offer snapshots*, it should now allow uploading multiple *project JSON files*, parse them, merge identical line items, and generate a single consolidated offer PDF using the same professional template as the Tee tarjous feature. The agent created a new  with the file upload UI and rewrote the  function in . However, the agent noticed that the file replacement left some old code in  that needs to be cleaned up.
-- **Status:** IN PROGRESS
+- **Last item agent was working:** The user requested to unify the behavior of Rakennus (Construction) type presets. The goal is to remove configuration options (e.g., , , ) from the initial tool selection modal and make them editable *only* in the right-side Määrälaskenta panel after a measurement has been created. This is to fix state inconsistencies and simplify the user flow. The agent was investigating the relevant files ( and ) to plan the change.
+- **Status:** NOT STARTED
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** Manual testing followed by . First, manually test the complete flow: save multiple projects, upload them into the new dialog, and generate a summary PDF. Once the basic functionality is confirmed, use the testing agent for a comprehensive test of this critical feature.
+- **Which testing method agent to use?** frontend testing agent. This change affects core logic and UI in multiple components (, , ) and requires validation that totals are correctly recalculated.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Finalize and Test Koontitarjous Overhaul (P0 - HIGHEST)**
+- **Issue 1: Unify Rakennus type options behavior (P0 - HIGHEST)**
 
 **Issues Detail:**
-- **Issue 1: Finalize and Test Koontitarjous Overhaul**
-    - **Attempted fixes:** A new  component was created to handle multi-file JSON uploads. The  file was updated with a new  function designed to merge projects and reuse the main offer template. The agent's last action was an attempt to clean up  after a messy file replacement.
+- **Issue 1: Unify Rakennus type options behavior**
+    - **Attempted fixes:** None. The agent was in the investigation phase, viewing files like .
     - **Next debug checklist:**
-        1.  **Clean up :** View  and remove the duplicated/old code for  that was left behind after the search_replace operation (as seen in ).
-        2.  **Manually Test the Flow:**
-            a.  Create and save at least two different project files () with some overlapping and some unique measurement operations.
-            b.  Open the Koontitarjous dialog.
-            c.  Upload the saved  files.
-            d.  Verify the dialog lists the uploaded projects and allows their titles to be edited.
-            e.  Fill in the customer details and generate the summary offer PDF.
-        3.  **Verify the PDF:** Check the generated PDF to ensure that quantities for identical operations have been summed correctly, the layout is identical to the Tee tarjous PDF, and all totals are accurate.
-    - **Why fix this issue and what will be achieved with the fix?** This is the final requested behavior for a key internal workflow, allowing the user to combine multiple smaller projects (e.g., different floors of a building) into a single master offer.
-    - **Status:** IN PROGRESS
+        1.  Modify : For Rakennus type presets, remove the UI for selecting options (dropdowns for , , etc.). Ensure that selecting a preset always creates a measurement with a fixed set of default (vakio) options.
+        2.  Modify : When a Rakennus type measurement is selected, display the editable option controls (dropdowns for , , etc.) within the panel.
+        3.  Modify : Implement or update the  logic so that when a user changes an option in the , the measurement's unit price and the application's overall totals are recalculated and the state is updated correctly.
+        4.  Ensure the option definitions are centralized and reused in both components to avoid duplication.
+    - **Why fix this issue and what will be achieved with the fix?** It will resolve a core architectural inconsistency where state can be modified in two places, leading to incorrect calculations and a confusing user experience. The fix will establish the right-side panel as the single source of truth for editing measurements.
+    - **Status:** NOT STARTED
     - **Is recurring issue?** N
     - **Should Test frontend/backend/both after fix?** Frontend
     - **Blocked on other issue:** No
 
 **In progress Task List**:
-- **Task 1: Complete Koontitarjous Overhaul**
-    - **Where to resume:** Start by cleaning the  file to remove leftover code. Then proceed with testing the feature.
-    - **What will be achieved with this?** A fully functional summary offer system based on merging uploaded project files.
-    - **Status:** IN PROGRESS
+- **Task 1: Implement Rakennus options unification (P0 - HIGHEST)**
+    - **Where to resume:** Begin by editing  to remove the configuration options from the modal.
+    - **What will be achieved with this?** A consistent and predictable UI where measurement defaults are fixed on creation and all edits happen in one dedicated panel, eliminating bugs related to state desynchronization.
+    - **Status:** NOT STARTED
     - **Should Test frontend/backend/both after fix?** Frontend
     - **Blocked on something:** No
 
 **Upcoming and Future Tasks**
+
 **Upcoming Tasks:**
-- **User Verification (P0):** After the Koontitarjous overhaul is complete and tested, the user must verify this major feature.
+- **User Verification (P0):** After the Rakennus options unification is complete, the user must verify this core functionality change.
+- **Verify  Totals Fix (P1):** The user reported that the right-side summary totals are sometimes incorrect. The agent's previous investigation was inconclusive. This needs to be re-investigated with a clear test case.
 
 **Future Tasks:**
-- **Undo/Redo Functionality (P2):** The  hook exists but is not fully integrated or tested.
-- **Preset Configuration UI (P3):** Allow users to create, edit, and save their own measurement presets in .
+- **Preset Configuration UI (P2):** Allow users to create, edit, and save their own measurement presets in .
 
 **Completed work in this session**
-- **Tee tarjous Feature Overhaul:** Massively improved and professionalized the offer generation feature, including:
-    - Added two modes: automatic from calculations and manual entry.
-    - Implemented a professional PDF layout with robust pagination to prevent text overlap.
-    - Standardized VAT logic (ALV 0% vs. incl. VAT).
-    - Added configurable material overhead, an offer author selector, and a default hourly rate.
-    - Updated the standard terms (Vakioehdot) several times with professional legal text provided by the user (final version includes YSE 1998 & MaalausRYL 2012 clauses).
-- **Preset System Unification:**
-    - Added new presets for Kipsiseinä (drywall) and Kipsiotsa (drywall edge).
-    - Unified the structure, naming logic, and UI for all rakennus (construction) type presets to ensure consistency.
-- **Koontitarjous Feature Re-implementation:** Started the complete overhaul of the summary offer feature to work with uploaded project JSON files, creating the new UI and PDF logic.
-- **Logo Implementation Fix:** Refactored the PDF export to use an imported PNG logo directly instead of a large base64 string.
+- **Koontitarjous (Summary Offer) Overhaul:** Finalized and tested the feature to merge multiple project  files into a single offer.
+- **Undo/Redo Integration:** Integrated and tested undo/redo functionality for measurement creation, updates, and deletion.
+- **Maksuerätaulukko (Payment Schedule) Module:** Created and refined a full-featured standalone module for creating payment schedules with PDF export, including fixing preset bugs and layout issues.
+- **Responsive Toolbar:** Implemented an overflow menu to ensure the toolbar is usable on all screen sizes.
+- **Hidden QA Test Suite:** Built a comprehensive, hidden test suite to automate validation of core application features.
+- **Deployment Readiness:** Added a  endpoint and lazy MongoDB connection to the backend to ensure it passes Kubernetes health checks, resolving deployment failures.
+- **PDF Loading on Custom Domains:** Fixed a critical bug where PDFs would not load on custom domains by switching the  worker source to a CDN.
+- **Tee tarjous (Create Offer) Fixes:**
+    - Fixed PDF header layout to prevent long customer names from overlapping.
+    - Added new configurable fields: Sisältää materiaalit (Includes materials), Urakkaan laskettu tuntityöt (Hourly work), and a 21 pv payment term.
+    - Modified the offer PDF to hide individual line item prices and show only the final total.
+- **HTML Title Update:** Set a custom browser tab title for the application.
 
 **Earlier issues found/mentioned but not fixed**
-- **Issue 1: Left Sidebar Thumbnails Render Empty**
-    - This was a long-standing UI bug mentioned in the initial handoff.
-    - **Status: USER REJECTED.** The user stated seal pole mingit bugi mu arust (I dont think theres a bug there) in . Do not work on this unless the user brings it up again.
+- **Issue 1: Right-side  totals may be out of sync**
+    - The user reported in  that the totals in the right-side panel summary are sometimes incorrect and out of sync with the main Laskenta tab.
+    - **Debug checklist:**
+        1. Create a project with several measurements, especially Rakennus types.
+        2. Perform edits (e.g., change quantity, modify options if available).
+        3. Compare the summary total at the bottom of the  (right side) with the total in the  (Laskenta tab).
+        4. Verify that  and other state-changing functions correctly trigger a recalculation that is reflected in all relevant UI components. The previous agent's check was code-based and may have missed a state propagation issue.
+    - **Why to solve this issue and what will be achieved with this?** This is a critical data integrity bug. Fixing it ensures the user always sees correct and consistent totals across the entire application.
+    - **Should Test frontend/backend/both after fix:** Frontend
+    - **Is recurring issue?** N
 
 **Known issue recurrence from previous fork**
-- The Left Sidebar Thumbnail bug was a known recurring issue, but it has been dismissed by the user in this session.
+- None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
 - **Framework/Library:** React.js, , , .
-- **State Management:** Centralized state in the  component using React Hooks. Dialogs manage their own internal form state.
-- **Data Storage:** Client-side  for project persistence.
-- **File Handling:**  is used to read user-uploaded PDFs and project JSONs. The entire application logic is client-side.
+- **State Management:** Centralized state in the  component using React Hooks (, ).
+- **Data Storage:** Client-side .
+- **File Handling:**  API for client-side reading of PDF and JSON files.
+- **Deployment:** A minimal FastAPI backend with a  endpoint was added to support Kubernetes readiness probes, although the application logic is entirely client-side.
 
 **key DB schema**
-N/A. All data is in React state and .
+  - N/A. All data is in React state and .
 
 **changes in tech stack**
-None.
+  - None.
 
 **All files of reference**
-- : **Currently being modified.** Needs cleanup and testing.
-- : **Newly created.** Needs testing.
-- : Recently overhauled for the new offer features.
-- : Recently overhauled to unify construction presets.
-- : Contains the final version of the offer terms.
-- : Contains the top-level state and handlers for the modals.
+- : **To be modified** for the current task.
+- : **To be modified** for the current task.
+- : State management hub, will require updates to handle option changes.
+- : Recently rewritten to be responsive.
+- : New standalone module.
+- : Contains all PDF generation logic, heavily modified.
+- : Recently updated with new fields.
+- : New file for the QA test suite.
+- : New minimal backend for deployment health checks.
 
 **Areas that need refactoring**:
-- ** God Component:** This file still manages a large amount of application state and could benefit from being broken down using  or React Context.
-- **Hardcoded Configuration:** Presets in  and company info in  are hardcoded. While this was the requested approach, a future enhancement could make these configurable.
+- ** God Component:** This file still manages a massive amount of application state and logic. A refactor using  or a state management library could simplify it.
+- **Centralize Preset Logic:** The current task highlights that preset option definitions and logic are not centralized. A single source of truth for presets should be created and used by , , and .
 
 **key api endpoints**
-N/A. The application is 100% client-side.
+-  and : A simple endpoint in  that returns  for Kubernetes liveness and readiness probes.
 
 **Critical Info for New Agent**
-- **Your immediate task is to finalize the Koontitarjous feature.** This involves cleaning up the  file and then performing thorough manual testing of the entire project-merging workflow.
-- **The user provides extremely detailed, technical instructions.** Follow them precisely. The user's language is a mix of Finnish and Estonian; you must respond in these languages.
-- **The Left Sidebar Thumbnail Bug has been dismissed by the user.** Do not investigate or attempt to fix it unless the user explicitly asks for it again.
-- **All logic is client-side.** Do not introduce any backend dependencies. File parsing, data manipulation, and PDF generation all happen in the browser.
+- **Your immediate task is to unify the Rakennus type options**, removing configuration from the selection modal and moving it exclusively to the  panel.
+- **The user has reported a bug with takeoff totals being out of sync.** This was not resolved by the previous agent and should be investigated with a live test case.
+- **The application has a minimal backend () ONLY for deployment purposes.** Do not add application logic to it. All features are client-side.
+- **PDF loading on production/custom domains depends on a CDN-hosted worker.** A re-deploy is required for the fix to apply to the production environment.
 
 **documents and test reports created in this job**
-None.
+- Test reports were generated by the testing agent and can be found at paths like .
+- The  file was continuously updated with completed tasks.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **Request:** Finalize and professionalize the Tee tarjous feature (add author, set default hourly rate, update terms). (Completed)
-2.  **Request:** Update the vakioehdot (standard terms) to a final version with YSE 1998 and MaalausRYL 2012 clauses. (Completed)
-3.  **Analysis:** Agent confirmed the final terms were implemented. (Completed)
-4.  **Request:** Add new Kipsirakenteet (drywall construction) presets and unify the structure and naming of all existing rakennus (construction) type presets. (Completed)
-5.  **Analysis:** Agent confirmed the new preset system was implemented and working correctly. (Completed)
-6.  **Request:** A major overhaul of the Koontitarjous feature to work by uploading and merging project JSON files, reusing the Tee tarjous PDF template and logic. (In Progress)
-7.  **Agent Action:** Began implementation of the Koontitarjous overhaul by creating a new . (In Progress)
-8.  **Agent Action:** Rewrote the  function in . (In Progress)
-9.  **Agent Action:** Attempted to clean up the  file after the previous replacement. (In Progress)
-10. **(No new user message)** The agent was in the middle of cleaning up the  file.
+1.  **Request:** Fix a batch of issues in the Tee tarjous feature, including PDF header overlap, adding material/hourly work checkboxes, adding a 21-day payment term, hiding line-item prices in the PDF, and fixing a bug with right-side panel totals. (Completed/Partially Investigated)
+2.  **Request:** A more detailed request to fix the PDF header overlap by changing the layout to a multi-line key-value block to robustly handle long customer names. (Completed)
+3.  **Request:** Unify the behavior of Rakennus type options. This is the current, highest-priority task. (In Progress/Not Started)
+4.  (No other user messages since the last request).
 
 **Project Health Check:**
-- **Broken:** The Koontitarjous feature is currently in a non-functional state pending code cleanup and testing.
+- **Broken:** The Rakennus presets have inconsistent behavior, allowing configuration in two different places, which can lead to incorrect calculations. This is the current P0 task to fix.
 - **Mocked:** None.
 
 **3rd Party Integrations**
-- **:** For rendering PDF files in the browser.
-- **:** For generating PDF documents (offers, reports).
+- **:** For rendering PDF files. The worker script is now loaded from a  CDN to ensure it works on custom domains.
+- **:** For generating PDF documents (offers).
 - **:** A  plugin for creating tables within PDFs.
 
 **Testing status**
-- **Testing agent used after significant changes:** NO
+- **Testing agent used after significant changes:** YES (used for Koontitarjous and Maksuerätaulukko).
 - **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** NO
-- **Known regressions:** None. The one known bug (thumbnails) was dismissed by the user.
+- **Test files created:** None, but a comprehensive in-app QA suite was built at .
+- **Known regressions:** None.
 
 **Credentials to test flow:**
 N/A
 
 **What agent forgot to execute**
-The agent has followed the user's requests diligently. The only pending action is the completion and testing of the last requested feature (Koontitarjous overhaul).</analysis>
+- The agent was about to begin the implementation for unifying Rakennus type options, which is the user's latest request.
+- The agent did not perform a live UI test to confirm or deny the user's report of desynchronized totals in the  panel, instead only reviewing the code. This should be explicitly tested.</analysis>

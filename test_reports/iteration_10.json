@@ -1,0 +1,73 @@
+{
+  "summary": "Frontend testing for unified Rakennus construction type preset behavior. 6/6 tests passed. All features working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_10.json"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A - frontend only", "frontend": "100% (6/6 tests passed)"},
+  "test_credentials": "None required",
+  "seed_data_creation": "Used /app/frontend/public/test.pdf for PDF loading",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Rakennus preset refactor complete and working. All 'rakennus' type presets now close modal immediately and configuration options (Karkass, Villa, Kipsi) are editable only in TakeoffPanel's ConstructionOptionsEditor.",
+  "tests_executed": [
+    {
+      "test": "Rectangle tool - Rakennus preset (Kuivatila AK rakennus) closes modal immediately",
+      "status": "PASSED",
+      "details": "Clicking 'Kuivatila AK rakennus' in ToolPresetSelector closes modal without showing configuration options"
+    },
+    {
+      "test": "Rectangle tool - Non-Rakennus preset (Pölysidonta) closes modal immediately", 
+      "status": "PASSED",
+      "details": "Non-rakennus presets also close modal directly as expected"
+    },
+    {
+      "test": "Rectangle tool - 'Muu' (custom) preset shows name input dialog",
+      "status": "PASSED",
+      "details": "Clicking 'Muu' shows input with placeholder 'Anna nimi...' for custom naming"
+    },
+    {
+      "test": "Wall tool - Kipsiseinä rakennus preset closes modal immediately",
+      "status": "PASSED",
+      "details": "Wall tool rakennus presets also work correctly without showing config options"
+    },
+    {
+      "test": "ConstructionOptionsEditor appears in TakeoffPanel edit mode",
+      "status": "PASSED",
+      "details": "When editing a measurement with constructionType, 'Rakennus asetukset' panel shows with Karkass, Villa, Kipsi dropdowns"
+    },
+    {
+      "test": "Price recalculation and label update when changing construction options",
+      "status": "PASSED",
+      "details": "Changed Karkass→Metalliranka (+0€), Villa→Villalla (+5€), Kipsi→2x (+10€). Price updated from 35€ to 50€. Label updated to 'Kuivatila AK, metalliranka, villalla, 2x kipsi'"
+    }
+  ],
+  "feature_verification": {
+    "rakennus_presets_in_modal": {
+      "rectangle": ["Kuivatila AK rakennus", "Märkätila AK rakennus", "PRH AK rakennus"],
+      "wall": ["Kipsiseinä rakennus"],
+      "line": ["Kuivatila kotelot rakennus", "PRH Kotelo rakennus", "Kipsiotsa rakennus"],
+      "count": ["Kuivatila pystykotelo rakennus", "PRH pystykotelo rakennus"]
+    },
+    "construction_options_editor": {
+      "location": "TakeoffPanel edit mode",
+      "fields": ["Karkass", "Villa", "Kipsi"],
+      "options": {
+        "karkass": ["Puurunko (kertapuu)", "Metalliranka"],
+        "villa": ["Ilman villaa", "Villalla"],
+        "kipsi": ["1 x kipsi", "2 x kipsi"]
+      },
+      "live_price_preview": true,
+      "label_auto_update": true
+    }
+  }
+}

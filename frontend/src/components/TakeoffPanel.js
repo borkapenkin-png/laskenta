@@ -4,6 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -11,9 +18,141 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import { 
+  FRAME_OPTIONS_EXPORT as FRAME_OPTIONS,
+  INSULATION_OPTIONS_EXPORT as INSULATION_OPTIONS,
+  GYPSUM_OPTIONS_EXPORT as GYPSUM_OPTIONS,
+  CONSTRUCTION_PRICES_EXPORT as CONSTRUCTION_PRICES,
+  calculateConstructionPriceExport as calculateConstructionPrice
+} from './ToolPresetSelector';
 
 // Jalkalista price constant
 const JALKALISTA_PRICE = 5; // €/jm
+
+// Generate unified name from construction options
+const generateConstructionName = (baseType, options) => {
+  const parts = [baseType];
+  
+  if (options?.frameType) {
+    parts.push(options.frameType === 'metalliranka' ? 'metalliranka' : 'puurunko');
+  }
+  if (options?.insulation) {
+    parts.push(options.insulation === 'villalla' ? 'villalla' : 'ilman villaa');
+  }
+  if (options?.gypsumLayers) {
+    parts.push(`${options.gypsumLayers}x kipsi`);
+  }
+  
+  return parts.join(', ');
+};
+
+// Unified Construction Options Editor Component
+const ConstructionOptionsEditor = ({ editData, setEditData, formatNumber }) => {
+  const options = editData.constructionOptions || {
+    frameType: 'puurunko',
+    insulation: 'ilman',
+    gypsumLayers: '1'
+  };
+
+  // Update options and recalculate price
+  const handleOptionChange = (field, value) => {
+    const newOptions = { ...options, [field]: value };
+    const newPrice = calculateConstructionPrice(editData.constructionType, newOptions);
+    
+    // Get base type name for label
+    const baseName = editData.label?.split(',')[0] || 'Rakennus';
+    const newLabel = generateConstructionName(baseName, newOptions);
+    
+    setEditData({
+      ...editData,
+      constructionOptions: newOptions,
+      pricePerUnit: newPrice,
+      label: newLabel
+    });
+  };
+
+  // Check if this is a pystykotelo type (needs height)
+  const isPystykoteloType = editData.constructionType?.includes('Pystykotelo') || 
+    editData.constructionType === 'kuivatilaPystykotelo' || 
+    editData.constructionType === 'prhPystykotelo';
+
+  return (
+    <div className="space-y-2 p-2 bg-[#4A9BAD]/10 rounded-lg">
+      <div className="text-xs font-medium text-[#4A9BAD]">Rakennus asetukset</div>
+      
+      {/* Height for pystykotelo types */}
+      {isPystykoteloType && (
+        <div>
+          <label className="text-xs text-gray-500">Korkeus (m)</label>
+          <Input
+            type="number"
+            step="0.1"
+            value={editData.wallHeight || 2.6}
+            onChange={(e) => setEditData({ ...editData, wallHeight: parseFloat(e.target.value) || 2.6 })}
+            className="h-8"
+          />
+          {editData.wallHeight && editData.quantity && (
+            <p className="text-xs text-gray-400 mt-1">
+              = {formatNumber(editData.quantity * editData.wallHeight)} jm
+            </p>
+          )}
+        </div>
+      )}
+      
+      <div className="grid grid-cols-3 gap-2">
+        {/* Frame type */}
+        <div>
+          <label className="text-xs text-gray-500">Karkass</label>
+          <Select value={options.frameType} onValueChange={(v) => handleOptionChange('frameType', v)}>
+            <SelectTrigger className="h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {FRAME_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Insulation */}
+        <div>
+          <label className="text-xs text-gray-500">Villa</label>
+          <Select value={options.insulation} onValueChange={(v) => handleOptionChange('insulation', v)}>
+            <SelectTrigger className="h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {INSULATION_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Gypsum layers */}
+        <div>
+          <label className="text-xs text-gray-500">Kipsi</label>
+          <Select value={options.gypsumLayers} onValueChange={(v) => handleOptionChange('gypsumLayers', v)}>
+            <SelectTrigger className="h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {GYPSUM_OPTIONS.map(opt => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
+      {/* Live price preview */}
+      <div className="text-xs text-gray-600 mt-1">
+        Laskettu hinta: <span className="font-medium">{editData.pricePerUnit} €/{editData.unit}</span>
+      </div>
+    </div>
+  );
+};
 
 // Rakennustyö presets - different construction types
 const RAKENNUSTYO_PRESETS = [
@@ -366,250 +505,13 @@ export const TakeoffPanel = ({
                         </div>
                       )}
 
-                      {/* Kuivatila rakennus settings */}
-                      {editData.isKuivatilaRakennus && (
-                        <div className="space-y-2 p-2 bg-blue-50 rounded-lg">
-                          <div className="text-xs font-medium text-blue-800">Kuivatila asetukset</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* PRH Rakennus settings */}
-                      {editData.isPRHRakennus && (
-                        <div className="space-y-2 p-2 bg-purple-50 rounded-lg">
-                          <div className="text-xs font-medium text-purple-800">PRH asetukset</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Kuivatila AK settings */}
-                      {editData.isKuivatilaAK && (
-                        <div className="space-y-2 p-2 bg-blue-50 rounded-lg">
-                          <div className="text-xs font-medium text-blue-800">Kuivatila AK asetukset</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Märkätila AK settings */}
-                      {editData.isMarkatilaAK && (
-                        <div className="space-y-2 p-2 bg-cyan-50 rounded-lg">
-                          <div className="text-xs font-medium text-cyan-800">Märkätila AK asetukset</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 pt-1">
-                            <input
-                              type="checkbox"
-                              checked={editData.lagiPaneeli || false}
-                              onChange={(e) => setEditData({ ...editData, lagiPaneeli: e.target.checked })}
-                              className="w-4 h-4"
-                            />
-                            <label className="text-xs text-gray-600">Lagi panelilla</label>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* PRH AK settings */}
-                      {editData.isPRHAK && (
-                        <div className="space-y-2 p-2 bg-purple-50 rounded-lg">
-                          <div className="text-xs font-medium text-purple-800">PRH AK asetukset</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Kuivatila Pystykotelo settings */}
-                      {editData.isKuivatilaPystykotelo && (
-                        <div className="space-y-2 p-2 bg-blue-50 rounded-lg">
-                          <div className="text-xs font-medium text-blue-800">Kuivatila pystykotelo asetukset</div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Korkeus (m)</label>
-                              <Input
-                                type="number"
-                                step="0.1"
-                                value={editData.wallHeight || 2.6}
-                                onChange={(e) => setEditData({ ...editData, wallHeight: parseFloat(e.target.value) || 2.6 })}
-                                className="h-8"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* PRH Pystykotelo settings */}
-                      {editData.isPRHPystykotelo && (
-                        <div className="space-y-2 p-2 bg-purple-50 rounded-lg">
-                          <div className="text-xs font-medium text-purple-800">PRH pystykotelo asetukset</div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="text-xs text-gray-500">Korkeus (m)</label>
-                              <Input
-                                type="number"
-                                step="0.1"
-                                value={editData.wallHeight || 2.6}
-                                onChange={(e) => setEditData({ ...editData, wallHeight: parseFloat(e.target.value) || 2.6 })}
-                                className="h-8"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Ranka</label>
-                              <select
-                                value={editData.rankaType || 'metall'}
-                                onChange={(e) => setEditData({ ...editData, rankaType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="metall">Metall</option>
-                                <option value="kertapuu">Kertapuu</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Kipsi</label>
-                              <select
-                                value={editData.kipsiType || '1-kertainen'}
-                                onChange={(e) => setEditData({ ...editData, kipsiType: e.target.value })}
-                                className="w-full h-8 text-sm border rounded px-2"
-                              >
-                                <option value="1-kertainen">1-kertainen</option>
-                                <option value="2-kertainen">2-kertainen</option>
-                              </select>
-                            </div>
-                          </div>
-                        </div>
+                      {/* Unified Construction Options Panel - for all "rakennus" types */}
+                      {editData.constructionType && (
+                        <ConstructionOptionsEditor
+                          editData={editData}
+                          setEditData={setEditData}
+                          formatNumber={formatNumber}
+                        />
                       )}
 
                       <div>

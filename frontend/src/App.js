@@ -206,20 +206,17 @@ function App() {
     // Save current state to undo stack before adding
     saveToUndoStack();
     
-    // Check special measurement types
+    // Check special measurement types from preset
     const isPystykotelot = pendingPreset?.isPystykotelot || false;
-    const isKuivatilaRakennus = pendingPreset?.isKuivatilaRakennus || false;
-    const isPRHRakennus = pendingPreset?.isPRHRakennus || false;
-    const isKuivatilaAK = pendingPreset?.isKuivatilaAK || false;
-    const isMarkatilaAK = pendingPreset?.isMarkatilaAK || false;
-    const isPRHAK = pendingPreset?.isPRHAK || false;
-    const isKuivatilaPystykotelo = pendingPreset?.isKuivatilaPystykotelo || false;
-    const isPRHPystykotelo = pendingPreset?.isPRHPystykotelo || false;
+    const constructionType = pendingPreset?.constructionType || null;
+    const constructionOptions = pendingPreset?.constructionOptions || null;
     
-    // Check if this type needs Ranka/Kipsi options
-    const hasRankaKipsi = isKuivatilaRakennus || isPRHRakennus || isKuivatilaAK || isMarkatilaAK || isPRHAK || isKuivatilaPystykotelo || isPRHPystykotelo;
-    // Check if needs height (Pystykotelot types)
-    const needsHeight = isPystykotelot || isKuivatilaPystykotelo || isPRHPystykotelo || measurement.type === 'wall';
+    // Check if needs height (Pystykotelot types or wall type)
+    const needsHeight = isPystykotelot || 
+      constructionType?.includes('Pystykotelo') ||
+      constructionType === 'kuivatilaPystykotelo' ||
+      constructionType === 'prhPystykotelo' ||
+      measurement.type === 'wall';
     
     const newMeasurement = {
       ...measurement,
@@ -229,21 +226,11 @@ function App() {
       unit: pendingPreset?.unit || measurement.unit,
       // Height for wall and pystykotelo types
       wallHeight: needsHeight ? (settings?.defaultWallHeight || 2.6) : null,
-      // Type flags
+      // Unified construction options (replaces old individual flags)
+      constructionType,
+      constructionOptions,
+      // Legacy flags for backward compatibility
       isPystykotelot,
-      isKuivatilaRakennus,
-      isPRHRakennus,
-      isKuivatilaAK,
-      isMarkatilaAK,
-      isPRHAK,
-      isKuivatilaPystykotelo,
-      isPRHPystykotelo,
-      hasRankaKipsi,
-      // Ranka/Kipsi defaults
-      rankaType: hasRankaKipsi ? 'metall' : null,
-      kipsiType: hasRankaKipsi ? '1-kertainen' : null,
-      // Märkätila extra option
-      lagiPaneeli: isMarkatilaAK ? false : null,
       bothSides: false,
       openings: 0,
       page: currentPage
