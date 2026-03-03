@@ -347,78 +347,150 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   yPos += 12;
   
   // ==================== ASIAKASTIEDOT BLOCK ====================
-  doc.setFillColor(...BRAND_LIGHT);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'F');
+  // Helper function to render key-value row with text wrapping
+  const renderKVRow = (label, value, xLabel, xValue, y, maxValueWidth) => {
+    const lineHeight = 5;
+    const rowGap = 3;
+    
+    // Label
+    doc.setTextColor(100, 100, 100);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(label, xLabel, y);
+    
+    // Value with wrapping
+    doc.setTextColor(...BRAND_DARK);
+    doc.setFont('helvetica', 'bold');
+    const wrappedLines = doc.splitTextToSize(value || '-', maxValueWidth);
+    wrappedLines.forEach((line, idx) => {
+      doc.text(line, xValue, y + (idx * lineHeight));
+    });
+    
+    // Return new Y position
+    return y + (wrappedLines.length * lineHeight) + rowGap;
+  };
   
-  const col1X = MARGIN_LEFT + 5;
-  const col2X = MARGIN_LEFT + 50;
-  const col3X = pageWidth / 2 + 10;
-  const col4X = pageWidth / 2 + 55;
+  // Calculate dynamic block height based on content
+  const labelX = MARGIN_LEFT + 5;
+  const valueX = MARGIN_LEFT + 55;
+  const maxValueWidth = (pageWidth / 2) - valueX - 5; // Max width for left column values
+  const rightLabelX = pageWidth / 2 + 5;
+  const rightValueX = pageWidth / 2 + 50;
+  const maxRightValueWidth = pageWidth - MARGIN_RIGHT - rightValueX - 5;
+  
+  // First, calculate total height needed
+  let tempY = 8;
+  const lineHeight = 5;
+  const rowGap = 3;
+  
+  // Row 1: Asiakas
+  const asiakasLines = doc.splitTextToSize(tarjousData.asiakas || '-', maxValueWidth + 60);
+  tempY += (asiakasLines.length * lineHeight) + rowGap;
+  
+  // Row 2: Kohde
+  const kohdeLines = doc.splitTextToSize(tarjousData.kohde || project.name || '-', maxValueWidth + 60);
+  tempY += (kohdeLines.length * lineHeight) + rowGap;
+  
+  // Row 3: Maksuehto + Voimassa (short values, single line each)
+  tempY += lineHeight + rowGap;
+  
+  // Row 4: Yhteyshenkilö + Email (if present)
+  if (tarjousData.yhteyshenkilo || tarjousData.email) {
+    tempY += lineHeight + rowGap;
+  }
+  
+  // Row 5: Puhelin (if present)
+  if (tarjousData.puhelin) {
+    tempY += lineHeight + rowGap;
+  }
+  
+  const blockHeight = Math.max(42, tempY + 5);
+  
+  // Draw background
+  doc.setFillColor(...BRAND_LIGHT);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, blockHeight, 2, 2, 'F');
+  
   let infoY = yPos + 8;
   
+  // Row 1: Asiakas (full width, can wrap)
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor(100, 100, 100);
-  doc.setFont('helvetica', 'normal');
+  doc.text('Asiakas:', labelX, infoY);
   
-  // Row 1
-  doc.text('Asiakas:', col1X, infoY);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(tarjousData.asiakas || '', col2X, infoY);
+  const asiakasWrapped = doc.splitTextToSize(tarjousData.asiakas || '-', contentWidth - 60);
+  asiakasWrapped.forEach((line, idx) => {
+    doc.text(line, valueX, infoY + (idx * lineHeight));
+  });
+  infoY += (asiakasWrapped.length * lineHeight) + rowGap;
   
+  // Row 2: Kohde (full width, can wrap)
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'normal');
-  doc.text('Voimassa:', col3X, infoY);
-  doc.setTextColor(...BRAND_DARK);
-  doc.text(`${tarjousData.voimassa || 30} päivää`, col4X, infoY);
+  doc.text('Kohde:', labelX, infoY);
   
-  infoY += 8;
-  
-  // Row 2
-  doc.setTextColor(100, 100, 100);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Kohde:', col1X, infoY);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(tarjousData.kohde || project.name || '', col2X, infoY);
+  const kohdeWrapped = doc.splitTextToSize(tarjousData.kohde || project.name || '-', contentWidth - 60);
+  kohdeWrapped.forEach((line, idx) => {
+    doc.text(line, valueX, infoY + (idx * lineHeight));
+  });
+  infoY += (kohdeWrapped.length * lineHeight) + rowGap;
+  
+  // Row 3: Maksuehto (left) + Voimassa (right) - short values, same line OK
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Maksuehto:', labelX, infoY);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${tarjousData.maksuehto || 21} pv netto`, valueX, infoY);
   
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'normal');
-  doc.text('Maksuehto:', col3X, infoY);
+  doc.text('Voimassa:', rightLabelX, infoY);
   doc.setTextColor(...BRAND_DARK);
-  doc.text(`${tarjousData.maksuehto || 14} pv netto`, col4X, infoY);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${tarjousData.voimassa || 30} päivää`, rightValueX, infoY);
   
-  infoY += 8;
+  infoY += lineHeight + rowGap;
   
-  // Row 3 (optional)
-  if (tarjousData.yhteyshenkilo) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Yhteyshenkilö:', col1X, infoY);
-    doc.setTextColor(...BRAND_DARK);
-    doc.text(tarjousData.yhteyshenkilo, col2X, infoY);
+  // Row 4: Yhteyshenkilö (left) + Sähköposti (right)
+  if (tarjousData.yhteyshenkilo || tarjousData.email) {
+    if (tarjousData.yhteyshenkilo) {
+      doc.setTextColor(100, 100, 100);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Yhteyshenkilö:', labelX, infoY);
+      doc.setTextColor(...BRAND_DARK);
+      doc.setFont('helvetica', 'bold');
+      doc.text(tarjousData.yhteyshenkilo, valueX, infoY);
+    }
+    
+    if (tarjousData.email) {
+      doc.setTextColor(100, 100, 100);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Sähköposti:', rightLabelX, infoY);
+      doc.setTextColor(...BRAND_DARK);
+      doc.setFont('helvetica', 'bold');
+      doc.text(tarjousData.email, rightValueX, infoY);
+    }
+    
+    infoY += lineHeight + rowGap;
   }
   
-  if (tarjousData.email) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Sähköposti:', col3X, infoY);
-    doc.setTextColor(...BRAND_DARK);
-    doc.text(tarjousData.email, col4X, infoY);
-  }
-  
-  infoY += 8;
-  
-  // Row 4 (phone)
+  // Row 5: Puhelin
   if (tarjousData.puhelin) {
     doc.setTextColor(100, 100, 100);
     doc.setFont('helvetica', 'normal');
-    doc.text('Puhelin:', col1X, infoY);
+    doc.text('Puhelin:', labelX, infoY);
     doc.setTextColor(...BRAND_DARK);
-    doc.text(tarjousData.puhelin, col2X, infoY);
+    doc.setFont('helvetica', 'bold');
+    doc.text(tarjousData.puhelin, valueX, infoY);
+    infoY += lineHeight + rowGap;
   }
   
-  yPos += 50;
+  yPos += blockHeight + 8;
   
   // ==================== URAKAN SISÄLTÖ (Manual mode text) ====================
   if (isManualMode && tarjousData.urakanSisalto) {
