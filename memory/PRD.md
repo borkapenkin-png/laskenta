@@ -142,6 +142,16 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Labels on PDF now match values shown in TakeoffPanel
 - ✅ All 4 tests passed in iteration_12
 
+## New Feature: Settings Panel (Asetukset) - 2025-03-03
+- ✅ Added "Asetukset" button to toolbar
+- ✅ Created SettingsDialog.js component with two tabs:
+  - **Mittaus presetit**: Edit measurement presets (name, price, unit, construction type)
+  - **Maksuerätaulukko**: Add custom payment schedule presets
+- ✅ Presets saved to localStorage (persistent across sessions)
+- ✅ "Palauta oletukset" resets to default presets
+- ✅ Construction type dropdown auto-adds Karkass/Villa/Kipsi options
+- ✅ All 10 tests passed in iteration_13
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration
