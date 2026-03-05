@@ -200,12 +200,18 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                 <RadioGroup
                   value={formData.detailLevel}
                   onValueChange={(v) => handleChange('detailLevel', v)}
-                  className="flex gap-4"
+                  className="flex flex-col gap-2"
                 >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="minimal" id="detail-minimal" />
+                    <Label htmlFor="detail-minimal" className="cursor-pointer font-normal text-sm">
+                      Vain tehtävä
+                    </Label>
+                  </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="summary" id="detail-summary" />
                     <Label htmlFor="detail-summary" className="cursor-pointer font-normal text-sm">
-                      Vain tehtävä ja summa
+                      Tehtävä ja määrä
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">

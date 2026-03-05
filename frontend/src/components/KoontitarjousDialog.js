@@ -186,6 +186,12 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
     materialHandlingPercent: 10,
     lisatiedot: '',
     kaytaVakioehtoja: true,
+    // Detail level for table display
+    detailLevel: 'summary', // 'minimal', 'summary', or 'detailed'
+    // Material and hour work options
+    sisaltaaMateriaalit: true,
+    tuntityotEnabled: false,
+    tuntityotMaara: '',
   });
 
   const handleChange = (field, value) => {
@@ -413,6 +419,39 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
               )}
             </div>
           )}
+
+          {/* ==================== CUSTOMER INFO ==================== */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-sm text-gray-700 border-b pb-2">Tarjouksen näyttöasetukset</h3>
+            
+            <div className="space-y-3">
+              <Label className="text-sm text-gray-600">Näytä tarjouksessa:</Label>
+              <RadioGroup
+                value={formData.detailLevel}
+                onValueChange={(v) => handleChange('detailLevel', v)}
+                className="flex flex-col gap-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="minimal" id="koonto-detail-minimal" />
+                  <Label htmlFor="koonto-detail-minimal" className="cursor-pointer font-normal text-sm">
+                    Vain tehtävä
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="summary" id="koonto-detail-summary" />
+                  <Label htmlFor="koonto-detail-summary" className="cursor-pointer font-normal text-sm">
+                    Tehtävä ja määrä
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="detailed" id="koonto-detail-detailed" />
+                  <Label htmlFor="koonto-detail-detailed" className="cursor-pointer font-normal text-sm">
+                    Laskennan kanssa (määrä × hinta)
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
 
           {/* ==================== CUSTOMER INFO ==================== */}
           <div className="space-y-4">

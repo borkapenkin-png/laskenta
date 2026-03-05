@@ -544,8 +544,11 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   
   yPos += 3;
   
-  // Determine detail level - 'summary' shows only name+qty, 'detailed' shows name+qty+price+total
-  const showDetailedPricing = tarjousData.detailLevel === 'detailed';
+  // Determine detail level:
+  // 'minimal' - only task name
+  // 'summary' - task name + quantity  
+  // 'detailed' - task name + quantity + price + total
+  const detailLevel = tarjousData.detailLevel || 'summary';
   
   // Prepare table data based on mode
   let tableData;
@@ -558,7 +561,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
       tableData = null;
     } else {
       // Manual rows table
-      if (showDetailedPricing) {
+      if (detailLevel === 'detailed') {
         tableHead = [['Toimenpide', 'Määrä', 'Hinta', 'Yhteensä']];
         tableData = tarjousData.manualRows
           .filter(r => r.toimenpide || r.maara)
@@ -574,7 +577,16 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
           2: { halign: 'right', cellWidth: 35 },
           3: { halign: 'right', cellWidth: 35 }
         };
+      } else if (detailLevel === 'minimal') {
+        tableHead = [['Toimenpide']];
+        tableData = tarjousData.manualRows
+          .filter(r => r.toimenpide)
+          .map(r => [r.toimenpide || '']);
+        columnStyles = {
+          0: { cellWidth: 'auto' }
+        };
       } else {
+        // summary
         tableHead = [['Toimenpide', 'Määrä']];
         tableData = tarjousData.manualRows
           .filter(r => r.toimenpide || r.maara)
@@ -590,7 +602,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
     }
   } else {
     // Auto mode - grouped measurements
-    if (showDetailedPricing) {
+    if (detailLevel === 'detailed') {
       tableHead = [['Toimenpide', 'Määrä', 'Hinta', 'Yhteensä']];
       tableData = grouped.map(g => [
         g.label,
@@ -604,7 +616,14 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
         2: { halign: 'right', cellWidth: 35 },
         3: { halign: 'right', cellWidth: 35 }
       };
+    } else if (detailLevel === 'minimal') {
+      tableHead = [['Toimenpide']];
+      tableData = grouped.map(g => [g.label]);
+      columnStyles = {
+        0: { cellWidth: 'auto' }
+      };
     } else {
+      // summary
       tableHead = [['Toimenpide', 'Määrä']];
       tableData = grouped.map(g => [
         g.label,
@@ -1007,18 +1026,74 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
   
   yPos += 5;
   
-  // Table with merged operations
-  const tableData = mergedOperations.map(op => [
-    op.label,
-    formatNumber(op.quantity),
-    op.unit,
-    formatCurrency(op.pricePerUnit),
-    formatCurrency(op.totalCost)
-  ]);
+  // Add materials info if enabled
+  if (koontitarjousData.sisaltaaMateriaalit) {
+    yPos += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text('Materiaalit: Fescon tasoitteet ja Teknos maalijärjestelmät', MARGIN_LEFT, yPos);
+    yPos += 5;
+  }
+  
+  // Add hour work info if enabled
+  if (koontitarjousData.tuntityotEnabled && koontitarjousData.tuntityotMaara) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...BRAND_DARK);
+    doc.text(`Urakka sisältää myös tuntityöt: ${koontitarjousData.tuntityotMaara} h`, MARGIN_LEFT, yPos);
+    yPos += 5;
+  }
+  
+  yPos += 3;
+  
+  // Determine detail level for table
+  const detailLevel = koontitarjousData.detailLevel || 'summary';
+  
+  let tableData;
+  let tableHead;
+  let columnStyles;
+  
+  if (detailLevel === 'detailed') {
+    // Full detail: Toimenpide, Määrä, Yksikkö, Yksikköhinta, Yhteensä
+    tableHead = [['Toimenpide', 'Määrä', 'Yksikkö', 'Yksikköhinta', 'Yhteensä']];
+    tableData = mergedOperations.map(op => [
+      op.label,
+      formatNumber(op.quantity),
+      op.unit,
+      formatCurrency(op.pricePerUnit),
+      formatCurrency(op.totalCost)
+    ]);
+    columnStyles = {
+      0: { cellWidth: 70 },
+      1: { halign: 'right', cellWidth: 25 },
+      2: { halign: 'center', cellWidth: 20 },
+      3: { halign: 'right', cellWidth: 30 },
+      4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
+    };
+  } else if (detailLevel === 'minimal') {
+    // Minimal: only Toimenpide
+    tableHead = [['Toimenpide']];
+    tableData = mergedOperations.map(op => [op.label]);
+    columnStyles = {
+      0: { cellWidth: 'auto' }
+    };
+  } else {
+    // Summary: Toimenpide + Määrä
+    tableHead = [['Toimenpide', 'Määrä']];
+    tableData = mergedOperations.map(op => [
+      op.label,
+      `${formatNumber(op.quantity)} ${op.unit}`
+    ]);
+    columnStyles = {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'right', cellWidth: 50 }
+    };
+  }
 
   autoTable(doc, {
     startY: yPos,
-    head: [['Toimenpide', 'Määrä', 'Yksikkö', 'Yksikköhinta', 'Yhteensä']],
+    head: tableHead,
     body: tableData,
     styles: { 
       fontSize: 9,
@@ -1036,13 +1111,7 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
     alternateRowStyles: {
       fillColor: [250, 251, 252]
     },
-    columnStyles: {
-      0: { cellWidth: 70 },
-      1: { halign: 'right', cellWidth: 25 },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'right', cellWidth: 30 },
-      4: { halign: 'right', cellWidth: 30, fontStyle: 'bold' }
-    },
+    columnStyles: columnStyles,
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
     didDrawPage: () => {
       pageNumber++;
