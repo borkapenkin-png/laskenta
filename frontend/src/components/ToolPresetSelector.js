@@ -272,15 +272,32 @@ export const ToolPresetSelector = ({
   toolType, 
   onSelect, 
   onClose, 
-  position 
+  position,
+  customPresets
 }) => {
   const [customName, setCustomName] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
   const containerRef = useRef(null);
 
-  const presetConfig = DEFAULT_PRESETS[toolType];
-  const groups = presetConfig?.groups || [];
+  // Use custom presets if provided, otherwise use defaults
+  const presetConfig = customPresets?.[toolType] || DEFAULT_PRESETS[toolType];
+  // Filter out empty groups and add "Muu" item to last group if not present
+  let groups = presetConfig?.groups || [];
+  
+  // Ensure "Muu" (custom) option exists
+  const hasCustomOption = groups.some(g => g.items?.some(i => i.isCustom));
+  if (!hasCustomOption && groups.length > 0) {
+    // Add Muu group
+    const defaultUnit = toolType === 'count' ? 'kpl' : (toolType === 'line' || toolType === 'wall' ? 'jm' : 'm²');
+    groups = [
+      ...groups,
+      {
+        name: 'Muu',
+        items: [{ id: `${toolType}-other`, name: 'Muu', price: 0, unit: defaultUnit, isCustom: true }]
+      }
+    ];
+  }
 
   useEffect(() => {
     if (!isOpen) {

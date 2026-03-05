@@ -20,7 +20,8 @@ import {
   ZoomOut,
   Calculator,
   MoreHorizontal,
-  ChevronDown
+  ChevronDown,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,7 @@ export const Toolbar = ({
   onCreateTarjous,
   onCreateKoontitarjous,
   onOpenMaksuerataulukko,
+  onOpenSettings,
   currentTool,
   onToolSelect,
   selectedMeasurementId,
@@ -108,6 +110,12 @@ export const Toolbar = ({
       icon: FileDown, 
       onClick: onExportPDF,
       testId: 'menu-export-pdf'
+    },
+    { 
+      label: 'Asetukset', 
+      icon: Settings, 
+      onClick: onOpenSettings,
+      testId: 'menu-settings'
     }
   ];
 
@@ -393,6 +401,22 @@ export const Toolbar = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Vie PDF-tiedosto</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      data-testid="settings-button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onOpenSettings}
+                      className="whitespace-nowrap"
+                    >
+                      <Settings className="h-4 w-4 mr-1.5" />
+                      Asetukset
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Avaa asetukset</TooltipContent>
                 </Tooltip>
               </>
             )}

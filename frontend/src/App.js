@@ -14,6 +14,7 @@ import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
 import { QAPanel, useQAMode } from '@/components/QAPanel';
+import { SettingsDialog, loadCustomPresets } from '@/components/SettingsDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -60,6 +61,8 @@ function App() {
   const [tarjousDialogOpen, setTarjousDialogOpen] = useState(false);
   const [koontitarjousDialogOpen, setKoontitarjousDialogOpen] = useState(false);
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [customToolPresets, setCustomToolPresets] = useState(() => loadCustomPresets());
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
   const [currentView, setCurrentView] = useState('main'); // 'main' or 'maksuerataulukko'
@@ -679,6 +682,7 @@ function App() {
         onCreateTarjous={handleCreateTarjous}
         onCreateKoontitarjous={() => setKoontitarjousDialogOpen(true)}
         onOpenMaksuerataulukko={() => setCurrentView('maksuerataulukko')}
+        onOpenSettings={() => setSettingsDialogOpen(true)}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
         selectedMeasurementId={selectedMeasurementId}
@@ -701,6 +705,7 @@ function App() {
         position={toolPresetPosition}
         onSelect={handlePresetSelect}
         onClose={handlePresetClose}
+        customPresets={customToolPresets}
       />
 
       <div className="flex flex-1 relative" style={{ overflow: 'hidden' }}>
@@ -893,6 +898,15 @@ function App() {
           redo={handleRedo}
         />
       )}
+
+      {/* Settings Dialog */}
+      <SettingsDialog
+        open={settingsDialogOpen}
+        onClose={() => setSettingsDialogOpen(false)}
+        onPresetsChange={(newToolPresets) => {
+          setCustomToolPresets(newToolPresets);
+        }}
+      />
     </div>
   );
 }

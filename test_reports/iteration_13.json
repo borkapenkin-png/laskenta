@@ -1,0 +1,111 @@
+{
+  "summary": "Settings Dialog (Asetukset) feature testing PASSED. All 10 requested features verified working correctly via UI testing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "SettingsDialog",
+        "issues": ["Console warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent} - minor accessibility issue"]
+      }
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_13.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SettingsDialog.js is well-structured with clear separation of concerns (ToolPresetsTab, MaksueraPresetsTab components)",
+    "localStorage keys are properly defined as constants (STORAGE_KEY_PRESETS, STORAGE_KEY_MAKSUERAPRESETS)",
+    "Default presets are properly structured with getDefaultPresets() and getDefaultMaksueraPresets() functions"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A - frontend only", "frontend": "100% (10/10 features verified)"},
+  "test_credentials": "None required - client-side localStorage storage",
+  "seed_data_creation": "Default presets stored in localStorage (rakenna_custom_presets, rakenna_maksuerapresets)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Settings Dialog feature fully implemented and verified. Presets are stored in localStorage. Default presets include YSE-6 and YSE-8 for Maksuerätaulukko.",
+  "tests_executed": [
+    {
+      "test": "1. Asetukset button appears in toolbar",
+      "status": "PASSED",
+      "details": "Button with data-testid='settings-button' visible in toolbar with Settings icon and 'Asetukset' label"
+    },
+    {
+      "test": "2. Settings dialog has two tabs",
+      "status": "PASSED",
+      "details": "Tabs found: 'Mittaus presetit' (wrench icon) and 'Maksuerätaulukko' (calculator icon)"
+    },
+    {
+      "test": "3. Tool selector dropdown in Mittaus presetit tab",
+      "status": "PASSED",
+      "details": "Tool dropdown shows 5 options: Viiva (jm), Seinä (jm → m²), Suorakulmio (m²), Monikulmio (m²), Kappalemäärä (kpl)"
+    },
+    {
+      "test": "4. Group selector dropdown works",
+      "status": "PASSED",
+      "details": "Group dropdown shows groups based on selected tool. For 'Suorakulmio': Katto, Lattia, Alakatto rakennus"
+    },
+    {
+      "test": "5. Presets expandable with edit fields",
+      "status": "PASSED",
+      "details": "Clicking preset chevron expands to show: Nimi (name), Hinta (€) (price), Yksikkö (unit dropdown), Rakennus-tyyppi (construction type dropdown)"
+    },
+    {
+      "test": "6. Lisää preset button adds new preset",
+      "status": "PASSED",
+      "details": "'Lisää preset' button adds new preset with default name 'Uusi preset' and 0 €/unit price"
+    },
+    {
+      "test": "7. Maksuerätaulukko tab shows YSE-6 and YSE-8",
+      "status": "PASSED",
+      "details": "Default presets displayed: YSE-6 (balanced) with 6 rows, YSE-8 (detailed) with 8 rows, both marked as (oletus)"
+    },
+    {
+      "test": "8. New maksuerä preset can be added",
+      "status": "PASSED",
+      "details": "Input field 'Uuden presetin nimi...' with '+ Lisää' button allows adding custom payment schedule presets"
+    },
+    {
+      "test": "9. Tallenna button saves to localStorage",
+      "status": "PASSED",
+      "details": "Save button triggers toast 'Asetukset tallennettu' and updates localStorage keys"
+    },
+    {
+      "test": "10. Palauta oletukset resets to defaults",
+      "status": "PASSED",
+      "details": "Reset button shows confirm dialog, then restores default presets and shows toast 'Oletusasetukset palautettu'"
+    }
+  ],
+  "feature_verification": {
+    "settings_button": {
+      "location": "Toolbar right side",
+      "data-testid": "settings-button",
+      "behavior": "Opens SettingsDialog modal"
+    },
+    "mittaus_presetit_tab": {
+      "tool_selector": "Dropdown with 5 tool types (line, wall, rectangle, polygon, count)",
+      "group_selector": "Dropdown showing groups for selected tool",
+      "preset_items": "Expandable cards with edit fields (name, price, unit, construction type)",
+      "add_preset": "Button adds new preset to current group"
+    },
+    "maksuera_tab": {
+      "default_presets": "YSE-6 (6 rows) and YSE-8 (8 rows)",
+      "add_preset_input": "Input field with '+ Lisää' button for custom presets",
+      "editing": "Custom presets can be edited, default presets are read-only"
+    },
+    "storage": {
+      "presets_key": "rakenna_custom_presets",
+      "maksuera_key": "rakenna_maksuerapresets",
+      "persistence": "localStorage - persists across browser sessions"
+    }
+  },
+  "code_quality": {
+    "SettingsDialog.js": "802 lines - well-organized with sub-components",
+    "exports": "loadCustomPresets, saveCustomPresets, loadMaksueraPresets, saveMaksueraPresets, SettingsDialog",
+    "integration": "Properly integrated in App.js with settingsDialogOpen state and onPresetsChange callback"
+  }
+}
