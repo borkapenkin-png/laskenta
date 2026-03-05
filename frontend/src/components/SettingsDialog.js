@@ -174,7 +174,7 @@ const getDefaultMaksueraPresets = () => [
   {
     id: 'yse-6',
     name: 'YSE-6 (balanced)',
-    isDefault: true,
+    isDefault: false, // Allow editing
     rows: [
       { selite: 'Työmaan käynnistys', percent: 10 },
       { selite: 'Valmistelut', percent: 15 },
@@ -187,7 +187,7 @@ const getDefaultMaksueraPresets = () => [
   {
     id: 'yse-8',
     name: 'YSE-8 (detailed)',
-    isDefault: true,
+    isDefault: false, // Allow editing
     rows: [
       { selite: 'Aloitus', percent: 10 },
       { selite: 'Suojaukset', percent: 12 },
@@ -556,9 +556,8 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
   };
   
   const handleDeletePreset = (presetId) => {
-    const preset = presets.find(p => p.id === presetId);
-    if (preset?.isDefault) {
-      toast.error('Oletuspresettiä ei voi poistaa');
+    if (presets.length <= 1) {
+      toast.error('Vähintään yksi preset vaaditaan');
       return;
     }
     
@@ -636,20 +635,17 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">{preset.name}</span>
-                {!preset.isDefault && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => { e.stopPropagation(); handleDeletePreset(preset.id); }}
-                    className="h-6 w-6 p-0 text-red-500"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => { e.stopPropagation(); handleDeletePreset(preset.id); }}
+                  className="h-6 w-6 p-0 text-red-500"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
               </div>
               <div className="text-xs text-gray-500 mt-1">
                 {preset.rows?.length || 0} riviä
-                {preset.isDefault && <span className="ml-2 text-teal-600">(oletus)</span>}
               </div>
             </div>
           ))}
@@ -657,7 +653,7 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
       </div>
       
       {/* Edit selected preset */}
-      {selectedPreset && !selectedPreset.isDefault && (
+      {selectedPreset && (
         <div className="space-y-3 pt-3 border-t">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Muokkaa: {selectedPreset.name}</Label>
@@ -699,12 +695,6 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
           <Button size="sm" variant="outline" onClick={handleAddRow}>
             <Plus className="h-4 w-4 mr-1" /> Lisää rivi
           </Button>
-        </div>
-      )}
-      
-      {selectedPreset?.isDefault && (
-        <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-          Oletuspresettiä ei voi muokata. Luo uusi preset muokataksesi.
         </div>
       )}
     </div>
