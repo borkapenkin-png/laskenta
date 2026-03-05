@@ -544,34 +544,84 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   
   yPos += 3;
   
-  // Prepare table data based on mode - ONLY show operation name and quantity (no prices)
+  // Determine detail level - 'summary' shows only name+qty, 'detailed' shows name+qty+price+total
+  const showDetailedPricing = tarjousData.detailLevel === 'detailed';
+  
+  // Prepare table data based on mode
   let tableData;
+  let tableHead;
+  let columnStyles;
+  
   if (isManualMode) {
     if (tarjousData.useKokonaishinta) {
       // Single kokonaishinta - no table, just show total
       tableData = null;
     } else {
-      // Manual rows table - show only name and quantity
-      tableData = tarjousData.manualRows
-        .filter(r => r.toimenpide || r.maara)
-        .map(r => [
-          r.toimenpide || '',
-          `${r.maara || ''} ${r.yksikko || ''}`.trim()
-        ]);
+      // Manual rows table
+      if (showDetailedPricing) {
+        tableHead = [['Toimenpide', 'Määrä', 'Hinta', 'Yhteensä']];
+        tableData = tarjousData.manualRows
+          .filter(r => r.toimenpide || r.maara)
+          .map(r => [
+            r.toimenpide || '',
+            `${r.maara || ''} ${r.yksikko || ''}`.trim(),
+            `${formatNumber(r.yksikkohinta || 0)} €/${r.yksikko || 'kpl'}`,
+            formatCurrency(r.yhteensa || 0)
+          ]);
+        columnStyles = {
+          0: { cellWidth: 'auto' },
+          1: { halign: 'right', cellWidth: 35 },
+          2: { halign: 'right', cellWidth: 35 },
+          3: { halign: 'right', cellWidth: 35 }
+        };
+      } else {
+        tableHead = [['Toimenpide', 'Määrä']];
+        tableData = tarjousData.manualRows
+          .filter(r => r.toimenpide || r.maara)
+          .map(r => [
+            r.toimenpide || '',
+            `${r.maara || ''} ${r.yksikko || ''}`.trim()
+          ]);
+        columnStyles = {
+          0: { cellWidth: 'auto' },
+          1: { halign: 'right', cellWidth: 50 }
+        };
+      }
     }
   } else {
-    // Auto mode - grouped measurements - show only name and quantity (no prices)
-    tableData = grouped.map(g => [
-      g.label,
-      `${formatNumber(g.totalQuantity)} ${g.unit}`
-    ]);
+    // Auto mode - grouped measurements
+    if (showDetailedPricing) {
+      tableHead = [['Toimenpide', 'Määrä', 'Hinta', 'Yhteensä']];
+      tableData = grouped.map(g => [
+        g.label,
+        `${formatNumber(g.totalQuantity)} ${g.unit}`,
+        `${formatNumber(g.pricePerUnit)} €/${g.unit}`,
+        formatCurrency(g.totalCost)
+      ]);
+      columnStyles = {
+        0: { cellWidth: 'auto' },
+        1: { halign: 'right', cellWidth: 35 },
+        2: { halign: 'right', cellWidth: 35 },
+        3: { halign: 'right', cellWidth: 35 }
+      };
+    } else {
+      tableHead = [['Toimenpide', 'Määrä']];
+      tableData = grouped.map(g => [
+        g.label,
+        `${formatNumber(g.totalQuantity)} ${g.unit}`
+      ]);
+      columnStyles = {
+        0: { cellWidth: 'auto' },
+        1: { halign: 'right', cellWidth: 50 }
+      };
+    }
   }
 
   // Only show table if we have data
   if (tableData && tableData.length > 0) {
     autoTable(doc, {
       startY: yPos,
-      head: [['Toimenpide', 'Määrä']],
+      head: tableHead,
       body: tableData,
       styles: { 
         fontSize: 9,
@@ -589,10 +639,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
       alternateRowStyles: {
         fillColor: [250, 251, 252]
       },
-      columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { halign: 'right', cellWidth: 50 }
-      },
+      columnStyles: columnStyles,
       margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
       didDrawPage: () => {
         pageNumber++;

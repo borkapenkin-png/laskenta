@@ -30,6 +30,9 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     // Source mode
     sourceMode: 'auto', // 'auto' (laskennasta) or 'manual' (käsin)
     
+    // Detail level for table
+    detailLevel: 'summary', // 'summary' (vain tehtävä) or 'detailed' (laskennan kanssa)
+    
     // Asiakastiedot (Customer info)
     asiakas: '',
     kohde: projectName || '',
@@ -189,6 +192,31 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                 </Label>
               </div>
             </RadioGroup>
+            
+            {/* Detail level selector - only for auto mode */}
+            {formData.sourceMode === 'auto' && (
+              <div className="pt-3 border-t mt-3">
+                <Label className="text-sm text-gray-600 mb-2 block">Näytä tarjouksessa:</Label>
+                <RadioGroup
+                  value={formData.detailLevel}
+                  onValueChange={(v) => handleChange('detailLevel', v)}
+                  className="flex gap-4"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="summary" id="detail-summary" />
+                    <Label htmlFor="detail-summary" className="cursor-pointer font-normal text-sm">
+                      Vain tehtävä ja summa
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="detailed" id="detail-detailed" />
+                    <Label htmlFor="detail-detailed" className="cursor-pointer font-normal text-sm">
+                      Laskennan kanssa (määrä × hinta)
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
           </div>
 
           {/* A) Asiakastiedot */}
