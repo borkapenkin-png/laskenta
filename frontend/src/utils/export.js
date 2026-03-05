@@ -950,24 +950,47 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
   yPos += 12;
   
   // ==================== ASIAKASTIEDOT BLOCK ====================
-  doc.setFillColor(...BRAND_LIGHT);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'F');
-  
+  // First calculate needed height
   const col1X = MARGIN_LEFT + 5;
   const col2X = MARGIN_LEFT + 50;
   const col3X = pageWidth / 2 + 10;
   const col4X = pageWidth / 2 + 55;
+  const maxLeftValueWidth = col3X - col2X - 10; // Max width for left column values
+  const lineHeight = 5;
+  const rowGap = 3;
+  
+  // Calculate wrapped text heights
+  const asiakasLines = doc.splitTextToSize(koontitarjousData.asiakas || '-', maxLeftValueWidth);
+  const kohdeLines = doc.splitTextToSize(koontitarjousData.kohde || '-', maxLeftValueWidth);
+  
+  // Calculate total block height
+  let blockHeight = 8; // Top padding
+  blockHeight += (asiakasLines.length * lineHeight) + rowGap;
+  blockHeight += (kohdeLines.length * lineHeight) + rowGap;
+  if (koontitarjousData.yhteyshenkilo || koontitarjousData.email) {
+    blockHeight += lineHeight + rowGap;
+  }
+  if (koontitarjousData.puhelin) {
+    blockHeight += lineHeight + rowGap;
+  }
+  blockHeight += 5; // Bottom padding
+  
+  doc.setFillColor(...BRAND_LIGHT);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, blockHeight, 2, 2, 'F');
+  
   let infoY = yPos + 8;
   
   doc.setFontSize(9);
+  
+  // Row 1: Asiakas (left) + Voimassa (right)
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'normal');
-  
-  // Row 1
   doc.text('Asiakas:', col1X, infoY);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(koontitarjousData.asiakas || '', col2X, infoY);
+  asiakasLines.forEach((line, idx) => {
+    doc.text(line, col2X, infoY + (idx * lineHeight));
+  });
   
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'normal');
@@ -975,15 +998,17 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
   doc.setTextColor(...BRAND_DARK);
   doc.text(`${koontitarjousData.voimassa || 30} päivää`, col4X, infoY);
   
-  infoY += 8;
+  infoY += (asiakasLines.length * lineHeight) + rowGap;
   
-  // Row 2
+  // Row 2: Kohde (left) + Maksuehto (right)
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'normal');
   doc.text('Kohde:', col1X, infoY);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(koontitarjousData.kohde || '', col2X, infoY);
+  kohdeLines.forEach((line, idx) => {
+    doc.text(line, col2X, infoY + (idx * lineHeight));
+  });
   
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'normal');
@@ -991,27 +1016,32 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
   doc.setTextColor(...BRAND_DARK);
   doc.text(`${koontitarjousData.maksuehto || 14} pv netto`, col4X, infoY);
   
-  infoY += 8;
+  infoY += (kohdeLines.length * lineHeight) + rowGap;
   
-  // Row 3 (optional)
-  if (koontitarjousData.yhteyshenkilo) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Yhteyshenkilö:', col1X, infoY);
-    doc.setTextColor(...BRAND_DARK);
-    doc.text(koontitarjousData.yhteyshenkilo, col2X, infoY);
+  // Row 3: Yhteyshenkilö (left) + Sähköposti (right)
+  if (koontitarjousData.yhteyshenkilo || koontitarjousData.email) {
+    if (koontitarjousData.yhteyshenkilo) {
+      doc.setTextColor(100, 100, 100);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Yhteyshenkilö:', col1X, infoY);
+      doc.setTextColor(...BRAND_DARK);
+      // Truncate if too long
+      const yhteysWrapped = doc.splitTextToSize(koontitarjousData.yhteyshenkilo, maxLeftValueWidth);
+      doc.text(yhteysWrapped[0], col2X, infoY);
+    }
+    
+    if (koontitarjousData.email) {
+      doc.setTextColor(100, 100, 100);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Sähköposti:', col3X, infoY);
+      doc.setTextColor(...BRAND_DARK);
+      doc.text(koontitarjousData.email, col4X, infoY);
+    }
+    
+    infoY += lineHeight + rowGap;
   }
   
-  if (koontitarjousData.email) {
-    doc.setTextColor(100, 100, 100);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Sähköposti:', col3X, infoY);
-    doc.setTextColor(...BRAND_DARK);
-    doc.text(koontitarjousData.email, col4X, infoY);
-  }
-  
-  infoY += 8;
-  
+  // Row 4: Puhelin
   if (koontitarjousData.puhelin) {
     doc.setTextColor(100, 100, 100);
     doc.setFont('helvetica', 'normal');
@@ -1020,7 +1050,7 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
     doc.text(koontitarjousData.puhelin, col2X, infoY);
   }
   
-  yPos += 50;
+  yPos += blockHeight + 8;
   
   // ==================== CONTENT TABLE ====================
   doc.setFont('helvetica', 'bold');
