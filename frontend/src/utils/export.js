@@ -371,11 +371,12 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
   };
   
   // Calculate dynamic block height based on content
+  // Optimized layout: labels closer to values, right column more to the right
   const labelX = MARGIN_LEFT + 5;
-  const valueX = MARGIN_LEFT + 55;
-  const rightLabelX = pageWidth / 2 + 5;
-  const rightValueX = pageWidth / 2 + 50;
-  const maxLeftValueWidth = rightLabelX - valueX - 10; // Max width for left column values
+  const valueX = MARGIN_LEFT + 35; // Reduced from 55 - closer to label
+  const rightLabelX = pageWidth - MARGIN_RIGHT - 55; // More to the right
+  const rightValueX = pageWidth - MARGIN_RIGHT - 30; // Right-aligned area
+  const maxLeftValueWidth = rightLabelX - valueX - 15; // Max width for left column values
   
   // First, calculate total height needed
   let tempY = 8;
@@ -950,12 +951,12 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
   yPos += 12;
   
   // ==================== ASIAKASTIEDOT BLOCK ====================
-  // First calculate needed height
+  // Optimized layout: labels closer to values, right column more to the right
   const col1X = MARGIN_LEFT + 5;
-  const col2X = MARGIN_LEFT + 50;
-  const col3X = pageWidth / 2 + 10;
-  const col4X = pageWidth / 2 + 55;
-  const maxLeftValueWidth = col3X - col2X - 10; // Max width for left column values
+  const col2X = MARGIN_LEFT + 35; // Reduced - closer to label
+  const col3X = pageWidth - MARGIN_RIGHT - 55; // More to the right
+  const col4X = pageWidth - MARGIN_RIGHT - 30; // Right-aligned area
+  const maxLeftValueWidth = col3X - col2X - 15; // Max width for left column values
   const lineHeight = 5;
   const rowGap = 3;
   
