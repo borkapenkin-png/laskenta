@@ -48,8 +48,25 @@ const parseProjectJSON = (jsonData, fileName) => {
       const pricePerUnit = m.pricePerUnit ?? m.preset?.price ?? 0;
       
       // Calculate quantity based on measurement type
+      // Support both old format (calculatedValue, area, length, count, value) 
+      // and new format (quantity)
       let quantity = 0;
-      if (m.calculatedValue !== undefined) {
+      if (m.quantity !== undefined && m.quantity > 0) {
+        // New format - use quantity directly
+        quantity = m.quantity;
+        
+        // For wall type with wallHeight, calculate effective area
+        if (m.type === 'wall' && m.wallHeight) {
+          const bothSidesFactor = m.bothSides ? 2 : 1;
+          const bruttoM2 = quantity * m.wallHeight * bothSidesFactor;
+          const openings = m.openings || 0;
+          quantity = bruttoM2 - openings;
+        }
+        // For pystykotelo types, calculate total jm
+        else if ((m.isPystykotelot || m.constructionType?.includes('Pystykotelo')) && m.wallHeight) {
+          quantity = m.quantity * m.wallHeight;
+        }
+      } else if (m.calculatedValue !== undefined) {
         quantity = m.calculatedValue;
       } else if (m.area !== undefined) {
         quantity = m.area;
