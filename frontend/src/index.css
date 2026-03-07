@@ -53,3 +53,11 @@ code {
     font-family: 'Manrope', sans-serif;
   }
 }
+
+/* Hide Emergent badge */
+#emergent-badge,
+[id="emergent-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
