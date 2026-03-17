@@ -181,7 +181,7 @@ export const MeasurementOverlay = ({
       ctx.lineTo(screenPoints[i].x, screenPoints[i].y);
     }
 
-    if (measurement.type === 'polygon' || measurement.type === 'rectangle') {
+    if (measurement.type === 'polygon' || measurement.type === 'rectangle' || measurement.type === 'room-ai') {
       ctx.closePath();
       ctx.fill();
     }

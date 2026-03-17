@@ -175,11 +175,20 @@ export const RoomDetector = ({
         setDetected(result);
         toast.success(`Huone tunnistettu! ~${areaM2.toFixed(1)} m²`);
         
-        // Trigger callback
+        // Trigger callback with bbox corner points as normalized coords (zoom=1)
+        const { minX, minY, maxX, maxY } = result.bbox;
+        const normalizedPoints = [
+          { x: minX / zoom, y: minY / zoom },
+          { x: maxX / zoom, y: minY / zoom },
+          { x: maxX / zoom, y: maxY / zoom },
+          { x: minX / zoom, y: maxY / zoom },
+        ];
+        
         onRoomDetected({
           estimatedArea: areaM2,
           pixelCount: result.pixelCount,
           bbox: result.bbox,
+          points: normalizedPoints,
           clickPoint: { x: canvasX / canvas.width, y: canvasY / canvas.height },
           page: currentPage,
         });

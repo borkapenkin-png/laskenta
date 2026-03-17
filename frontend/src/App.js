@@ -315,7 +315,7 @@ function App() {
         pricePerUnit: preset.pricePerUnit || 0,
         unit: preset.unit || 'm²',
         quantity: detectedRoom.estimatedArea || 0,
-        points: [], // AI detected - no manual points
+        points: detectedRoom.points || [],
         roomData: detectedRoom,
         page: currentPage,
         constructionType: preset.constructionType || null,
