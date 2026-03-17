@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Loader2, Wand2, Check, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ export const RoomDetector = ({
   const [detectedMask, setDetectedMask] = useState(null);
   const [maskImageUrl, setMaskImageUrl] = useState(null);
   const [error, setError] = useState(null);
+  const overlayRef = useRef(null);
 
   // Reset state when not active
   useEffect(() => {
@@ -35,19 +36,26 @@ export const RoomDetector = ({
 
   // Get canvas as base64 image
   const getCanvasAsBase64 = useCallback(() => {
-    if (!pdfCanvasRef?.current) return null;
+    if (!pdfCanvasRef?.current) {
+      console.log('No canvas ref available');
+      return null;
+    }
     
     const canvas = pdfCanvasRef.current;
+    console.log('Canvas size:', canvas.width, 'x', canvas.height);
     // Convert canvas to base64 data URL
     return canvas.toDataURL('image/png');
   }, [pdfCanvasRef]);
 
-  // Handle click on PDF to detect room at point
-  const handleCanvasClick = useCallback(async (e) => {
+  // Handle click on overlay to detect room at point
+  const handleOverlayClick = useCallback(async (e) => {
     if (!isActive || isProcessing) return;
     
     const canvas = pdfCanvasRef?.current;
-    if (!canvas) return;
+    if (!canvas) {
+      toast.error('PDF canvas not found');
+      return;
+    }
 
     // Get click position relative to canvas
     const rect = canvas.getBoundingClientRect();
@@ -58,7 +66,7 @@ export const RoomDetector = ({
     const normalizedX = x / rect.width;
     const normalizedY = y / rect.height;
     
-    console.log(`Click at normalized (${normalizedX.toFixed(3)}, ${normalizedY.toFixed(3)})`);
+    console.log(`Click at screen (${x}, ${y}), normalized (${normalizedX.toFixed(3)}, ${normalizedY.toFixed(3)})`);
     
     setIsProcessing(true);
     setError(null);
@@ -70,6 +78,7 @@ export const RoomDetector = ({
         throw new Error('Could not capture PDF image');
       }
       
+      console.log('Image data length:', imageData.length);
       toast.info('AI analysoi huonetta...', { duration: 2000 });
       
       // Call SAM API with point
@@ -86,13 +95,16 @@ export const RoomDetector = ({
       });
       
       const result = await response.json();
+      console.log('SAM API result:', result);
       
       if (!result.success) {
         throw new Error(result.error || 'Segmentation failed');
       }
       
       if (!result.masks || result.masks.length === 0) {
-        throw new Error('No room detected at this location');
+        toast.warning('Ei löytynyt huonetta tästä kohdasta. Klikkaa huoneen sisälle.');
+        setIsProcessing(false);
+        return;
       }
       
       // Get the first (best) mask
@@ -108,14 +120,19 @@ export const RoomDetector = ({
       let areaM2 = 0;
       if (mask.bbox && scale?.pixelsPerMeter) {
         const [bx, by, bw, bh] = mask.bbox;
-        // bbox is in pixels, convert to meters
-        const widthM = (bw * canvas.width) / scale.pixelsPerMeter / zoom;
-        const heightM = (bh * canvas.height) / scale.pixelsPerMeter / zoom;
+        // bbox is normalized (0-1), convert to actual pixels then to meters
+        const widthPx = bw * canvas.width;
+        const heightPx = bh * canvas.height;
+        const widthM = widthPx / scale.pixelsPerMeter / zoom;
+        const heightM = heightPx / scale.pixelsPerMeter / zoom;
         areaM2 = widthM * heightM;
-      } else if (mask.area && scale?.pixelsPerMeter) {
-        // Area is in pixels^2, convert to m^2
-        const pixelArea = mask.area * canvas.width * canvas.height;
-        areaM2 = pixelArea / (scale.pixelsPerMeter * scale.pixelsPerMeter) / (zoom * zoom);
+        console.log(`Area calc: ${widthPx}x${heightPx}px = ${widthM.toFixed(2)}x${heightM.toFixed(2)}m = ${areaM2.toFixed(2)}m²`);
+      } else if (mask.area) {
+        // area might be pixel count or normalized, try to calculate
+        const pixelArea = mask.area;
+        if (scale?.pixelsPerMeter) {
+          areaM2 = pixelArea / (scale.pixelsPerMeter * scale.pixelsPerMeter) / (zoom * zoom);
+        }
       }
       
       toast.success(`Huone tunnistettu! ~${areaM2.toFixed(1)} m²`);
@@ -139,23 +156,30 @@ export const RoomDetector = ({
     }
   }, [isActive, isProcessing, pdfCanvasRef, getCanvasAsBase64, scale, zoom, currentPage, onRoomDetected]);
 
-  // Attach click handler to canvas when active
-  useEffect(() => {
-    const canvas = pdfCanvasRef?.current;
-    if (!canvas || !isActive) return;
-    
-    canvas.addEventListener('click', handleCanvasClick);
-    
-    return () => {
-      canvas.removeEventListener('click', handleCanvasClick);
-    };
-  }, [pdfCanvasRef, isActive, handleCanvasClick]);
-
   // Don't render anything if not active
   if (!isActive) return null;
 
+  // Get canvas position for proper overlay positioning
+  const canvas = pdfCanvasRef?.current;
+  const canvasRect = canvas?.getBoundingClientRect();
+
   return (
     <>
+      {/* Clickable overlay that covers the PDF area */}
+      <div 
+        ref={overlayRef}
+        onClick={handleOverlayClick}
+        className="fixed z-[100]"
+        style={{ 
+          cursor: isProcessing ? 'wait' : 'crosshair',
+          backgroundColor: 'rgba(74, 155, 173, 0.1)',
+          top: canvasRect?.top || 0,
+          left: canvasRect?.left || 0,
+          width: canvasRect?.width || '100%',
+          height: canvasRect?.height || '100%',
+        }}
+      />
+      
       {/* Processing overlay */}
       {isProcessing && (
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-50 pointer-events-none">
