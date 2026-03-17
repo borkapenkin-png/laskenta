@@ -323,8 +323,16 @@ const PresetItemEditor = ({ item, onUpdate, onDelete }) => {
               <Input
                 type="number"
                 step="0.5"
-                value={item.price}
-                onChange={(e) => onUpdate({ ...item, price: parseFloat(e.target.value) || 0 })}
+                min="0"
+                value={item.price || ''}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  onUpdate({ ...item, price: raw === '' ? 0 : parseFloat(raw) || 0 });
+                }}
+                onBlur={(e) => {
+                  // Force clean display on blur (removes leading zeros like "07" → "7")
+                  e.target.value = String(item.price || 0);
+                }}
                 className="h-8"
               />
             </div>
