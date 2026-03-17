@@ -392,11 +392,34 @@ export const exportProjectToJSON = async (projectData) => {
   try {
     const dataStr = JSON.stringify(projectData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const projectName = projectData.meta?.name || projectData.name || 'project';
+    const fileName = `${projectName.replace(/[^a-zA-Z0-9äöåÄÖÅ]/g, '_')}_${Date.now()}.json`;
+
+    // Use File System Access API to let user pick save location
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileName,
+          types: [{
+            description: 'JSON-tiedosto',
+            accept: { 'application/json': ['.json'] },
+          }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(dataBlob);
+        await writable.close();
+        return true;
+      } catch (err) {
+        if (err.name === 'AbortError') return false; // User cancelled
+        // Fallback to download if picker fails
+      }
+    }
+
+    // Fallback: auto-download
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    const projectName = projectData.meta?.name || projectData.name || 'project';
-    link.download = `${projectName.replace(/[^a-zA-Z0-9äöåÄÖÅ]/g, '_')}_${Date.now()}.json`;
+    link.download = fileName;
     link.click();
     URL.revokeObjectURL(url);
     return true;
