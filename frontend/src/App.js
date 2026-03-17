@@ -343,6 +343,7 @@ function App() {
   const handlePresetClose = () => {
     setToolPresetOpen(false);
     setPendingTool(null);
+    setDetectedRoom(null);
   };
 
   const handleUpdateMeasurement = (id, updatedData) => {
@@ -841,6 +842,7 @@ function App() {
             zoom={zoom}
             currentPage={currentPage}
             onRoomDetected={handleRoomDetected}
+            presetSelectorOpen={toolPresetOpen}
             onCancel={() => {
               setRoomDetectorActive(false);
               setCurrentTool(null);

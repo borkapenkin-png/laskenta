@@ -101,6 +101,7 @@ export const RoomDetector = ({
   zoom,
   currentPage,
   onRoomDetected,
+  presetSelectorOpen,
   onCancel,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -198,23 +199,28 @@ export const RoomDetector = ({
   const canvas = pdfCanvasRef?.current;
   const canvasRect = canvas?.getBoundingClientRect();
 
+  // Don't show clickable overlay when preset selector is open (it would block clicks)
+  const showOverlay = !presetSelectorOpen;
+
   return (
     <>
       {/* Clickable overlay */}
-      <div 
-        ref={overlayRef}
-        data-testid="room-detector-overlay"
-        onClick={handleOverlayClick}
-        className="fixed z-[100]"
-        style={{ 
-          cursor: isProcessing ? 'wait' : 'crosshair',
-          backgroundColor: 'rgba(74, 155, 173, 0.08)',
-          top: canvasRect?.top || 0,
-          left: canvasRect?.left || 0,
-          width: canvasRect?.width || '100%',
-          height: canvasRect?.height || '100%',
-        }}
-      />
+      {showOverlay && (
+        <div 
+          ref={overlayRef}
+          data-testid="room-detector-overlay"
+          onClick={handleOverlayClick}
+          className="fixed z-[100]"
+          style={{ 
+            cursor: isProcessing ? 'wait' : 'crosshair',
+            backgroundColor: 'rgba(74, 155, 173, 0.08)',
+            top: canvasRect?.top || 0,
+            left: canvasRect?.left || 0,
+            width: canvasRect?.width || '100%',
+            height: canvasRect?.height || '100%',
+          }}
+        />
+      )}
       
       {/* Highlight canvas - shows detected area in teal */}
       <canvas
