@@ -4,79 +4,72 @@ import { toast } from 'sonner';
 
 // ==================== FLOOD FILL ROOM DETECTOR ====================
 // Detects enclosed rooms in floor plans using flood fill algorithm.
-// Uses wall dilation to close door gaps before filling.
+// 1) Dilate walls to close door gaps → flood fill → find room
+// 2) Expand result back to original walls → no gap between detection and wall
 
 const WALL_THRESHOLD = 160; // Pixels darker than this are walls
 const MAX_FILL_RATIO = 0.35; // If fill > 35% of image, it leaked out
-const GAP_CLOSE_RADIUS = 8;  // Dilate walls by this many pixels to close door gaps
+const GAP_CLOSE_RADIUS = 10; // Dilate walls by this to close door gaps
 
-// Build a wall map with dilation to close small gaps (doorways)
-function buildWallMap(imageData, width, height, radius) {
+// Build original wall map from pixel data
+function buildOriginalWallMap(imageData, width, height) {
   const data = imageData.data;
   const wallMap = new Uint8Array(width * height);
-  
-  // Step 1: Mark original wall pixels
-  const origWall = new Uint8Array(width * height);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const idx = (y * width + x) * 4;
       const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
       if (brightness < WALL_THRESHOLD) {
-        origWall[y * width + x] = 1;
+        wallMap[y * width + x] = 1;
       }
     }
   }
-  
-  // Step 2: Horizontal dilation (expand walls left/right by radius)
-  const wallH = new Uint8Array(width * height);
-  for (let y = 0; y < height; y++) {
-    // Use running count for O(width) per row
-    let count = 0;
-    // Initialize window for first pixel
-    for (let dx = 0; dx <= radius && dx < width; dx++) {
-      if (origWall[y * width + dx]) count++;
-    }
-    if (count > 0) wallH[y * width] = 1;
-    
-    for (let x = 1; x < width; x++) {
-      // Add right edge of window
-      const addX = x + radius;
-      if (addX < width && origWall[y * width + addX]) count++;
-      // Remove left edge of window
-      const remX = x - radius - 1;
-      if (remX >= 0 && origWall[y * width + remX]) count--;
-      if (count > 0) wallH[y * width + x] = 1;
-    }
-  }
-  
-  // Step 3: Vertical dilation of horizontal result
-  for (let x = 0; x < width; x++) {
-    let count = 0;
-    for (let dy = 0; dy <= radius && dy < height; dy++) {
-      if (wallH[dy * width + x]) count++;
-    }
-    if (count > 0) wallMap[x] = 1;
-    
-    for (let y = 1; y < height; y++) {
-      const addY = y + radius;
-      if (addY < height && wallH[addY * width + x]) count++;
-      const remY = y - radius - 1;
-      if (remY >= 0 && wallH[remY * width + x]) count--;
-      if (count > 0) wallMap[y * width + x] = 1;
-    }
-  }
-  
   return wallMap;
 }
 
-// Flood fill using pre-computed wall map
-function floodFillDetect(wallMap, width, height, startX, startY) {
-  const visited = new Uint8Array(width * height);
+// Dilate a binary map using fast running-window (separable box filter)
+function dilateBinaryMap(input, width, height, radius) {
+  const output = new Uint8Array(width * height);
+  const temp = new Uint8Array(width * height);
   
-  // Check if starting pixel is on a dilated wall
-  if (wallMap[startY * width + startX]) {
-    return null; // Clicked on a wall
+  // Horizontal pass
+  for (let y = 0; y < height; y++) {
+    let count = 0;
+    for (let dx = 0; dx <= radius && dx < width; dx++) {
+      if (input[y * width + dx]) count++;
+    }
+    if (count > 0) temp[y * width] = 1;
+    for (let x = 1; x < width; x++) {
+      const addX = x + radius;
+      if (addX < width && input[y * width + addX]) count++;
+      const remX = x - radius - 1;
+      if (remX >= 0 && input[y * width + remX]) count--;
+      if (count > 0) temp[y * width + x] = 1;
+    }
   }
+  
+  // Vertical pass
+  for (let x = 0; x < width; x++) {
+    let count = 0;
+    for (let dy = 0; dy <= radius && dy < height; dy++) {
+      if (temp[dy * width + x]) count++;
+    }
+    if (count > 0) output[x] = 1;
+    for (let y = 1; y < height; y++) {
+      const addY = y + radius;
+      if (addY < height && temp[addY * width + x]) count++;
+      const remY = y - radius - 1;
+      if (remY >= 0 && temp[remY * width + x]) count--;
+      if (count > 0) output[y * width + x] = 1;
+    }
+  }
+  return output;
+}
+
+// Flood fill on wall map, returns visited bitmap
+function floodFill(wallMap, width, height, startX, startY) {
+  const visited = new Uint8Array(width * height);
+  if (wallMap[startY * width + startX]) return null;
   
   const maxPixels = width * height * MAX_FILL_RATIO;
   const stack = [[startX, startY]];
@@ -85,38 +78,64 @@ function floodFillDetect(wallMap, width, height, startX, startY) {
   
   while (stack.length > 0) {
     const [x, y] = stack.pop();
-    
     if (x < 0 || x >= width || y < 0 || y >= height) continue;
     const idx = y * width + x;
-    if (visited[idx]) continue;
-    if (wallMap[idx]) continue;
+    if (visited[idx] || wallMap[idx]) continue;
     
     visited[idx] = 1;
     pixelCount++;
-    
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
+    if (pixelCount > maxPixels) return null; // Leaked
     
-    if (pixelCount > maxPixels) {
-      return null; // Leaked out
-    }
-    
-    stack.push([x + 1, y]);
-    stack.push([x - 1, y]);
-    stack.push([x, y + 1]);
-    stack.push([x, y - 1]);
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
   }
   
-  if (pixelCount < 100) return null; // Too small
+  if (pixelCount < 100) return null;
+  return { visited, pixelCount, bbox: { minX, minY, maxX, maxY } };
+}
+
+// Main detection: dilate walls → flood fill → expand back to original walls
+function detectRoom(imageData, width, height, startX, startY) {
+  // Step 1: Original wall map
+  const origWall = buildOriginalWallMap(imageData, width, height);
+  
+  // Step 2: Dilated wall map (closes door gaps)
+  const dilatedWall = dilateBinaryMap(origWall, width, height, GAP_CLOSE_RADIUS);
+  
+  // Step 3: Flood fill on dilated walls
+  const fillResult = floodFill(dilatedWall, width, height, startX, startY);
+  if (!fillResult) return null;
+  
+  // Step 4: Expand filled area back to original walls
+  // Dilate the filled region by the same radius, then mask out original walls
+  const expanded = dilateBinaryMap(fillResult.visited, width, height, GAP_CLOSE_RADIUS);
+  
+  // Remove original wall pixels from expanded area
+  let pixelCount = 0;
+  let minX = width, maxX = 0, minY = height, maxY = 0;
+  for (let i = 0; i < width * height; i++) {
+    if (expanded[i] && !origWall[i]) {
+      expanded[i] = 1;
+      pixelCount++;
+      const x = i % width, y = Math.floor(i / width);
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    } else {
+      expanded[i] = 0;
+    }
+  }
   
   return {
     pixelCount,
     bbox: { minX, minY, maxX, maxY },
     width: maxX - minX,
     height: maxY - minY,
-    visited,
+    visited: expanded,
   };
 }
 
@@ -196,14 +215,10 @@ export const RoomDetector = ({
         const ctx = canvas.getContext('2d');
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         
-        // Build wall map with gap closing (closes door openings)
-        console.time('wallMap');
-        const wallMap = buildWallMap(imageData, canvas.width, canvas.height, GAP_CLOSE_RADIUS);
-        console.timeEnd('wallMap');
-        
-        console.time('floodFill');
-        const result = floodFillDetect(wallMap, canvas.width, canvas.height, canvasX, canvasY);
-        console.timeEnd('floodFill');
+        // Build wall maps and detect room (dilate → fill → expand back)
+        console.time('detectRoom');
+        const result = detectRoom(imageData, canvas.width, canvas.height, canvasX, canvasY);
+        console.timeEnd('detectRoom');
         
         if (!result) {
           toast.warning('Ei löytynyt huonetta. Klikkaa tyhjän alueen keskelle (ei seinän tai tekstin päälle).');
