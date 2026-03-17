@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -9,10 +9,16 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+import fal_client
 
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Set FAL_KEY for fal_client
+fal_key = os.environ.get('FAL_KEY', '')
+if fal_key:
+    os.environ["FAL_KEY"] = fal_key
 
 # Configure logging first
 logging.basicConfig(
@@ -138,6 +144,121 @@ async def get_status_checks():
     except Exception as e:
         logger.error(f"Failed to get status checks: {e}")
         return []
+
+
+# ==================== SAM SEGMENTATION ENDPOINTS ====================
+
+class SAMSegmentRequest(BaseModel):
+    """Request for SAM segmentation - image as base64 data URL"""
+    image_data: str  # base64 data URL (data:image/png;base64,...)
+    
+class SAMPointRequest(BaseModel):
+    """Request for SAM point-based segmentation"""
+    image_data: str  # base64 data URL
+    point_x: float  # Normalized x coordinate (0-1)
+    point_y: float  # Normalized y coordinate (0-1)
+
+class SAMSegmentResponse(BaseModel):
+    """Response with segmentation masks"""
+    success: bool
+    masks: Optional[List[dict]] = None  # List of masks with coordinates
+    error: Optional[str] = None
+
+@api_router.post("/sam/segment-all", response_model=SAMSegmentResponse)
+async def sam_segment_all(request: SAMSegmentRequest):
+    """
+    Segment all objects in an image using SAM 3.
+    Returns all detected masks/regions.
+    """
+    if not fal_key:
+        raise HTTPException(status_code=500, detail="FAL_KEY not configured")
+    
+    try:
+        logger.info("Starting SAM segmentation...")
+        
+        # Call fal.ai SAM 3 endpoint
+        result = await fal_client.run_async(
+            "fal-ai/sam-3/image",
+            arguments={
+                "image_url": request.image_data,  # fal.ai accepts data URLs
+                "generate_masks": True,
+            }
+        )
+        
+        logger.info(f"SAM result: {result}")
+        
+        # Extract masks from result
+        masks = []
+        if result and "masks" in result:
+            for i, mask in enumerate(result["masks"]):
+                masks.append({
+                    "id": i,
+                    "mask_url": mask.get("url", ""),
+                    "bbox": mask.get("bbox", []),  # [x, y, width, height]
+                    "area": mask.get("area", 0),
+                })
+        
+        return SAMSegmentResponse(success=True, masks=masks)
+        
+    except Exception as e:
+        logger.error(f"SAM segmentation failed: {e}")
+        return SAMSegmentResponse(success=False, error=str(e))
+
+@api_router.post("/sam/segment-point", response_model=SAMSegmentResponse)
+async def sam_segment_point(request: SAMPointRequest):
+    """
+    Segment object at a specific point using SAM 3.
+    User clicks on a point, SAM returns the mask for that region.
+    """
+    if not fal_key:
+        raise HTTPException(status_code=500, detail="FAL_KEY not configured")
+    
+    try:
+        logger.info(f"Starting SAM point segmentation at ({request.point_x}, {request.point_y})...")
+        
+        # Call fal.ai SAM 3 with point prompt
+        result = await fal_client.run_async(
+            "fal-ai/sam-3/image",
+            arguments={
+                "image_url": request.image_data,
+                "prompts": [
+                    {
+                        "type": "point",
+                        "data": [[request.point_x, request.point_y]],  # Normalized coordinates
+                        "labels": [1]  # 1 = foreground
+                    }
+                ]
+            }
+        )
+        
+        logger.info(f"SAM point result keys: {result.keys() if result else 'None'}")
+        
+        # Extract mask from result
+        masks = []
+        if result:
+            # SAM 3 returns different structure based on prompt
+            if "masks" in result:
+                for i, mask in enumerate(result["masks"]):
+                    masks.append({
+                        "id": i,
+                        "mask_url": mask.get("url", ""),
+                        "bbox": mask.get("bbox", []),
+                        "area": mask.get("area", 0),
+                    })
+            elif "image" in result:
+                # Single mask result
+                masks.append({
+                    "id": 0,
+                    "mask_url": result["image"].get("url", ""),
+                    "bbox": result.get("bbox", []),
+                    "area": result.get("area", 0),
+                })
+        
+        return SAMSegmentResponse(success=True, masks=masks)
+        
+    except Exception as e:
+        logger.error(f"SAM point segmentation failed: {e}")
+        return SAMSegmentResponse(success=False, error=str(e))
 
 
 # Include the router in the main app

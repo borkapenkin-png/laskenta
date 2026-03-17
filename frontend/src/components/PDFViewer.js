@@ -23,9 +23,11 @@ export const PDFViewer = ({
   calibrationMode = false,
   calibrationDistance,
   onCalibrationComplete,
-  onRenderInfoChange
+  onRenderInfoChange,
+  externalCanvasRef,  // Optional external ref for canvas
 }) => {
-  const canvasRef = useRef(null);
+  const internalCanvasRef = useRef(null);
+  const canvasRef = externalCanvasRef || internalCanvasRef;
   const containerRef = useRef(null);
   const overlayContainerRef = useRef(null);
   const [pdfDocument, setPdfDocument] = useState(null);

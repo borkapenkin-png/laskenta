@@ -21,7 +21,8 @@ import {
   Calculator,
   MoreHorizontal,
   ChevronDown,
-  Settings
+  Settings,
+  Wand2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -84,7 +85,8 @@ export const Toolbar = ({
     { id: 'wall', icon: Home, label: 'Seinä (jm → m²)', testId: 'tool-wall' },
     { id: 'rectangle', icon: Square, label: 'Suorakulmio (m²)', testId: 'tool-rectangle' },
     { id: 'polygon', icon: Pentagon, label: 'Monikulmio (m²)', testId: 'tool-polygon' },
-    { id: 'count', icon: Hash, label: 'Kappalemäärä (kpl)', testId: 'tool-count' }
+    { id: 'count', icon: Hash, label: 'Kappalemäärä (kpl)', testId: 'tool-count' },
+    { id: 'room-detect', icon: Wand2, label: 'Ruumituvastus (AI)', testId: 'tool-room-detect' }
   ];
 
   const currentScaleDisplay = scale ? 

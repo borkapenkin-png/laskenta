@@ -15,6 +15,7 @@ import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
 import { QAPanel, useQAMode } from '@/components/QAPanel';
 import { SettingsDialog, loadCustomPresets } from '@/components/SettingsDialog';
+import { RoomDetector } from '@/components/RoomDetector';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
@@ -66,6 +67,9 @@ function App() {
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
   const [currentView, setCurrentView] = useState('main'); // 'main' or 'maksuerataulukko'
+  const [roomDetectorActive, setRoomDetectorActive] = useState(false);
+  const [detectedRoom, setDetectedRoom] = useState(null);
+  const pdfCanvasRef = useRef(null);
   const [project, setProject] = useState({
     id: `project-${Date.now()}`,
     name: 'Uusi projekti',
@@ -249,8 +253,28 @@ function App() {
       // Hand tool - no preset needed
       setCurrentTool(null);
       setPendingPreset(null);
+      setRoomDetectorActive(false);
       return;
     }
+
+    // Room detection tool - special handling
+    if (tool === 'room-detect') {
+      if (!pdfFile) {
+        toast.error('Avaa PDF ensin');
+        return;
+      }
+      if (!scale) {
+        toast.error('Kalibroi mittakaava ensin');
+        return;
+      }
+      setCurrentTool('room-detect');
+      setRoomDetectorActive(true);
+      toast.info('Klikkaa huoneen sisälle tunnistaaksesi sen');
+      return;
+    }
+
+    // Other tools - reset room detector
+    setRoomDetectorActive(false);
 
     // Get click position for preset menu
     const rect = event?.currentTarget?.getBoundingClientRect();
@@ -263,7 +287,53 @@ function App() {
     setToolPresetOpen(true);
   };
 
+  // Handle room detection from AI
+  const handleRoomDetected = (roomData) => {
+    console.log('Room detected:', roomData);
+    setDetectedRoom(roomData);
+    
+    // Show preset selector for the detected room
+    // Use rectangle presets for room area measurements
+    setToolPresetPosition({
+      x: window.innerWidth / 2 - 150,
+      y: window.innerHeight / 2 - 200
+    });
+    setPendingTool('rectangle');
+    setToolPresetOpen(true);
+  };
+
+  // Modified preset select to handle room detection
   const handlePresetSelect = (preset) => {
+    if (detectedRoom) {
+      // Create measurement from detected room
+      saveToUndoStack();
+      
+      const newMeasurement = {
+        id: `measurement-${Date.now()}`,
+        type: 'room-ai',
+        label: preset.label || '',
+        pricePerUnit: preset.pricePerUnit || 0,
+        unit: preset.unit || 'm²',
+        quantity: detectedRoom.estimatedArea || 0,
+        points: [], // AI detected - no manual points
+        roomData: detectedRoom,
+        page: currentPage,
+        constructionType: preset.constructionType || null,
+        constructionOptions: preset.constructionOptions || null,
+      };
+      
+      setMeasurements(prev => [...prev, newMeasurement]);
+      toast.success(`Huone lisätty: ${newMeasurement.quantity.toFixed(2)} ${newMeasurement.unit}`);
+      
+      // Reset state
+      setDetectedRoom(null);
+      setToolPresetOpen(false);
+      setPendingTool(null);
+      // Keep room detector active for next room
+      return;
+    }
+    
+    // Normal preset selection
     setPendingPreset(preset);
     setCurrentTool(pendingTool);
     setToolPresetOpen(false);
@@ -738,6 +808,7 @@ function App() {
             calibrationMode={currentTool === 'calibrate'}
             calibrationDistance={calibrationDistance}
             onRenderInfoChange={setPdfRenderInfo}
+            externalCanvasRef={pdfCanvasRef}
             onCalibrationComplete={(pixelDistance) => {
               if (calibrationDistance && pixelDistance > 0) {
                 // pixelDistance comes from screen coordinates, need to normalize it
@@ -758,6 +829,20 @@ function App() {
                 toast.success(`Mittakaava kalibroitu: ~1:${estimatedScale}`);
               }
               setCalibrationDistance(null);
+              setCurrentTool(null);
+            }}
+          />
+          
+          {/* Room Detector Overlay */}
+          <RoomDetector
+            isActive={roomDetectorActive}
+            pdfCanvasRef={pdfCanvasRef}
+            scale={scale}
+            zoom={zoom}
+            currentPage={currentPage}
+            onRoomDetected={handleRoomDetected}
+            onCancel={() => {
+              setRoomDetectorActive(false);
               setCurrentTool(null);
             }}
           />

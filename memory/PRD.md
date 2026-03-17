@@ -152,6 +152,14 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Construction type dropdown auto-adds Karkass/Villa/Kipsi options
 - ✅ All 10 tests passed in iteration_13
 
+## New Feature: AI Room Detection (SAM 3) - 2025-03-17
+- ✅ Added "Ruumituvastus (AI)" tool to toolbar
+- ✅ Integrated fal.ai SAM 3 (Segment Anything Model) API
+- ✅ Backend endpoint /api/sam/segment-point for point-based segmentation
+- ✅ Frontend RoomDetector component with click-to-detect functionality
+- ✅ Workflow: Click tool → Click on room → AI detects → Select preset → Measurement added
+- Cost: ~$0.005 per detection
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration
