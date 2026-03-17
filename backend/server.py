@@ -232,35 +232,41 @@ async def sam_segment_point(request: SAMPointRequest):
         )
         
         logger.info(f"SAM point result keys: {result.keys() if result else 'None'}")
-        logger.info(f"SAM masks count: {len(result.get('masks', []))}")
-        logger.info(f"SAM boxes count: {len(result.get('boxes', []))}")
-        logger.info(f"SAM scores: {result.get('scores', [])}")
+        logger.info(f"SAM masks count: {len(result.get('masks', []) or [])}")
+        logger.info(f"SAM boxes: {result.get('boxes')}")
+        logger.info(f"SAM scores: {result.get('scores')}")
         
         # Extract masks from result
         masks = []
         if result:
+            masks_list = result.get("masks") or []
+            boxes_list = result.get("boxes") or []
+            scores_list = result.get("scores") or []
+            
             # Check for masks array
-            if result.get("masks") and len(result["masks"]) > 0:
-                for i, mask in enumerate(result["masks"]):
+            if masks_list and len(masks_list) > 0:
+                for i, mask in enumerate(masks_list):
                     mask_data = {
                         "id": i,
                         "mask_url": mask.get("url", "") if isinstance(mask, dict) else str(mask),
-                        "bbox": result.get("boxes", [[]])[i] if i < len(result.get("boxes", [])) else [],
+                        "bbox": boxes_list[i] if i < len(boxes_list) else [],
                         "area": 0,
-                        "score": result.get("scores", [])[i] if i < len(result.get("scores", [])) else 0,
+                        "score": scores_list[i] if i < len(scores_list) else 0,
                     }
                     masks.append(mask_data)
                     logger.info(f"Mask {i}: {mask_data}")
             
             # If masks is empty but we have boxes, create masks from boxes
-            elif result.get("boxes") and len(result["boxes"]) > 0:
-                for i, box in enumerate(result["boxes"]):
+            elif boxes_list and len(boxes_list) > 0:
+                for i, box in enumerate(boxes_list):
+                    if box is None:
+                        continue
                     mask_data = {
                         "id": i,
                         "mask_url": result.get("image", {}).get("url", "") if isinstance(result.get("image"), dict) else "",
                         "bbox": box,  # [x1, y1, x2, y2] normalized
                         "area": 0,
-                        "score": result.get("scores", [])[i] if i < len(result.get("scores", [])) else 0,
+                        "score": scores_list[i] if i < len(scores_list) else 0,
                     }
                     # Calculate area from bbox
                     if len(box) >= 4:
@@ -270,14 +276,14 @@ async def sam_segment_point(request: SAMPointRequest):
                     masks.append(mask_data)
                     logger.info(f"Box-based mask {i}: {mask_data}")
             
-            # Fallback: use main image as mask
-            elif result.get("image"):
+            # Fallback: use main image as mask if we have scores
+            elif result.get("image") and scores_list and len(scores_list) > 0:
                 mask_data = {
                     "id": 0,
                     "mask_url": result["image"].get("url", "") if isinstance(result["image"], dict) else "",
                     "bbox": [],
                     "area": 0,
-                    "score": result.get("scores", [0])[0] if result.get("scores") else 0,
+                    "score": scores_list[0] if scores_list else 0,
                 }
                 masks.append(mask_data)
                 logger.info(f"Fallback image mask: {mask_data}")
