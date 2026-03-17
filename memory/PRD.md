@@ -158,6 +158,11 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Backend endpoint /api/sam/segment-point for point-based segmentation
 - ✅ Frontend RoomDetector component with click-to-detect functionality
 - ✅ Workflow: Click tool → Click on room → AI detects → Select preset → Measurement added
+- ✅ Fixed: Correct pixel coordinate mapping (normalized → actual image dimensions)
+- ✅ Fixed: Correct bbox format handling [cx, cy, w, h] normalized
+- ✅ Fixed: Response processing matches fal.ai SAM 3 API output schema
+- ✅ Optimized: JPEG encoding for smaller payload, 30s timeout, score-sorted masks
+- ✅ All 14 tests passed (8 backend + 6 frontend) - iteration_14
 - Cost: ~$0.005 per detection
 
 ## Notes for Development
