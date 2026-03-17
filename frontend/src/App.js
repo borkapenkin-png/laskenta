@@ -329,7 +329,8 @@ function App() {
       setDetectedRoom(null);
       setToolPresetOpen(false);
       setPendingTool(null);
-      // Keep room detector active for next room
+      setRoomDetectorActive(false);
+      setCurrentTool(null);
       return;
     }
     
