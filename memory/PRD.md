@@ -152,18 +152,16 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Construction type dropdown auto-adds Karkass/Villa/Kipsi options
 - ✅ All 10 tests passed in iteration_13
 
-## New Feature: AI Room Detection (SAM 3) - 2025-03-17
+## New Feature: AI Room Detection (SAM 3 → Flood Fill) - 2025-03-17
 - ✅ Added "Ruumituvastus (AI)" tool to toolbar
-- ✅ Integrated fal.ai SAM 3 (Segment Anything Model) API
-- ✅ Backend endpoint /api/sam/segment-point for point-based segmentation
-- ✅ Frontend RoomDetector component with click-to-detect functionality
-- ✅ Workflow: Click tool → Click on room → AI detects → Select preset → Measurement added
-- ✅ Fixed: Correct pixel coordinate mapping (normalized → actual image dimensions)
-- ✅ Fixed: Correct bbox format handling [cx, cy, w, h] normalized
-- ✅ Fixed: Response processing matches fal.ai SAM 3 API output schema
-- ✅ Optimized: JPEG encoding for smaller payload, 30s timeout, score-sorted masks
-- ✅ All 14 tests passed (8 backend + 6 frontend) - iteration_14
-- Cost: ~$0.005 per detection
+- ✅ Initially integrated fal.ai SAM 3 - didn't work for floor plan line drawings
+- ✅ Replaced with client-side flood fill algorithm (instant, free, works with floor plans)
+- ✅ Workflow: Click tool → Click inside room → Flood fill detects enclosed area → Select preset → Measurement added
+- ✅ Fixed: Overlay z-index blocking ToolPresetSelector clicks (presetSelectorOpen prop)
+- ✅ Fixed: handlePresetClose now clears detectedRoom state
+- ✅ Highlight canvas shows detected area in teal overlay
+- ✅ Room detector stays active after measurement for detecting more rooms
+- ✅ All tests passed - iteration_14 (backend) + iteration_15 (frontend)
 
 ## Notes for Development
 - All changes are client-side only
