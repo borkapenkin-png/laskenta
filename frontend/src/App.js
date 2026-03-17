@@ -10,6 +10,7 @@ import { CalculatorPanel } from '@/components/CalculatorPanel';
 import { CalibrateDialog } from '@/components/CalibrateDialog';
 import { TarjousDialog } from '@/components/TarjousDialog';
 import { KoontitarjousDialog } from '@/components/KoontitarjousDialog';
+import { KoontiMaaralaskentaDialog } from '@/components/KoontiMaaralaskentaDialog';
 import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
@@ -34,7 +35,7 @@ import {
   validateProjectData,
   saveTarjousSnapshot
 } from '@/utils/storage';
-import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF, exportKoontitarjousPDF } from '@/utils/export';
+import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF, exportKoontitarjousPDF, exportKoontiMaaralaskentaPDF } from '@/utils/export';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -63,6 +64,7 @@ function App() {
   const [toolPresetPosition, setToolPresetPosition] = useState({ x: 100, y: 100 });
   const [tarjousDialogOpen, setTarjousDialogOpen] = useState(false);
   const [koontitarjousDialogOpen, setKoontitarjousDialogOpen] = useState(false);
+  const [koontiMaaralaskentaDialogOpen, setKoontiMaaralaskentaDialogOpen] = useState(false);
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [customToolPresets, setCustomToolPresets] = useState(null);
@@ -693,6 +695,7 @@ function App() {
         onExportPDF={handleOpenPDFExportDialog}
         onCreateTarjous={handleCreateTarjous}
         onCreateKoontitarjous={() => setKoontitarjousDialogOpen(true)}
+        onCreateKoontiMaaralaskenta={() => setKoontiMaaralaskentaDialogOpen(true)}
         onOpenMaksuerataulukko={() => setCurrentView('maksuerataulukko')}
         onOpenSettings={() => setSettingsDialogOpen(true)}
         currentTool={currentTool}
@@ -865,6 +868,13 @@ function App() {
         open={koontitarjousDialogOpen}
         onClose={() => setKoontitarjousDialogOpen(false)}
         onGenerate={handleGenerateKoontitarjous}
+        vatPercentage={settings?.vatPercentage || 25.5}
+      />
+
+      <KoontiMaaralaskentaDialog
+        open={koontiMaaralaskentaDialogOpen}
+        onClose={() => setKoontiMaaralaskentaDialogOpen(false)}
+        onGenerate={(data) => exportKoontiMaaralaskentaPDF(data)}
         vatPercentage={settings?.vatPercentage || 25.5}
       />
 

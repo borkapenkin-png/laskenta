@@ -45,6 +45,7 @@ export const Toolbar = ({
   onExportPDF,
   onCreateTarjous,
   onCreateKoontitarjous,
+  onCreateKoontiMaaralaskenta,
   onOpenMaksuerataulukko,
   onOpenSettings,
   currentTool,
@@ -98,6 +99,12 @@ export const Toolbar = ({
       icon: Layers, 
       onClick: onCreateKoontitarjous,
       testId: 'menu-koontitarjous'
+    },
+    { 
+      label: 'Koonti määrälaskenta', 
+      icon: Layers, 
+      onClick: onCreateKoontiMaaralaskenta,
+      testId: 'menu-koonti-maaralaskenta'
     },
     { 
       label: 'Maksuerätaulukko', 
@@ -369,6 +376,22 @@ export const Toolbar = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Yhdistä useita tarjouksia</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      data-testid="create-koonti-maaralaskenta-button"
+                      size="sm"
+                      variant="outline"
+                      onClick={onCreateKoontiMaaralaskenta}
+                      className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10 whitespace-nowrap"
+                    >
+                      <Layers className="h-4 w-4 mr-1.5" />
+                      Koonti määrät
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Yhdistä useita projekteja määrälaskennaksi</TooltipContent>
                 </Tooltip>
 
                 <Tooltip>
