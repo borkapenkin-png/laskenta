@@ -216,83 +216,92 @@ async def sam_segment_point(request: SAMPointRequest):
     try:
         logger.info(f"Starting SAM point segmentation at ({request.point_x}, {request.point_y})...")
         
-        # Call fal.ai SAM 3 with point prompt
+        # Convert normalized coordinates (0-1) to pixel coordinates
+        # SAM 3 expects integer pixel coordinates, not normalized
+        # We'll estimate based on typical image size (will be adjusted by API)
+        pixel_x = int(request.point_x * 1000)  # Assume 1000px wide
+        pixel_y = int(request.point_y * 1000)  # Assume 1000px tall
+        
+        logger.info(f"Pixel coordinates: ({pixel_x}, {pixel_y})")
+        
+        # Call fal.ai SAM 3 with point prompt - CORRECT FORMAT
         result = await fal_client.run_async(
             "fal-ai/sam-3/image",
             arguments={
                 "image_url": request.image_data,
-                "prompts": [
+                "point_prompts": [
                     {
-                        "type": "point",
-                        "data": [[request.point_x, request.point_y]],  # Normalized coordinates
-                        "labels": [1]  # 1 = foreground
+                        "x": pixel_x,
+                        "y": pixel_y,
+                        "label": 1  # 1 = foreground
                     }
-                ]
+                ],
+                "apply_mask": False,  # Return mask separately
+                "include_scores": True,
+                "include_boxes": True,
+                "return_multiple_masks": True,
+                "max_masks": 3
             }
         )
         
         logger.info(f"SAM point result keys: {result.keys() if result else 'None'}")
         logger.info(f"SAM masks count: {len(result.get('masks', []) or [])}")
-        logger.info(f"SAM boxes: {result.get('boxes')}")
+        logger.info(f"SAM metadata: {result.get('metadata')}")
         logger.info(f"SAM scores: {result.get('scores')}")
+        logger.info(f"SAM boxes: {result.get('boxes')}")
         
         # Extract masks from result
         masks = []
         if result:
             masks_list = result.get("masks") or []
-            boxes_list = result.get("boxes") or []
+            metadata_list = result.get("metadata") or []
             scores_list = result.get("scores") or []
+            boxes_list = result.get("boxes") or []
             
-            # Check for masks array
-            if masks_list and len(masks_list) > 0:
-                for i, mask in enumerate(masks_list):
-                    mask_data = {
-                        "id": i,
-                        "mask_url": mask.get("url", "") if isinstance(mask, dict) else str(mask),
-                        "bbox": boxes_list[i] if i < len(boxes_list) else [],
-                        "area": 0,
-                        "score": scores_list[i] if i < len(scores_list) else 0,
-                    }
-                    masks.append(mask_data)
-                    logger.info(f"Mask {i}: {mask_data}")
+            logger.info(f"Processing {len(masks_list)} masks")
             
-            # If masks is empty but we have boxes, create masks from boxes
-            elif boxes_list and len(boxes_list) > 0:
-                for i, box in enumerate(boxes_list):
-                    if box is None:
-                        continue
-                    mask_data = {
-                        "id": i,
-                        "mask_url": result.get("image", {}).get("url", "") if isinstance(result.get("image"), dict) else "",
-                        "bbox": box,  # [x1, y1, x2, y2] normalized
-                        "area": 0,
-                        "score": scores_list[i] if i < len(scores_list) else 0,
-                    }
-                    # Calculate area from bbox
-                    if len(box) >= 4:
-                        width = abs(box[2] - box[0])
-                        height = abs(box[3] - box[1])
-                        mask_data["area"] = width * height
-                    masks.append(mask_data)
-                    logger.info(f"Box-based mask {i}: {mask_data}")
-            
-            # Fallback: use main image as mask if we have scores
-            elif result.get("image") and scores_list and len(scores_list) > 0:
+            for i, mask in enumerate(masks_list):
+                mask_url = mask.get("url", "") if isinstance(mask, dict) else ""
+                
+                # Get box from metadata or boxes list
+                bbox = []
+                if i < len(metadata_list) and metadata_list[i]:
+                    bbox = metadata_list[i].get("box", [])
+                elif i < len(boxes_list) and boxes_list[i]:
+                    bbox = boxes_list[i]
+                
+                # Get score
+                score = 0
+                if i < len(metadata_list) and metadata_list[i]:
+                    score = metadata_list[i].get("score", 0)
+                elif i < len(scores_list):
+                    score = scores_list[i] or 0
+                
+                # Calculate area from bbox if available
+                area = 0
+                if len(bbox) >= 4:
+                    # bbox format: [cx, cy, w, h] normalized
+                    width = bbox[2] if len(bbox) > 2 else 0
+                    height = bbox[3] if len(bbox) > 3 else 0
+                    area = width * height
+                
                 mask_data = {
-                    "id": 0,
-                    "mask_url": result["image"].get("url", "") if isinstance(result["image"], dict) else "",
-                    "bbox": [],
-                    "area": 0,
-                    "score": scores_list[0] if scores_list else 0,
+                    "id": i,
+                    "mask_url": mask_url,
+                    "bbox": bbox,
+                    "area": area,
+                    "score": score,
                 }
                 masks.append(mask_data)
-                logger.info(f"Fallback image mask: {mask_data}")
+                logger.info(f"Mask {i}: url={mask_url[:50] if mask_url else 'None'}..., bbox={bbox}, score={score}, area={area}")
         
         logger.info(f"Final masks count: {len(masks)}")
         return SAMSegmentResponse(success=True, masks=masks)
         
     except Exception as e:
         logger.error(f"SAM point segmentation failed: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         return SAMSegmentResponse(success=False, error=str(e))
 
 

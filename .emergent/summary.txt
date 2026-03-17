@@ -2,99 +2,88 @@
 The user wants to build a modern, 100% client-side, browser-based PDF takeoff and cost estimation application for a Finnish painting, plastering, and facade company.
 
 **PRODUCT REQUIREMENTS:**
-- **Architecture:** No backend, no server, no user accounts. All logic is client-side.
-- **Storage:** Use  for autosaving and allow project import/export as  files. The saved project file must contain all data, including the base PDF, to allow for full restoration.
+- **Architecture:** No backend, no server, no user accounts. All logic is client-side. A minimal backend was later added for deployment health checks and to proxy an AI API call.
+- **Storage:** Use  for autosaving and allow project import/export as  files.
 - **Core Functionality:**
     - Open and view multi-page PDF floor plans.
     - Calibrate the scale.
     - Measurement tools: Length (jm), Area (m²), and Count (kpl).
     - A context-sensitive preset system with predefined work items and prices.
     - Calculate total costs, including a configurable VAT.
-    - Generate a summary report and a professional PDF offer. The offer system should be robust, including company branding and the ability to create summary offers from multiple project parts.
+    - Generate a summary report and a professional PDF offer with multiple detail levels.
+    - Merge multiple projects into a single Summary Offer ().
+    - **New Feature:** An AI-powered tool to automatically detect rooms from the floor plan by clicking on them.
+- **Admin/Settings:** A settings panel to allow the user to create, edit, delete, and restore all measurement and payment schedule presets, with changes saved to .
 - **UI/UX:**
-    - Modern, minimalist interface with a left sidebar (thumbnails), central PDF viewer, and a collapsible right panel.
-    - Top toolbar for primary functions.
-    - All interactive elements must be responsive and professional, with no layout breaks on long text content.
+    - Modern, minimalist interface with a left sidebar, central PDF viewer, and a collapsible right panel.
+    - All interactive elements must be responsive and professional.
 
 **User's preferred language**: The user communicates in a mix of **Finnish** and **Estonian**. The next agent MUST respond in these languages.
 
 **what currently exists?**
-A feature-rich, 100% client-side React application for construction cost estimation. The app allows users to upload PDF floor plans, perform measurements, and calculate costs using a detailed preset system. It supports saving/loading projects as JSON files.
+A feature-rich, 100% client-side React application for construction cost estimation. The app allows users to upload PDF floor plans, perform measurements, and calculate costs. A minimal FastAPI backend exists for deployment health checks and to proxy API calls to a 3rd party AI service.
 
-Key features implemented:
-- A professional Tee tarjous (Create Offer) feature that generates polished PDF offers with configurable options (materials, hourly work, payment terms) and a robust layout that prevents text overlap.
-- A Koontitarjous (Summary Offer) feature to merge multiple project JSON files into a single consolidated offer.
-- A standalone Maksuerätaulukko (Payment Schedule) module with its own UI and PDF export functionality, styled to match the main application.
-- A responsive top toolbar that collapses actions into an overflow menu on smaller screens.
-- A hidden QA Test Suite (activated by ) for automated system checks.
-- A minimal FastAPI backend exists solely to provide a  endpoint for Kubernetes deployment readiness checks; all application logic remains on the client-side.
+**Completed Features in this Session:**
+- **Unified Rakennus Presets:** Removed configuration from the selection modal and moved it exclusively to the side panel for editing, fixing state inconsistencies.
+- **Synced Totals Bugfix:** Corrected a calculation error in the  so that its totals now match the main  perfectly.
+- **PDF Measurement Label Fix:** Corrected a bug where measurement labels on the PDF canvas showed incorrect units (e.g., 'jm' instead of calculated 'm²').
+- **Preset Admin Panel:** Implemented a full-featured Asetukset (Settings) dialog where users can manage all measurement and payment schedule presets, with changes persisting in .
+- **PDF Offer Enhancements:** Added three levels of detail to both the standard and summary offer PDFs. Fixed layout bugs where long customer names would overlap, and optimized spacing for a cleaner look.
+- **Koontitarjous Bugfix:** Fixed a parsing error that prevented summary offers from being generated from saved project JSON files.
+- **Emergent Badge Hidden:** Added a global CSS rule to hide the Made with Emergent badge.
 
 **Last working item**:
-- **Last item agent was working:** The user requested to unify the behavior of Rakennus (Construction) type presets. The goal is to remove configuration options (e.g., , , ) from the initial tool selection modal and make them editable *only* in the right-side Määrälaskenta panel after a measurement has been created. This is to fix state inconsistencies and simplify the user flow. The agent was investigating the relevant files ( and ) to plan the change.
-- **Status:** NOT STARTED
+- **Last item agent was working:** Implementing a new AI-powered Room Detection feature using the Segment Anything Model (SAM) from . The agent created a backend endpoint () to proxy requests and a frontend component () to handle the UI. The agent was debugging why the API was returning empty results and discovered that the JSON payload being sent to the  API was in the wrong format.
+- **Status:** IN PROGRESS
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** frontend testing agent. This change affects core logic and UI in multiple components (, , ) and requires validation that totals are correctly recalculated.
+- **Which testing method agent to use?** both. The backend endpoint needs to be tested with  to ensure it returns valid data from the AI service. The full end-to-end flow requires the frontend testing agent to simulate user actions (opening PDF, clicking AI tool, clicking a room, verifying a measurement is created).
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Unify Rakennus type options behavior (P0 - HIGHEST)**
+- **Issue 1: Complete AI Room Detection Feature (P0 - HIGHEST)**
 
 **Issues Detail:**
-- **Issue 1: Unify Rakennus type options behavior**
-    - **Attempted fixes:** None. The agent was in the investigation phase, viewing files like .
+- **Issue 1: Complete AI Room Detection Feature**
+    - **Attempted fixes:** The agent successfully created the backend endpoint and frontend components. During debugging, it was discovered that the JSON payload sent to the  API was incorrect. The API expects  but the agent was sending a simpler, incorrect structure.
     - **Next debug checklist:**
-        1.  Modify : For Rakennus type presets, remove the UI for selecting options (dropdowns for , , etc.). Ensure that selecting a preset always creates a measurement with a fixed set of default (vakio) options.
-        2.  Modify : When a Rakennus type measurement is selected, display the editable option controls (dropdowns for , , etc.) within the panel.
-        3.  Modify : Implement or update the  logic so that when a user changes an option in the , the measurement's unit price and the application's overall totals are recalculated and the state is updated correctly.
-        4.  Ensure the option definitions are centralized and reused in both components to avoid duplication.
-    - **Why fix this issue and what will be achieved with the fix?** It will resolve a core architectural inconsistency where state can be modified in two places, leading to incorrect calculations and a confusing user experience. The fix will establish the right-side panel as the single source of truth for editing measurements.
-    - **Status:** NOT STARTED
+        1.  **Fix Backend Payload:** In , modify the  endpoint. Change the  dictionary sent to the  API to use the correct  structure as documented by .
+        2.  **Verify Backend:** Restart the backend. Use  to send a request to your local  endpoint with a base64 image and coordinates. Verify that the call to  succeeds and returns a non-empty  or  array.
+        3.  **Enhance Frontend:** In , update the  function to correctly process the  array from the API response. It should create a polygon from the bounding box coordinates.
+        4.  **Complete Flow:** Ensure the generated polygon is passed to the  handler, which should then trigger the  to open, allowing the user to choose a measurement type and create a new measurement based on the AI-detected area.
+    - **Why fix this issue and what will be achieved with the fix?** This is a major new feature requested by the user. Completing it will provide a powerful tool that automates room measurement and significantly speeds up the user's workflow.
+    - **Status:** IN PROGRESS
     - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** Frontend
+    - **Should Test frontend/backend/both after fix?** Both
     - **Blocked on other issue:** No
 
 **In progress Task List**:
-- **Task 1: Implement Rakennus options unification (P0 - HIGHEST)**
-    - **Where to resume:** Begin by editing  to remove the configuration options from the modal.
-    - **What will be achieved with this?** A consistent and predictable UI where measurement defaults are fixed on creation and all edits happen in one dedicated panel, eliminating bugs related to state desynchronization.
-    - **Status:** NOT STARTED
-    - **Should Test frontend/backend/both after fix?** Frontend
+- **Task 1: Implement AI Room Detection Feature (P0 - HIGHEST)**
+    - **Where to resume:** , inside the  endpoint, to fix the JSON payload being sent to the  API.
+    - **What will be achieved with this?** A fully functional AI tool that allows users to click on a room in a PDF and have its area automatically measured.
+    - **Status:** IN PROGRESS
+    - **Should Test frontend/backend/both after fix?** Both
     - **Blocked on something:** No
 
 **Upcoming and Future Tasks**
 
 **Upcoming Tasks:**
-- **User Verification (P0):** After the Rakennus options unification is complete, the user must verify this core functionality change.
-- **Verify  Totals Fix (P1):** The user reported that the right-side summary totals are sometimes incorrect. The agent's previous investigation was inconclusive. This needs to be re-investigated with a clear test case.
+- **User Verification (P0):** After the AI Room Detection feature is complete, the user must verify it works as expected.
+- **Verify  Totals Fix (P1):** This task was completed and verified by the testing agent. The next step is user verification if they report further issues.
 
 **Future Tasks:**
-- **Preset Configuration UI (P2):** Allow users to create, edit, and save their own measurement presets in .
+- No outstanding future tasks from the original plan. New features will be based on user requests.
 
 **Completed work in this session**
-- **Koontitarjous (Summary Offer) Overhaul:** Finalized and tested the feature to merge multiple project  files into a single offer.
-- **Undo/Redo Integration:** Integrated and tested undo/redo functionality for measurement creation, updates, and deletion.
-- **Maksuerätaulukko (Payment Schedule) Module:** Created and refined a full-featured standalone module for creating payment schedules with PDF export, including fixing preset bugs and layout issues.
-- **Responsive Toolbar:** Implemented an overflow menu to ensure the toolbar is usable on all screen sizes.
-- **Hidden QA Test Suite:** Built a comprehensive, hidden test suite to automate validation of core application features.
-- **Deployment Readiness:** Added a  endpoint and lazy MongoDB connection to the backend to ensure it passes Kubernetes health checks, resolving deployment failures.
-- **PDF Loading on Custom Domains:** Fixed a critical bug where PDFs would not load on custom domains by switching the  worker source to a CDN.
-- **Tee tarjous (Create Offer) Fixes:**
-    - Fixed PDF header layout to prevent long customer names from overlapping.
-    - Added new configurable fields: Sisältää materiaalit (Includes materials), Urakkaan laskettu tuntityöt (Hourly work), and a 21 pv payment term.
-    - Modified the offer PDF to hide individual line item prices and show only the final total.
-- **HTML Title Update:** Set a custom browser tab title for the application.
+- **Rakennus Options Unification:** Logic moved from  to .
+- ** Totals Sync Fix:** Calculation logic in  corrected.
+- **PDF Measurement Label Bugfix:** Label generation in  corrected.
+- **Preset Admin Panel:** Created , , and integrated them into  and .
+- **Koontitarjous JSON Parsing Fix:** Updated  in .
+- **PDF Offer Layout Enhancements:** Added detail level options and fixed layout issues in , , and .
+- **Emergent Badge Hidden:** CSS rule added to .
 
 **Earlier issues found/mentioned but not fixed**
-- **Issue 1: Right-side  totals may be out of sync**
-    - The user reported in  that the totals in the right-side panel summary are sometimes incorrect and out of sync with the main Laskenta tab.
-    - **Debug checklist:**
-        1. Create a project with several measurements, especially Rakennus types.
-        2. Perform edits (e.g., change quantity, modify options if available).
-        3. Compare the summary total at the bottom of the  (right side) with the total in the  (Laskenta tab).
-        4. Verify that  and other state-changing functions correctly trigger a recalculation that is reflected in all relevant UI components. The previous agent's check was code-based and may have missed a state propagation issue.
-    - **Why to solve this issue and what will be achieved with this?** This is a critical data integrity bug. Fixing it ensures the user always sees correct and consistent totals across the entire application.
-    - **Should Test frontend/backend/both after fix:** Frontend
-    - **Is recurring issue?** N
+- None. The issue regarding out-of-sync totals was fixed in this session.
 
 **Known issue recurrence from previous fork**
 - None.
@@ -103,70 +92,78 @@ Key features implemented:
 
 
 **Key Technical Concepts**
-- **Framework/Library:** React.js, , , .
-- **State Management:** Centralized state in the  component using React Hooks (, ).
+- **Framework/Library:** React.js, FastAPI, , , .
+- **AI/ML:** Image Segmentation using 's Segment Anything Model (SAM-3).
+- **State Management:** Centralized state in  using React Hooks (, ). A custom hook  was added for managing preset state.
 - **Data Storage:** Client-side .
-- **File Handling:**  API for client-side reading of PDF and JSON files.
-- **Deployment:** A minimal FastAPI backend with a  endpoint was added to support Kubernetes readiness probes, although the application logic is entirely client-side.
+- **API:** A backend proxy endpoint was created in FastAPI to securely handle API calls to .
 
 **key DB schema**
-  - N/A. All data is in React state and .
+- N/A. All data is in React state and .
 
 **changes in tech stack**
-  - None.
+- A backend dependency on  was added to  to support the AI feature.
 
 **All files of reference**
-- : **To be modified** for the current task.
-- : **To be modified** for the current task.
-- : State management hub, will require updates to handle option changes.
-- : Recently rewritten to be responsive.
-- : New standalone module.
-- : Contains all PDF generation logic, heavily modified.
-- : Recently updated with new fields.
-- : New file for the QA test suite.
-- : New minimal backend for deployment health checks.
+- : **To be modified** to fix the AI API payload.
+- : **To be modified** to process the corrected API response.
+- : Contains the integration logic for the new AI tool.
+- : Modified to unify preset logic.
+- : Modified to unify preset logic.
+- : Modified to fix a label bug.
+- : New file for preset management.
+- : New file for  logic.
+- : Modified for PDF detail levels.
+- : Modified for PDF detail levels and a bug fix.
+- : Heavily modified for PDF layout fixes and detail levels.
+- : Modified to hide Emergent badge.
 
 **Areas that need refactoring**:
-- ** God Component:** This file still manages a massive amount of application state and logic. A refactor using  or a state management library could simplify it.
-- **Centralize Preset Logic:** The current task highlights that preset option definitions and logic are not centralized. A single source of truth for presets should be created and used by , , and .
+- ** God Component:** This file continues to grow and manages almost all application state and logic, including the new AI detection flow. It is a prime candidate for refactoring with  or a state management library to improve maintainability.
+- **Centralize Preset Logic:** While  was a good step, the initial preset definitions are still hardcoded in . This could be moved to a separate constants file.
 
 **key api endpoints**
--  and : A simple endpoint in  that returns  for Kubernetes liveness and readiness probes.
+- : Returns  for Kubernetes probes.
+- : (POST) Takes a base64 image and coordinates, calls the  SAM API, and returns segmentation data.
 
 **Critical Info for New Agent**
-- **Your immediate task is to unify the Rakennus type options**, removing configuration from the selection modal and moving it exclusively to the  panel.
-- **The user has reported a bug with takeoff totals being out of sync.** This was not resolved by the previous agent and should be investigated with a live test case.
-- **The application has a minimal backend () ONLY for deployment purposes.** Do not add application logic to it. All features are client-side.
-- **PDF loading on production/custom domains depends on a CDN-hosted worker.** A re-deploy is required for the fix to apply to the production environment.
+- **Your immediate task is to fix and complete the AI Room Detection feature.** The primary blocker is the incorrect API request payload in . Fix that first.
+- The user has explicitly requested that you test the feature thoroughly and only report back when it is fully functional.
+- The  API key is stored in  under the key .
 
 **documents and test reports created in this job**
-- Test reports were generated by the testing agent and can be found at paths like .
-- The  file was continuously updated with completed tasks.
+- Test reports were generated by the testing agent at paths like .
+- The  file was continuously updated.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **Request:** Fix a batch of issues in the Tee tarjous feature, including PDF header overlap, adding material/hourly work checkboxes, adding a 21-day payment term, hiding line-item prices in the PDF, and fixing a bug with right-side panel totals. (Completed/Partially Investigated)
-2.  **Request:** A more detailed request to fix the PDF header overlap by changing the layout to a multi-line key-value block to robustly handle long customer names. (Completed)
-3.  **Request:** Unify the behavior of Rakennus type options. This is the current, highest-priority task. (In Progress/Not Started)
-4.  (No other user messages since the last request).
+1.  **Request:** Add a third detail level (Vain tehtävä) to the offer PDF generation. (Completed)
+2.  **Request:** Ensure the summary offer () has the exact same detail level options. (Completed)
+3.  **Bug Report:** A long customer name breaks the layout in the exported PDF offer. (Completed)
+4.  **Request:** Fix the same layout bug in the summary offer PDF. (Completed)
+5.  **Feedback:** Optimize the PDF header layout to use space more efficiently. (Completed)
+6.  **Request:** Hide the Emergent badge. (Completed)
+7.  **Feature Idea:** Proposes an AI tool to automatically detect rooms from a floor plan. (In Progress)
+8.  **Confirmation:** Agrees to the AI tool using SAM and asks about the effort. (In Progress)
+9.  **Approval:** Approves the plan to build the AI feature. . (In Progress)
+10. **Critical Instruction:** User reported the AI feature is not working and asks the agent to get the feature fully working before providing an update. . (This is the current mandate).
 
 **Project Health Check:**
-- **Broken:** The Rakennus presets have inconsistent behavior, allowing configuration in two different places, which can lead to incorrect calculations. This is the current P0 task to fix.
+- **Broken:** The new AI Room Detection feature is incomplete and not functional due to an incorrect API call.
 - **Mocked:** None.
 
 **3rd Party Integrations**
-- **:** For rendering PDF files. The worker script is now loaded from a  CDN to ensure it works on custom domains.
-- **:** For generating PDF documents (offers).
-- **:** A  plugin for creating tables within PDFs.
+- **:** For rendering PDF files.
+- ** / :** For generating PDF documents (offers).
+- **:** For AI-powered image segmentation (Segment Anything Model). Requires a User API Key () which has been provided and is in .
 
 **Testing status**
-- **Testing agent used after significant changes:** YES (used for Koontitarjous and Maksuerätaulukko).
+- **Testing agent used after significant changes:** YES (used multiple times for bug fixes and feature completion).
 - **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None, but a comprehensive in-app QA suite was built at .
+- **Test files created:** None.
 - **Known regressions:** None.
 
 **Credentials to test flow:**
-N/A
+The  key is in . The format is .
 
 **What agent forgot to execute**
-- The agent was about to begin the implementation for unifying Rakennus type options, which is the user's latest request.
-- The agent did not perform a live UI test to confirm or deny the user's report of desynchronized totals in the  panel, instead only reviewing the code. This should be explicitly tested.</analysis>
+- The agent was in the middle of debugging the AI feature and hadn't yet corrected the fundamental issue with the API payload format it had just discovered. The next immediate action is to implement that correction.</analysis>
