@@ -9,16 +9,8 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
-import fal_client
-
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-
-# Set FAL_KEY for fal_client
-fal_key = os.environ.get('FAL_KEY', '')
-if fal_key:
-    os.environ["FAL_KEY"] = fal_key
 
 # Configure logging first
 logging.basicConfig(
@@ -146,154 +138,78 @@ async def get_status_checks():
         return []
 
 
-# ==================== SAM SEGMENTATION ENDPOINTS ====================
+# ==================== PRODUCTIVITY RATES ENDPOINTS ====================
+# Used for Work Schedule Generator feature
 
-class SAMSegmentRequest(BaseModel):
-    """Request for SAM segmentation - image as base64 data URL"""
-    image_data: str  # base64 data URL (data:image/png;base64,...)
+# Default productivity rates based on "maalaus TES" standards
+DEFAULT_PRODUCTIVITY_RATES = [
+    # Maalaus ja tasoitus (m²)
+    {"id": "prod-1", "name": "Huoltomaalaus", "rate": 15.0, "unit": "m²/h", "category": "Maalaus"},
+    {"id": "prod-2", "name": "Kipsiseinä tasoitus ja maalaus", "rate": 8.0, "unit": "m²/h", "category": "Maalaus"},
+    {"id": "prod-3", "name": "Verkkotus, tasoitus ja maalaus", "rate": 5.0, "unit": "m²/h", "category": "Maalaus"},
+    {"id": "prod-4", "name": "Tapetointi", "rate": 6.0, "unit": "m²/h", "category": "Maalaus"},
+    {"id": "prod-5", "name": "Mikrotsementi", "rate": 3.0, "unit": "m²/h", "category": "Maalaus"},
     
-class SAMPointRequest(BaseModel):
-    """Request for SAM point-based segmentation"""
-    image_data: str  # base64 data URL
-    point_x: float  # Normalized x coordinate (0-1)
-    point_y: float  # Normalized y coordinate (0-1)
-    image_width: int  # Actual canvas pixel width
-    image_height: int  # Actual canvas pixel height
-
-class SAMSegmentResponse(BaseModel):
-    """Response with segmentation masks"""
-    success: bool
-    masks: Optional[List[dict]] = None  # List of masks with coordinates
-    error: Optional[str] = None
-
-@api_router.post("/sam/segment-all", response_model=SAMSegmentResponse)
-async def sam_segment_all(request: SAMSegmentRequest):
-    """
-    Segment all objects in an image using SAM 3.
-    Returns all detected masks/regions.
-    """
-    if not fal_key:
-        raise HTTPException(status_code=500, detail="FAL_KEY not configured")
+    # Katto (m²)
+    {"id": "prod-6", "name": "Kipsikatto tasoitus ja maalaus", "rate": 7.0, "unit": "m²/h", "category": "Katto"},
+    {"id": "prod-7", "name": "MT Kipsikatto tasoitus ja maalaus", "rate": 5.0, "unit": "m²/h", "category": "Katto"},
+    {"id": "prod-8", "name": "AK huoltomaalaus", "rate": 12.0, "unit": "m²/h", "category": "Katto"},
+    {"id": "prod-9", "name": "Katto verkotus, tasoitus ja maalaus", "rate": 4.0, "unit": "m²/h", "category": "Katto"},
     
+    # Lattia (m²)
+    {"id": "prod-10", "name": "Pölysidonta", "rate": 40.0, "unit": "m²/h", "category": "Lattia"},
+    {"id": "prod-11", "name": "Lattiamaalaus/lakkaus", "rate": 10.0, "unit": "m²/h", "category": "Lattia"},
+    {"id": "prod-12", "name": "Lattiapinnoitus", "rate": 4.0, "unit": "m²/h", "category": "Lattia"},
+    
+    # Rakennus (m²)
+    {"id": "prod-13", "name": "Kipsiseinä rakennus", "rate": 4.0, "unit": "m²/h", "category": "Rakennus"},
+    {"id": "prod-14", "name": "Alakatto rakennus", "rate": 3.5, "unit": "m²/h", "category": "Rakennus"},
+    
+    # Kotelot (jm)
+    {"id": "prod-15", "name": "Kotelo rakennus", "rate": 3.0, "unit": "jm/h", "category": "Kotelot"},
+    {"id": "prod-16", "name": "Kotelo tasoitus ja maalaus", "rate": 4.0, "unit": "jm/h", "category": "Kotelot"},
+    
+    # Ovet ja ikkunat (kpl)
+    {"id": "prod-17", "name": "Oven maalaus yheltä puolelta", "rate": 2.0, "unit": "kpl/h", "category": "Ovet"},
+    {"id": "prod-18", "name": "Oven maalaus molemmilta puolelta", "rate": 1.0, "unit": "kpl/h", "category": "Ovet"},
+    {"id": "prod-19", "name": "Ikkunan maalaus", "rate": 1.5, "unit": "kpl/h", "category": "Ovet"},
+    
+    # Pystykotelot (kpl)
+    {"id": "prod-20", "name": "Pystykotelo rakennus", "rate": 1.5, "unit": "kpl/h", "category": "Pystykotelot"},
+    {"id": "prod-21", "name": "Pystykotelot tasoitus ja maalaus", "rate": 2.0, "unit": "kpl/h", "category": "Pystykotelot"},
+]
+
+@api_router.get("/presets/productivity")
+async def get_productivity_rates():
+    """Get productivity rates from MongoDB or return defaults"""
+    database = await get_database()
+    if database is not None:
+        try:
+            doc = await database.presets.find_one({"type": "productivity"}, {"_id": 0})
+            if doc and "data" in doc:
+                return {"rates": doc["data"]}
+        except Exception as e:
+            logger.error(f"Failed to load productivity rates: {e}")
+    return {"rates": DEFAULT_PRODUCTIVITY_RATES}
+
+
+@api_router.put("/presets/productivity")
+async def save_productivity_rates(body: dict):
+    """Save productivity rates to MongoDB"""
+    database = await get_database()
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database not available")
     try:
-        logger.info("Starting SAM segmentation...")
-        
-        # Call fal.ai SAM 3 endpoint
-        result = await fal_client.run_async(
-            "fal-ai/sam-3/image",
-            arguments={
-                "image_url": request.image_data,  # fal.ai accepts data URLs
-                "generate_masks": True,
-            }
+        rates_data = body.get("rates", [])
+        await database.presets.update_one(
+            {"type": "productivity"},
+            {"$set": {"type": "productivity", "data": rates_data, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True
         )
-        
-        logger.info(f"SAM result: {result}")
-        
-        # Extract masks from result
-        masks = []
-        if result and "masks" in result:
-            for i, mask in enumerate(result["masks"]):
-                masks.append({
-                    "id": i,
-                    "mask_url": mask.get("url", ""),
-                    "bbox": mask.get("bbox", []),  # [x, y, width, height]
-                    "area": mask.get("area", 0),
-                })
-        
-        return SAMSegmentResponse(success=True, masks=masks)
-        
+        return {"success": True}
     except Exception as e:
-        logger.error(f"SAM segmentation failed: {e}")
-        return SAMSegmentResponse(success=False, error=str(e))
-
-@api_router.post("/sam/segment-point", response_model=SAMSegmentResponse)
-async def sam_segment_point(request: SAMPointRequest):
-    """
-    Segment object at a specific point using SAM 3.
-    User clicks on a point, SAM returns the mask for that region.
-    """
-    if not fal_key:
-        raise HTTPException(status_code=500, detail="FAL_KEY not configured")
-    
-    try:
-        # Convert normalized (0-1) to actual pixel coordinates
-        pixel_x = int(request.point_x * request.image_width)
-        pixel_y = int(request.point_y * request.image_height)
-        
-        logger.info(f"SAM point seg: normalized ({request.point_x:.3f}, {request.point_y:.3f}) -> pixel ({pixel_x}, {pixel_y}) on {request.image_width}x{request.image_height}")
-        
-        result = await fal_client.run_async(
-            "fal-ai/sam-3/image",
-            arguments={
-                "image_url": request.image_data,
-                "point_prompts": [
-                    {"x": pixel_x, "y": pixel_y, "label": 1}
-                ],
-                "apply_mask": True,
-                "include_scores": True,
-                "include_boxes": True,
-                "return_multiple_masks": True,
-                "max_masks": 3,
-            }
-        )
-        
-        logger.info(f"SAM result keys: {list(result.keys()) if result else 'None'}")
-        
-        masks = []
-        if result:
-            masks_list = result.get("masks") or []
-            metadata_list = result.get("metadata") or []
-            scores_list = result.get("scores") or []
-            boxes_list = result.get("boxes") or []
-            
-            logger.info(f"Processing {len(masks_list)} masks, {len(metadata_list)} metadata, {len(scores_list)} scores, {len(boxes_list)} boxes")
-            
-            for i, mask in enumerate(masks_list):
-                mask_url = mask.get("url", "") if isinstance(mask, dict) else str(mask)
-                mask_w = mask.get("width", 0) if isinstance(mask, dict) else 0
-                mask_h = mask.get("height", 0) if isinstance(mask, dict) else 0
-                
-                # Get bbox: prefer metadata.box, fallback to boxes list
-                # Format: [cx, cy, w, h] normalized (0-1)
-                bbox = []
-                if i < len(metadata_list) and metadata_list[i]:
-                    bbox = metadata_list[i].get("box", [])
-                if not bbox and i < len(boxes_list) and boxes_list[i]:
-                    bbox = boxes_list[i]
-                
-                # Get score: prefer metadata.score, fallback to scores list
-                score = 0.0
-                if i < len(metadata_list) and metadata_list[i]:
-                    score = metadata_list[i].get("score", 0) or 0
-                if score == 0 and i < len(scores_list):
-                    score = scores_list[i] or 0
-                
-                # Area from normalized bbox [cx, cy, w, h]
-                area = (bbox[2] * bbox[3]) if len(bbox) >= 4 else 0
-                
-                mask_data = {
-                    "id": i,
-                    "mask_url": mask_url,
-                    "bbox": bbox,
-                    "area": area,
-                    "score": score,
-                    "mask_width": mask_w,
-                    "mask_height": mask_h,
-                }
-                masks.append(mask_data)
-                logger.info(f"Mask {i}: score={score:.3f}, bbox={bbox}, area={area:.4f}, url={mask_url[:80] if mask_url else 'None'}")
-            
-            # Sort by score descending so best mask is first
-            masks.sort(key=lambda m: m.get("score", 0), reverse=True)
-        
-        logger.info(f"Returning {len(masks)} masks")
-        return SAMSegmentResponse(success=True, masks=masks)
-        
-    except Exception as e:
-        logger.error(f"SAM point segmentation failed: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        return SAMSegmentResponse(success=False, error=str(e))
+        logger.error(f"Failed to save productivity rates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==================== PRESET ENDPOINTS ====================

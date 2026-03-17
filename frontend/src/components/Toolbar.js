@@ -21,7 +21,8 @@ import {
   Calculator,
   MoreHorizontal,
   ChevronDown,
-  Settings
+  Settings,
+  Calendar
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +48,7 @@ export const Toolbar = ({
   onCreateKoontitarjous,
   onCreateKoontiMaaralaskenta,
   onOpenMaksuerataulukko,
+  onOpenWorkSchedule,
   onOpenSettings,
   currentTool,
   onToolSelect,
@@ -94,6 +96,12 @@ export const Toolbar = ({
 
   // Secondary actions for overflow menu
   const secondaryActions = [
+    { 
+      label: 'Töögraafik', 
+      icon: Calendar, 
+      onClick: onOpenWorkSchedule,
+      testId: 'menu-work-schedule'
+    },
     { 
       label: 'Koontitarjous', 
       icon: Layers, 

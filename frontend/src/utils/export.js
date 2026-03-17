@@ -1473,3 +1473,195 @@ export const exportKoontiMaaralaskentaPDF = (data) => {
   // Save
   doc.save(`koonti_maaralaskenta_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`);
 };
+
+
+
+// ==================== WORK SCHEDULE PDF ====================
+// Generates a work schedule estimate based on measurements and productivity rates
+export const exportWorkSchedulePDF = (data) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
+  
+  const { projectName, scheduleRows, totals, workerCount, hoursPerDay } = data;
+  
+  let yPos = MARGIN_TOP;
+  
+  // ==================== HEADER ====================
+  try {
+    const logoWidth = 55;
+    const logoHeight = 14;
+    doc.addImage(companyLogo, 'PNG', MARGIN_LEFT, yPos, logoWidth, logoHeight);
+  } catch (e) {
+    doc.setFontSize(18);
+    doc.setTextColor(...BRAND_TEAL);
+    doc.setFont('helvetica', 'bold');
+    doc.text('J&B', MARGIN_LEFT, yPos + 10);
+  }
+  
+  // Company info (right)
+  doc.setFontSize(9);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(COMPANY.name, pageWidth - MARGIN_RIGHT, yPos + 3, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text(COMPANY.phone, pageWidth - MARGIN_RIGHT, yPos + 8, { align: 'right' });
+  doc.text(COMPANY.email, pageWidth - MARGIN_RIGHT, yPos + 13, { align: 'right' });
+  
+  yPos += 25;
+  
+  // Header line
+  doc.setDrawColor(...BRAND_TEAL);
+  doc.setLineWidth(0.8);
+  doc.line(MARGIN_LEFT, yPos, pageWidth - MARGIN_RIGHT, yPos);
+  
+  yPos += 12;
+  
+  // ==================== TITLE ====================
+  doc.setFontSize(22);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TÖÖGRAAFIK', MARGIN_LEFT, yPos);
+  
+  doc.setFontSize(10);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}`, pageWidth - MARGIN_RIGHT, yPos - 5, { align: 'right' });
+  
+  yPos += 12;
+  
+  // ==================== PROJECT INFO ====================
+  doc.setFillColor(...BRAND_LIGHT);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 25, 2, 2, 'F');
+  
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Projekti:', MARGIN_LEFT + 5, yPos + 8);
+  doc.setTextColor(...BRAND_DARK);
+  doc.setFont('helvetica', 'bold');
+  doc.text(projectName, MARGIN_LEFT + 30, yPos + 8);
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text('Työntekijät:', MARGIN_LEFT + 5, yPos + 18);
+  doc.setTextColor(...BRAND_DARK);
+  doc.text(`${workerCount} hlö`, MARGIN_LEFT + 35, yPos + 18);
+  
+  doc.setTextColor(100, 100, 100);
+  doc.text('Työpäivä:', MARGIN_LEFT + 70, yPos + 18);
+  doc.setTextColor(...BRAND_DARK);
+  doc.text(`${hoursPerDay} h`, MARGIN_LEFT + 100, yPos + 18);
+  
+  yPos += 35;
+  
+  // ==================== SCHEDULE TABLE ====================
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.text('Työvaiheet', MARGIN_LEFT, yPos);
+  
+  yPos += 5;
+  
+  const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit', 'Päivät']];
+  const tableData = scheduleRows.map(row => [
+    row.label,
+    `${formatNumber(row.totalQuantity)} ${row.unit}`,
+    `${formatNumber(row.productivityRate, 1)} ${row.productivityUnit}`,
+    `${formatNumber(row.hoursTotal, 1)} h`,
+    `${formatNumber(row.daysPerWorker, 1)} pv`
+  ]);
+  
+  autoTable(doc, {
+    startY: yPos,
+    head: tableHead,
+    body: tableData,
+    styles: { 
+      fontSize: 9,
+      cellPadding: 4,
+      textColor: BRAND_DARK,
+      lineColor: [220, 220, 220],
+      lineWidth: 0.1
+    },
+    headStyles: { 
+      fillColor: BRAND_TEAL,
+      textColor: 255,
+      fontStyle: 'bold',
+      fontSize: 9
+    },
+    alternateRowStyles: {
+      fillColor: [250, 251, 252]
+    },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'right', cellWidth: 30 },
+      2: { halign: 'right', cellWidth: 30 },
+      3: { halign: 'right', cellWidth: 25 },
+      4: { halign: 'right', cellWidth: 25 }
+    },
+    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
+  });
+  
+  yPos = doc.lastAutoTable.finalY + 15;
+  
+  // ==================== TOTALS ====================
+  yPos = checkPageBreak(doc, yPos, 50, pageHeight);
+  
+  doc.setFillColor(...BRAND_TEAL);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 45, 2, 2, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('YHTEENVETO', MARGIN_LEFT + 10, yPos + 10);
+  
+  // 4-column layout for totals
+  const colWidth = contentWidth / 4;
+  const totY = yPos + 25;
+  
+  doc.setFontSize(16);
+  doc.text(formatNumber(totals.totalHours, 0), MARGIN_LEFT + colWidth * 0.5, totY, { align: 'center' });
+  doc.text(formatNumber(totals.totalHoursPerWorker, 0), MARGIN_LEFT + colWidth * 1.5, totY, { align: 'center' });
+  doc.text(formatNumber(totals.totalDays, 1), MARGIN_LEFT + colWidth * 2.5, totY, { align: 'center' });
+  doc.text(formatNumber(totals.totalWeeks, 1), MARGIN_LEFT + colWidth * 3.5, totY, { align: 'center' });
+  
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('tuntia yht.', MARGIN_LEFT + colWidth * 0.5, totY + 8, { align: 'center' });
+  doc.text('h / työntekijä', MARGIN_LEFT + colWidth * 1.5, totY + 8, { align: 'center' });
+  doc.text(`työpäivää (${workerCount} hlö)`, MARGIN_LEFT + colWidth * 2.5, totY + 8, { align: 'center' });
+  doc.text('viikkoa', MARGIN_LEFT + colWidth * 3.5, totY + 8, { align: 'center' });
+  
+  yPos += 55;
+  
+  // ==================== NOTE ====================
+  yPos = checkPageBreak(doc, yPos, 30, pageHeight);
+  
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'italic');
+  const noteText = 'Huom: Arvio perustuu maalaus TES:n mukaisiin tuottavuusmääriin. Todellinen aika voi vaihdella kohteen olosuhteiden mukaan.';
+  const noteLines = doc.splitTextToSize(noteText, contentWidth);
+  noteLines.forEach(line => {
+    doc.text(line, MARGIN_LEFT, yPos);
+    yPos += 4;
+  });
+  
+  // ==================== FOOTER ====================
+  const footerY = pageHeight - 20;
+  
+  doc.setDrawColor(...BRAND_TEAL);
+  doc.setLineWidth(0.3);
+  doc.line(MARGIN_LEFT, footerY - 8, pageWidth - MARGIN_RIGHT, footerY - 8);
+  
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.text(COMPANY.name, MARGIN_LEFT, footerY);
+  doc.text(`Sivu 1 / 1`, pageWidth - MARGIN_RIGHT, footerY, { align: 'right' });
+  
+  // Save
+  const fileName = `Töögraafik_${projectName?.replace(/\s+/g, '_') || 'projekti'}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`;
+  doc.save(fileName);
+};

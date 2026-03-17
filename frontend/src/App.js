@@ -11,6 +11,7 @@ import { CalibrateDialog } from '@/components/CalibrateDialog';
 import { TarjousDialog } from '@/components/TarjousDialog';
 import { KoontitarjousDialog } from '@/components/KoontitarjousDialog';
 import { KoontiMaaralaskentaDialog } from '@/components/KoontiMaaralaskentaDialog';
+import { WorkScheduleDialog } from '@/components/WorkScheduleDialog';
 import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
@@ -67,6 +68,7 @@ function App() {
   const [koontiMaaralaskentaDialogOpen, setKoontiMaaralaskentaDialogOpen] = useState(false);
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [workScheduleDialogOpen, setWorkScheduleDialogOpen] = useState(false);
   const [customToolPresets, setCustomToolPresets] = useState(null);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
@@ -751,6 +753,7 @@ function App() {
         onCreateKoontitarjous={() => setKoontitarjousDialogOpen(true)}
         onCreateKoontiMaaralaskenta={() => setKoontiMaaralaskentaDialogOpen(true)}
         onOpenMaksuerataulukko={() => setCurrentView('maksuerataulukko')}
+        onOpenWorkSchedule={() => setWorkScheduleDialogOpen(true)}
         onOpenSettings={() => setSettingsDialogOpen(true)}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
@@ -987,6 +990,14 @@ function App() {
         onPresetsChange={(newToolPresets) => {
           setCustomToolPresets(newToolPresets);
         }}
+      />
+
+      {/* Work Schedule Dialog */}
+      <WorkScheduleDialog
+        open={workScheduleDialogOpen}
+        onClose={() => setWorkScheduleDialogOpen(false)}
+        measurements={measurements}
+        projectName={project.name}
       />
     </div>
   );
