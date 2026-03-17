@@ -341,6 +341,60 @@ function App() {
     toast.success(`Jalkalista maalaus lisätty: ${wallMeasurement.quantity.toFixed(2)} jm`);
   };
 
+  // Add jalkalistat to ALL wall measurements that don't have one yet
+  const handleAddJalkalistaAll = () => {
+    const wallMeasurements = measurements.filter(m => m.type === 'wall');
+    if (wallMeasurements.length === 0) {
+      toast.error('Ei seinämittauksia');
+      return;
+    }
+    // Check which walls already have jalkalistat (match by points/page)
+    const existingJalkalistat = measurements.filter(m => m.label === 'Jalkalista maalaus');
+    const wallsWithoutJalkalistat = wallMeasurements.filter(wall => {
+      return !existingJalkalistat.some(j => 
+        j.page === wall.page && j.quantity === wall.quantity
+      );
+    });
+    
+    if (wallsWithoutJalkalistat.length === 0) {
+      toast.info('Kaikilla seinillä on jo jalkalistat');
+      return;
+    }
+    
+    saveToUndoStack();
+    const newJalkalistat = wallsWithoutJalkalistat.map((wall, i) => ({
+      id: `measurement-${Date.now()}-jl-${i}`,
+      type: 'line',
+      label: 'Jalkalista maalaus',
+      quantity: wall.quantity,
+      unit: 'jm',
+      pricePerUnit: 5,
+      page: wall.page,
+      points: wall.points || []
+    }));
+    setMeasurements(prev => [...prev, ...newJalkalistat]);
+    toast.success(`Jalkalistat lisätty ${wallsWithoutJalkalistat.length} seinälle`);
+  };
+
+  // Update all measurements with a given label (bulk edit from summary)
+  const handleUpdateByLabel = (label, updates) => {
+    saveToUndoStack();
+    setMeasurements(prev => prev.map(m => {
+      if (m.label === label) {
+        const newData = { ...m };
+        if (updates.label !== undefined && updates.label !== label) {
+          newData.label = updates.label;
+        }
+        if (updates.pricePerUnit !== undefined) {
+          newData.pricePerUnit = updates.pricePerUnit;
+        }
+        return newData;
+      }
+      return m;
+    }));
+    toast.success(`Päivitetty kaikki "${label}" mittaukset`);
+  };
+
   const handleDeleteCurrentPage = () => {
     if (measurements.filter(m => m.page === currentPage).length === 0) {
       toast.error('Ei mittauksia tällä sivulla');
@@ -819,9 +873,11 @@ function App() {
                 <TakeoffPanel
                   measurements={measurements}
                   onUpdate={handleUpdateMeasurement}
+                  onUpdateByLabel={handleUpdateByLabel}
                   onDelete={handleDeleteMeasurement}
                   onCopy={handleCopyMeasurement}
                   onAddJalkalista={handleAddJalkalista}
+                  onAddJalkalistaAll={handleAddJalkalistaAll}
                   settings={settings}
                   selectedMeasurementId={selectedMeasurementId}
                   onMeasurementSelect={setSelectedMeasurementId}

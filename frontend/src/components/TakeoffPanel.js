@@ -225,15 +225,19 @@ const ALL_PRESETS = {
 export const TakeoffPanel = ({ 
   measurements, 
   onUpdate, 
+  onUpdateByLabel,
   onDelete, 
   onCopy, 
-  onAddJalkalista, 
+  onAddJalkalista,
+  onAddJalkalistaAll,
   settings, 
   selectedMeasurementId, 
   onMeasurementSelect
 }) => {
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
+  const [editingGroup, setEditingGroup] = useState(null);
+  const [groupEditData, setGroupEditData] = useState({});
   const containerRef = useRef(null);
 
   const startEdit = (measurement) => {
@@ -250,6 +254,25 @@ export const TakeoffPanel = ({
   const cancelEdit = () => {
     setEditingId(null);
     setEditData({});
+  };
+
+  // Group editing - edit all measurements with same label
+  const startGroupEdit = (groupKey, groupData) => {
+    setEditingGroup(groupKey);
+    setGroupEditData({ label: groupData.label, pricePerUnit: groupData.pricePerUnit });
+  };
+
+  const saveGroupEdit = () => {
+    if (editingGroup && onUpdateByLabel) {
+      onUpdateByLabel(editingGroup, groupEditData);
+    }
+    setEditingGroup(null);
+    setGroupEditData({});
+  };
+
+  const cancelGroupEdit = () => {
+    setEditingGroup(null);
+    setGroupEditData({});
   };
 
   // Simple calculation: quantity * price
@@ -333,6 +356,20 @@ export const TakeoffPanel = ({
           <h2 className="text-lg font-semibold">Määrälaskenta</h2>
           <p className="text-sm text-gray-500">{measurements.length} mittausta</p>
         </div>
+        {/* Add jalkalistat to all walls button */}
+        {measurements.some(m => m.type === 'wall') && onAddJalkalistaAll && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onAddJalkalistaAll}
+            className="text-xs border-green-300 text-green-700 hover:bg-green-50"
+            data-testid="add-jalkalistat-all-btn"
+            title="Lisää jalkalista maalaus kaikille seinille"
+          >
+            <Footprints className="h-3.5 w-3.5 mr-1" />
+            Jalkalistat kaikille
+          </Button>
+        )}
       </div>
 
       <ScrollArea className="flex-1">
@@ -641,21 +678,57 @@ export const TakeoffPanel = ({
         )}
       </ScrollArea>
 
-      {/* Grouped Summary */}
+      {/* Grouped Summary - Editable */}
       {measurements.length > 0 && groupedArray.length > 0 && (
         <div className="border-t border-gray-200 pt-3 mt-3">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Yhteenveto tyypeittäin</h3>
           <div className="space-y-1 max-h-40 overflow-y-auto">
-            {groupedArray.map((group, idx) => (
-              <div key={idx} className="flex justify-between text-xs bg-gray-50 rounded px-2 py-1">
-                <span className="truncate flex-1 mr-2">
-                  {group.label} 
-                  {group.count > 1 && <span className="text-gray-400 ml-1">({group.count})</span>}
-                </span>
-                <span className="text-gray-600 mr-2">{formatNumber(group.totalQuantity)} {group.unit}</span>
-                <span className="font-medium">{formatNumber(group.totalCost)} €</span>
-              </div>
-            ))}
+            {groupedArray.map((group, idx) => {
+              const isGroupEditing = editingGroup === group.label;
+              
+              return isGroupEditing ? (
+                <div key={idx} className="flex items-center gap-1 text-xs bg-blue-50 rounded px-2 py-1.5" data-testid={`summary-row-${idx}`}>
+                  <Input
+                    value={groupEditData.label || ''}
+                    onChange={(e) => setGroupEditData(prev => ({ ...prev, label: e.target.value }))}
+                    className="h-6 text-xs flex-1"
+                    data-testid={`group-edit-label-${idx}`}
+                  />
+                  <span className="text-gray-400 mx-1">{formatNumber(group.totalQuantity)} {group.unit}</span>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    value={groupEditData.pricePerUnit || ''}
+                    onChange={(e) => setGroupEditData(prev => ({ ...prev, pricePerUnit: parseFloat(e.target.value) || 0 }))}
+                    className="h-6 text-xs w-16"
+                    data-testid={`group-edit-price-${idx}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveGroupEdit();
+                      if (e.key === 'Escape') cancelGroupEdit();
+                    }}
+                  />
+                  <span className="text-gray-400">€</span>
+                  <Button size="sm" variant="ghost" onClick={saveGroupEdit} className="h-5 w-5 p-0 text-green-600" data-testid={`group-save-${idx}`}>
+                    <Check className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={cancelGroupEdit} className="h-5 w-5 p-0 text-red-500">
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div key={idx} className="flex justify-between text-xs bg-gray-50 rounded px-2 py-1 group cursor-pointer hover:bg-gray-100" 
+                     data-testid={`summary-row-${idx}`}
+                     onClick={() => startGroupEdit(group.label, group)}>
+                  <span className="truncate flex-1 mr-2">
+                    {group.label} 
+                    {group.count > 1 && <span className="text-gray-400 ml-1">({group.count})</span>}
+                  </span>
+                  <span className="text-gray-600 mr-2">{formatNumber(group.totalQuantity)} {group.unit}</span>
+                  <span className="font-medium mr-1">{formatNumber(group.totalCost)} €</span>
+                  <Edit2 className="h-3 w-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-0.5" />
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
