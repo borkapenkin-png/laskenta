@@ -4,28 +4,78 @@ import { toast } from 'sonner';
 
 // ==================== FLOOD FILL ROOM DETECTOR ====================
 // Detects enclosed rooms in floor plans using flood fill algorithm.
-// User clicks inside a room → algorithm finds the enclosed area bounded by walls.
+// Uses wall dilation to close door gaps before filling.
 
-const WALL_THRESHOLD = 160; // Pixels darker than this are walls (0=black, 255=white)
-const MAX_FILL_RATIO = 0.40; // If fill > 40% of image, it leaked out
+const WALL_THRESHOLD = 160; // Pixels darker than this are walls
+const MAX_FILL_RATIO = 0.35; // If fill > 35% of image, it leaked out
+const GAP_CLOSE_RADIUS = 8;  // Dilate walls by this many pixels to close door gaps
 
-// Scanline flood fill - efficient for large canvases
-function floodFillDetect(imageData, width, height, startX, startY) {
-  const data = imageData.data; // RGBA array
+// Build a wall map with dilation to close small gaps (doorways)
+function buildWallMap(imageData, width, height, radius) {
+  const data = imageData.data;
+  const wallMap = new Uint8Array(width * height);
+  
+  // Step 1: Mark original wall pixels
+  const origWall = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+      if (brightness < WALL_THRESHOLD) {
+        origWall[y * width + x] = 1;
+      }
+    }
+  }
+  
+  // Step 2: Horizontal dilation (expand walls left/right by radius)
+  const wallH = new Uint8Array(width * height);
+  for (let y = 0; y < height; y++) {
+    // Use running count for O(width) per row
+    let count = 0;
+    // Initialize window for first pixel
+    for (let dx = 0; dx <= radius && dx < width; dx++) {
+      if (origWall[y * width + dx]) count++;
+    }
+    if (count > 0) wallH[y * width] = 1;
+    
+    for (let x = 1; x < width; x++) {
+      // Add right edge of window
+      const addX = x + radius;
+      if (addX < width && origWall[y * width + addX]) count++;
+      // Remove left edge of window
+      const remX = x - radius - 1;
+      if (remX >= 0 && origWall[y * width + remX]) count--;
+      if (count > 0) wallH[y * width + x] = 1;
+    }
+  }
+  
+  // Step 3: Vertical dilation of horizontal result
+  for (let x = 0; x < width; x++) {
+    let count = 0;
+    for (let dy = 0; dy <= radius && dy < height; dy++) {
+      if (wallH[dy * width + x]) count++;
+    }
+    if (count > 0) wallMap[x] = 1;
+    
+    for (let y = 1; y < height; y++) {
+      const addY = y + radius;
+      if (addY < height && wallH[addY * width + x]) count++;
+      const remY = y - radius - 1;
+      if (remY >= 0 && wallH[remY * width + x]) count--;
+      if (count > 0) wallMap[y * width + x] = 1;
+    }
+  }
+  
+  return wallMap;
+}
+
+// Flood fill using pre-computed wall map
+function floodFillDetect(wallMap, width, height, startX, startY) {
   const visited = new Uint8Array(width * height);
-  const filled = [];
   
-  // Check if a pixel is a wall (dark pixel)
-  const isWall = (x, y) => {
-    const idx = (y * width + x) * 4;
-    const r = data[idx], g = data[idx + 1], b = data[idx + 2];
-    const brightness = (r + g + b) / 3;
-    return brightness < WALL_THRESHOLD;
-  };
-  
-  // Check if starting pixel is on a wall
-  if (isWall(startX, startY)) {
-    return null; // Clicked on a wall line
+  // Check if starting pixel is on a dilated wall
+  if (wallMap[startY * width + startX]) {
+    return null; // Clicked on a wall
   }
   
   const maxPixels = width * height * MAX_FILL_RATIO;
@@ -39,31 +89,27 @@ function floodFillDetect(imageData, width, height, startX, startY) {
     if (x < 0 || x >= width || y < 0 || y >= height) continue;
     const idx = y * width + x;
     if (visited[idx]) continue;
-    if (isWall(x, y)) continue;
+    if (wallMap[idx]) continue;
     
     visited[idx] = 1;
-    filled.push([x, y]);
     pixelCount++;
     
-    // Track bounding box
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
     if (y < minY) minY = y;
     if (y > maxY) maxY = y;
     
-    // Leak detection
     if (pixelCount > maxPixels) {
-      return null; // Leaked out - area too large
+      return null; // Leaked out
     }
     
-    // Push neighbors (4-connected)
     stack.push([x + 1, y]);
     stack.push([x - 1, y]);
     stack.push([x, y + 1]);
     stack.push([x, y - 1]);
   }
   
-  if (pixelCount < 100) return null; // Too small to be a room
+  if (pixelCount < 100) return null; // Too small
   
   return {
     pixelCount,
@@ -144,13 +190,20 @@ export const RoomDetector = ({
     
     console.log(`Click at canvas pixel (${canvasX}, ${canvasY}), canvas ${canvas.width}x${canvas.height}`);
     
-    // Use requestAnimationFrame to not block the UI
-    requestAnimationFrame(() => {
+    // Use setTimeout to not block the UI during heavy computation
+    setTimeout(() => {
       try {
         const ctx = canvas.getContext('2d');
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         
-        const result = floodFillDetect(imageData, canvas.width, canvas.height, canvasX, canvasY);
+        // Build wall map with gap closing (closes door openings)
+        console.time('wallMap');
+        const wallMap = buildWallMap(imageData, canvas.width, canvas.height, GAP_CLOSE_RADIUS);
+        console.timeEnd('wallMap');
+        
+        console.time('floodFill');
+        const result = floodFillDetect(wallMap, canvas.width, canvas.height, canvasX, canvasY);
+        console.timeEnd('floodFill');
         
         if (!result) {
           toast.warning('Ei löytynyt huonetta. Klikkaa tyhjän alueen keskelle (ei seinän tai tekstin päälle).');
@@ -200,7 +253,7 @@ export const RoomDetector = ({
       } finally {
         setIsProcessing(false);
       }
-    });
+    }, 10);
   }, [isActive, isProcessing, pdfCanvasRef, scale, zoom, currentPage, onRoomDetected]);
 
   if (!isActive) return null;
