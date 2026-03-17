@@ -43,8 +43,8 @@ export const RoomDetector = ({
     
     const canvas = pdfCanvasRef.current;
     console.log('Canvas size:', canvas.width, 'x', canvas.height);
-    // Convert canvas to base64 data URL
-    return canvas.toDataURL('image/png');
+    // Use JPEG to reduce payload size (PNG can be 10x larger)
+    return canvas.toDataURL('image/jpeg', 0.85);
   }, [pdfCanvasRef]);
 
   // Handle click on overlay to detect room at point
@@ -62,11 +62,11 @@ export const RoomDetector = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Normalize to 0-1 range
+    // Normalize to 0-1 range based on displayed size
     const normalizedX = x / rect.width;
     const normalizedY = y / rect.height;
     
-    console.log(`Click at screen (${x}, ${y}), normalized (${normalizedX.toFixed(3)}, ${normalizedY.toFixed(3)})`);
+    console.log(`Click at screen (${x}, ${y}), normalized (${normalizedX.toFixed(3)}, ${normalizedY.toFixed(3)}), canvas ${canvas.width}x${canvas.height}`);
     
     setIsProcessing(true);
     setError(null);
@@ -79,20 +79,25 @@ export const RoomDetector = ({
       }
       
       console.log('Image data length:', imageData.length);
-      toast.info('AI analysoi huonetta...', { duration: 2000 });
+      toast.info('AI analysoi huonetta...', { duration: 5000 });
       
-      // Call SAM API with point
+      // Call SAM API with point + actual canvas dimensions
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const response = await fetch(`${API_URL}/api/sam/segment-point`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image_data: imageData,
           point_x: normalizedX,
           point_y: normalizedY,
+          image_width: canvas.width,
+          image_height: canvas.height,
         }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       
       const result = await response.json();
       console.log('SAM API result:', result);
@@ -107,41 +112,30 @@ export const RoomDetector = ({
         return;
       }
       
-      // Get the first (best) mask
+      // Get the best mask (sorted by score on backend)
       const mask = result.masks[0];
-      console.log('Detected mask:', mask);
+      console.log('Best mask:', mask);
       
       setDetectedMask(mask);
       if (mask.mask_url) {
         setMaskImageUrl(mask.mask_url);
       }
       
-      // Calculate area from bbox if available
+      // Calculate area from bbox [cx, cy, w, h] normalized (0-1)
       let areaM2 = 0;
       if (mask.bbox && mask.bbox.length >= 4 && scale?.pixelsPerMeter) {
-        // bbox format: [x1, y1, x2, y2] normalized (0-1)
-        const [x1, y1, x2, y2] = mask.bbox;
-        const widthNorm = Math.abs(x2 - x1);
-        const heightNorm = Math.abs(y2 - y1);
+        const [cx, cy, bw, bh] = mask.bbox;
         
-        // Convert normalized to actual pixels
-        const widthPx = widthNorm * canvas.width;
-        const heightPx = heightNorm * canvas.height;
+        // Convert normalized dimensions to actual pixels
+        const widthPx = bw * canvas.width;
+        const heightPx = bh * canvas.height;
         
-        // Convert pixels to meters
+        // Convert pixels to meters (accounting for zoom)
         const widthM = widthPx / scale.pixelsPerMeter / zoom;
         const heightM = heightPx / scale.pixelsPerMeter / zoom;
         areaM2 = widthM * heightM;
-        console.log(`Area calc: bbox [${x1.toFixed(3)}, ${y1.toFixed(3)}, ${x2.toFixed(3)}, ${y2.toFixed(3)}]`);
+        console.log(`Area: bbox [cx=${cx.toFixed(3)}, cy=${cy.toFixed(3)}, w=${bw.toFixed(3)}, h=${bh.toFixed(3)}]`);
         console.log(`  ${widthPx.toFixed(0)}x${heightPx.toFixed(0)}px = ${widthM.toFixed(2)}x${heightM.toFixed(2)}m = ${areaM2.toFixed(2)}m²`);
-      } else if (mask.area && mask.area > 0) {
-        // area is already normalized (0-1 range representing fraction of image)
-        const totalPixels = canvas.width * canvas.height;
-        const pixelArea = mask.area * totalPixels;
-        if (scale?.pixelsPerMeter) {
-          areaM2 = pixelArea / (scale.pixelsPerMeter * scale.pixelsPerMeter) / (zoom * zoom);
-        }
-        console.log(`Area from mask.area: ${mask.area} * ${totalPixels} = ${pixelArea}px² = ${areaM2.toFixed(2)}m²`);
       }
       
       toast.success(`Huone tunnistettu! ~${areaM2.toFixed(1)} m²`);

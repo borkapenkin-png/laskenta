@@ -157,6 +157,8 @@ class SAMPointRequest(BaseModel):
     image_data: str  # base64 data URL
     point_x: float  # Normalized x coordinate (0-1)
     point_y: float  # Normalized y coordinate (0-1)
+    image_width: int  # Actual canvas pixel width
+    image_height: int  # Actual canvas pixel height
 
 class SAMSegmentResponse(BaseModel):
     """Response with segmentation masks"""
@@ -214,43 +216,29 @@ async def sam_segment_point(request: SAMPointRequest):
         raise HTTPException(status_code=500, detail="FAL_KEY not configured")
     
     try:
-        logger.info(f"Starting SAM point segmentation at ({request.point_x}, {request.point_y})...")
+        # Convert normalized (0-1) to actual pixel coordinates
+        pixel_x = int(request.point_x * request.image_width)
+        pixel_y = int(request.point_y * request.image_height)
         
-        # Convert normalized coordinates (0-1) to pixel coordinates
-        # SAM 3 expects integer pixel coordinates, not normalized
-        # We'll estimate based on typical image size (will be adjusted by API)
-        pixel_x = int(request.point_x * 1000)  # Assume 1000px wide
-        pixel_y = int(request.point_y * 1000)  # Assume 1000px tall
+        logger.info(f"SAM point seg: normalized ({request.point_x:.3f}, {request.point_y:.3f}) -> pixel ({pixel_x}, {pixel_y}) on {request.image_width}x{request.image_height}")
         
-        logger.info(f"Pixel coordinates: ({pixel_x}, {pixel_y})")
-        
-        # Call fal.ai SAM 3 with point prompt - CORRECT FORMAT
         result = await fal_client.run_async(
             "fal-ai/sam-3/image",
             arguments={
                 "image_url": request.image_data,
                 "point_prompts": [
-                    {
-                        "x": pixel_x,
-                        "y": pixel_y,
-                        "label": 1  # 1 = foreground
-                    }
+                    {"x": pixel_x, "y": pixel_y, "label": 1}
                 ],
-                "apply_mask": False,  # Return mask separately
+                "apply_mask": True,
                 "include_scores": True,
                 "include_boxes": True,
                 "return_multiple_masks": True,
-                "max_masks": 3
+                "max_masks": 3,
             }
         )
         
-        logger.info(f"SAM point result keys: {result.keys() if result else 'None'}")
-        logger.info(f"SAM masks count: {len(result.get('masks', []) or [])}")
-        logger.info(f"SAM metadata: {result.get('metadata')}")
-        logger.info(f"SAM scores: {result.get('scores')}")
-        logger.info(f"SAM boxes: {result.get('boxes')}")
+        logger.info(f"SAM result keys: {list(result.keys()) if result else 'None'}")
         
-        # Extract masks from result
         masks = []
         if result:
             masks_list = result.get("masks") or []
@@ -258,32 +246,30 @@ async def sam_segment_point(request: SAMPointRequest):
             scores_list = result.get("scores") or []
             boxes_list = result.get("boxes") or []
             
-            logger.info(f"Processing {len(masks_list)} masks")
+            logger.info(f"Processing {len(masks_list)} masks, {len(metadata_list)} metadata, {len(scores_list)} scores, {len(boxes_list)} boxes")
             
             for i, mask in enumerate(masks_list):
-                mask_url = mask.get("url", "") if isinstance(mask, dict) else ""
+                mask_url = mask.get("url", "") if isinstance(mask, dict) else str(mask)
+                mask_w = mask.get("width", 0) if isinstance(mask, dict) else 0
+                mask_h = mask.get("height", 0) if isinstance(mask, dict) else 0
                 
-                # Get box from metadata or boxes list
+                # Get bbox: prefer metadata.box, fallback to boxes list
+                # Format: [cx, cy, w, h] normalized (0-1)
                 bbox = []
                 if i < len(metadata_list) and metadata_list[i]:
                     bbox = metadata_list[i].get("box", [])
-                elif i < len(boxes_list) and boxes_list[i]:
+                if not bbox and i < len(boxes_list) and boxes_list[i]:
                     bbox = boxes_list[i]
                 
-                # Get score
-                score = 0
+                # Get score: prefer metadata.score, fallback to scores list
+                score = 0.0
                 if i < len(metadata_list) and metadata_list[i]:
-                    score = metadata_list[i].get("score", 0)
-                elif i < len(scores_list):
+                    score = metadata_list[i].get("score", 0) or 0
+                if score == 0 and i < len(scores_list):
                     score = scores_list[i] or 0
                 
-                # Calculate area from bbox if available
-                area = 0
-                if len(bbox) >= 4:
-                    # bbox format: [cx, cy, w, h] normalized
-                    width = bbox[2] if len(bbox) > 2 else 0
-                    height = bbox[3] if len(bbox) > 3 else 0
-                    area = width * height
+                # Area from normalized bbox [cx, cy, w, h]
+                area = (bbox[2] * bbox[3]) if len(bbox) >= 4 else 0
                 
                 mask_data = {
                     "id": i,
@@ -291,11 +277,16 @@ async def sam_segment_point(request: SAMPointRequest):
                     "bbox": bbox,
                     "area": area,
                     "score": score,
+                    "mask_width": mask_w,
+                    "mask_height": mask_h,
                 }
                 masks.append(mask_data)
-                logger.info(f"Mask {i}: url={mask_url[:50] if mask_url else 'None'}..., bbox={bbox}, score={score}, area={area}")
+                logger.info(f"Mask {i}: score={score:.3f}, bbox={bbox}, area={area:.4f}, url={mask_url[:80] if mask_url else 'None'}")
+            
+            # Sort by score descending so best mask is first
+            masks.sort(key=lambda m: m.get("score", 0), reverse=True)
         
-        logger.info(f"Final masks count: {len(masks)}")
+        logger.info(f"Returning {len(masks)} masks")
         return SAMSegmentResponse(success=True, masks=masks)
         
     except Exception as e:
