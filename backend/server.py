@@ -232,28 +232,57 @@ async def sam_segment_point(request: SAMPointRequest):
         )
         
         logger.info(f"SAM point result keys: {result.keys() if result else 'None'}")
+        logger.info(f"SAM masks count: {len(result.get('masks', []))}")
+        logger.info(f"SAM boxes count: {len(result.get('boxes', []))}")
+        logger.info(f"SAM scores: {result.get('scores', [])}")
         
-        # Extract mask from result
+        # Extract masks from result
         masks = []
         if result:
-            # SAM 3 returns different structure based on prompt
-            if "masks" in result:
+            # Check for masks array
+            if result.get("masks") and len(result["masks"]) > 0:
                 for i, mask in enumerate(result["masks"]):
-                    masks.append({
+                    mask_data = {
                         "id": i,
-                        "mask_url": mask.get("url", ""),
-                        "bbox": mask.get("bbox", []),
-                        "area": mask.get("area", 0),
-                    })
-            elif "image" in result:
-                # Single mask result
-                masks.append({
+                        "mask_url": mask.get("url", "") if isinstance(mask, dict) else str(mask),
+                        "bbox": result.get("boxes", [[]])[i] if i < len(result.get("boxes", [])) else [],
+                        "area": 0,
+                        "score": result.get("scores", [])[i] if i < len(result.get("scores", [])) else 0,
+                    }
+                    masks.append(mask_data)
+                    logger.info(f"Mask {i}: {mask_data}")
+            
+            # If masks is empty but we have boxes, create masks from boxes
+            elif result.get("boxes") and len(result["boxes"]) > 0:
+                for i, box in enumerate(result["boxes"]):
+                    mask_data = {
+                        "id": i,
+                        "mask_url": result.get("image", {}).get("url", "") if isinstance(result.get("image"), dict) else "",
+                        "bbox": box,  # [x1, y1, x2, y2] normalized
+                        "area": 0,
+                        "score": result.get("scores", [])[i] if i < len(result.get("scores", [])) else 0,
+                    }
+                    # Calculate area from bbox
+                    if len(box) >= 4:
+                        width = abs(box[2] - box[0])
+                        height = abs(box[3] - box[1])
+                        mask_data["area"] = width * height
+                    masks.append(mask_data)
+                    logger.info(f"Box-based mask {i}: {mask_data}")
+            
+            # Fallback: use main image as mask
+            elif result.get("image"):
+                mask_data = {
                     "id": 0,
-                    "mask_url": result["image"].get("url", ""),
-                    "bbox": result.get("bbox", []),
-                    "area": result.get("area", 0),
-                })
+                    "mask_url": result["image"].get("url", "") if isinstance(result["image"], dict) else "",
+                    "bbox": [],
+                    "area": 0,
+                    "score": result.get("scores", [0])[0] if result.get("scores") else 0,
+                }
+                masks.append(mask_data)
+                logger.info(f"Fallback image mask: {mask_data}")
         
+        logger.info(f"Final masks count: {len(masks)}")
         return SAMSegmentResponse(success=True, masks=masks)
         
     except Exception as e:

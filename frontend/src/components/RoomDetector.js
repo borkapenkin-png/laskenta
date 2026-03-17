@@ -102,7 +102,7 @@ export const RoomDetector = ({
       }
       
       if (!result.masks || result.masks.length === 0) {
-        toast.warning('Ei löytynyt huonetta tästä kohdasta. Klikkaa huoneen sisälle.');
+        toast.warning('Ei löytynyt huonetta tästä kohdasta. Yritä klikata selkeämmin huoneen keskelle.');
         setIsProcessing(false);
         return;
       }
@@ -118,21 +118,30 @@ export const RoomDetector = ({
       
       // Calculate area from bbox if available
       let areaM2 = 0;
-      if (mask.bbox && scale?.pixelsPerMeter) {
-        const [bx, by, bw, bh] = mask.bbox;
-        // bbox is normalized (0-1), convert to actual pixels then to meters
-        const widthPx = bw * canvas.width;
-        const heightPx = bh * canvas.height;
+      if (mask.bbox && mask.bbox.length >= 4 && scale?.pixelsPerMeter) {
+        // bbox format: [x1, y1, x2, y2] normalized (0-1)
+        const [x1, y1, x2, y2] = mask.bbox;
+        const widthNorm = Math.abs(x2 - x1);
+        const heightNorm = Math.abs(y2 - y1);
+        
+        // Convert normalized to actual pixels
+        const widthPx = widthNorm * canvas.width;
+        const heightPx = heightNorm * canvas.height;
+        
+        // Convert pixels to meters
         const widthM = widthPx / scale.pixelsPerMeter / zoom;
         const heightM = heightPx / scale.pixelsPerMeter / zoom;
         areaM2 = widthM * heightM;
-        console.log(`Area calc: ${widthPx}x${heightPx}px = ${widthM.toFixed(2)}x${heightM.toFixed(2)}m = ${areaM2.toFixed(2)}m²`);
-      } else if (mask.area) {
-        // area might be pixel count or normalized, try to calculate
-        const pixelArea = mask.area;
+        console.log(`Area calc: bbox [${x1.toFixed(3)}, ${y1.toFixed(3)}, ${x2.toFixed(3)}, ${y2.toFixed(3)}]`);
+        console.log(`  ${widthPx.toFixed(0)}x${heightPx.toFixed(0)}px = ${widthM.toFixed(2)}x${heightM.toFixed(2)}m = ${areaM2.toFixed(2)}m²`);
+      } else if (mask.area && mask.area > 0) {
+        // area is already normalized (0-1 range representing fraction of image)
+        const totalPixels = canvas.width * canvas.height;
+        const pixelArea = mask.area * totalPixels;
         if (scale?.pixelsPerMeter) {
           areaM2 = pixelArea / (scale.pixelsPerMeter * scale.pixelsPerMeter) / (zoom * zoom);
         }
+        console.log(`Area from mask.area: ${mask.area} * ${totalPixels} = ${pixelArea}px² = ${areaM2.toFixed(2)}m²`);
       }
       
       toast.success(`Huone tunnistettu! ~${areaM2.toFixed(1)} m²`);
