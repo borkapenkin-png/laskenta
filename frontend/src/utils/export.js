@@ -1391,201 +1391,83 @@ export const exportFloorPDF = (project, measurements, floor, settings) => {
 
 
 // ==================== KOONTI MÄÄRÄLASKENTA PDF ====================
+// Same look as regular exportPDFWithOptions but uses merged operations from multiple projects
 export const exportKoontiMaaralaskentaPDF = (data) => {
   const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const { title, loadedProjects, mergedOperations, totalCostAlv0, vatAmount, totalWithVat, vatPercentage, includePrices } = data;
+  const { title, mergedOperations, totalCostAlv0, vatAmount, totalWithVat, vatPercentage, includePrices } = data;
   
-  let yPos = MARGIN_TOP;
-  
-  // ==================== HEADER ====================
-  try {
-    doc.addImage(companyLogo, 'PNG', MARGIN_LEFT, yPos, 55, 14);
-  } catch (e) {
-    doc.setFontSize(18);
-    doc.setTextColor(...BRAND_TEAL);
-    doc.setFont('helvetica', 'bold');
-    doc.text('J&B', MARGIN_LEFT, yPos + 10);
-  }
-  
-  doc.setFontSize(9);
-  doc.setTextColor(...BRAND_DARK);
+  // Title
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(COMPANY.name, pageWidth - MARGIN_RIGHT, yPos + 3, { align: 'right' });
+  const pdfTitle = includePrices ? 'MÄÄRÄ- JA KUSTANNUSLASKENTA' : 'MÄÄRÄLASKENTA';
+  doc.text(pdfTitle, 105, 20, { align: 'center' });
+  
+  // Project info
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text(`Y-tunnus: ${COMPANY.businessId}`, pageWidth - MARGIN_RIGHT, yPos + 8, { align: 'right' });
-  doc.text(COMPANY.address, pageWidth - MARGIN_RIGHT, yPos + 13, { align: 'right' });
+  doc.text(`Projekti: ${title || 'Koonti määrälaskenta'}`, 20, 35);
+  doc.text(`Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}`, 20, 42);
   
-  yPos += 25;
-  doc.setDrawColor(...BRAND_TEAL);
-  doc.setLineWidth(0.8);
-  doc.line(MARGIN_LEFT, yPos, pageWidth - MARGIN_RIGHT, yPos);
+  // Table
+  let tableHeaders, tableData;
   
-  yPos += 12;
-  
-  // ==================== TITLE ====================
-  doc.setFontSize(20);
-  doc.setTextColor(...BRAND_TEAL);
-  doc.setFont('helvetica', 'bold');
-  doc.text(includePrices ? 'KOONTI MÄÄRÄ- JA KUSTANNUSLASKENTA' : 'KOONTI MÄÄRÄLASKENTA', MARGIN_LEFT, yPos);
-  
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setTextColor(...BRAND_DARK);
-  doc.setFont('helvetica', 'normal');
-  if (title) {
-    doc.text(title, MARGIN_LEFT, yPos);
-    yPos += 6;
-  }
-  doc.text(`Päivämäärä: ${new Date().toLocaleDateString('fi-FI')}`, MARGIN_LEFT, yPos);
-  yPos += 6;
-  doc.text(`Projektit: ${loadedProjects.map(p => p.title).join(', ')}`, MARGIN_LEFT, yPos, { maxWidth: pageWidth - MARGIN_LEFT - MARGIN_RIGHT });
-  
-  yPos += 12;
-  
-  // ==================== PER-PROJECT TABLES ====================
-  loadedProjects.forEach((project, idx) => {
-    // Check if need new page
-    if (yPos > 240) {
-      doc.addPage();
-      yPos = MARGIN_TOP + 10;
-    }
-    
-    doc.setFontSize(12);
-    doc.setTextColor(...BRAND_TEAL);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${idx + 1}. ${project.title}`, MARGIN_LEFT, yPos);
-    yPos += 2;
-    
-    let tableHeaders, tableData, columnStyles;
-    
-    if (includePrices) {
-      tableHeaders = [['Työ', 'Määrä', 'Yks.', '€/yks', 'Yhteensä €']];
-      tableData = project.operations.map(op => [
-        op.label,
-        formatNumber(op.quantity),
-        op.unit,
-        formatNumber(op.pricePerUnit),
-        formatNumber(op.totalCost)
-      ]);
-      columnStyles = {
-        0: { cellWidth: 70 },
-        1: { halign: 'right', cellWidth: 25 },
-        2: { cellWidth: 15 },
-        3: { halign: 'right', cellWidth: 25 },
-        4: { halign: 'right', cellWidth: 30 }
-      };
-    } else {
-      tableHeaders = [['Työ', 'Määrä', 'Yksikkö']];
-      tableData = project.operations.map(op => [
-        op.label,
-        formatNumber(op.quantity),
-        op.unit
-      ]);
-      columnStyles = {
-        0: { cellWidth: 100 },
-        1: { halign: 'right', cellWidth: 35 },
-        2: { cellWidth: 25 }
-      };
-    }
-    
-    autoTable(doc, {
-      startY: yPos,
-      head: tableHeaders,
-      body: tableData,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [74, 155, 173], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [245, 247, 250] },
-      columnStyles,
-    });
-    
-    yPos = doc.lastAutoTable.finalY + 10;
-  });
-  
-  // ==================== MERGED SUMMARY TABLE ====================
-  if (loadedProjects.length > 1) {
-    if (yPos > 200) {
-      doc.addPage();
-      yPos = MARGIN_TOP + 10;
-    }
-    
-    doc.setFontSize(14);
-    doc.setTextColor(...BRAND_TEAL);
-    doc.setFont('helvetica', 'bold');
-    doc.text('YHDISTETTY YHTEENVETO', MARGIN_LEFT, yPos);
-    yPos += 2;
-    
-    let tableHeaders, tableData, columnStyles;
-    
-    if (includePrices) {
-      tableHeaders = [['Työ', 'Yhteensä määrä', 'Yks.', '€/yks', 'Yhteensä €']];
-      tableData = mergedOperations.map(op => [
-        op.label,
-        formatNumber(op.quantity),
-        op.unit,
-        formatNumber(op.pricePerUnit),
-        formatNumber(op.totalCost)
-      ]);
-      columnStyles = {
-        0: { cellWidth: 70 },
-        1: { halign: 'right', cellWidth: 25 },
-        2: { cellWidth: 15 },
-        3: { halign: 'right', cellWidth: 25 },
-        4: { halign: 'right', cellWidth: 30 }
-      };
-    } else {
-      tableHeaders = [['Työ', 'Yhteensä määrä', 'Yksikkö']];
-      tableData = mergedOperations.map(op => [
-        op.label,
-        formatNumber(op.quantity),
-        op.unit
-      ]);
-      columnStyles = {
-        0: { cellWidth: 100 },
-        1: { halign: 'right', cellWidth: 35 },
-        2: { cellWidth: 25 }
-      };
-    }
-    
-    autoTable(doc, {
-      startY: yPos,
-      head: tableHeaders,
-      body: tableData,
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [60, 60, 60], textColor: 255, fontStyle: 'bold' },
-      alternateRowStyles: { fillColor: [245, 247, 250] },
-      columnStyles,
-    });
-    
-    yPos = doc.lastAutoTable.finalY + 10;
-  }
-  
-  // ==================== TOTALS ====================
   if (includePrices) {
-    if (yPos > 250) {
-      doc.addPage();
-      yPos = MARGIN_TOP + 10;
+    tableHeaders = [['Tyyppi', 'Määrä', 'Yksikkö', 'Hinta €/yks', 'Yhteensä €']];
+    tableData = mergedOperations.map(op => [
+      op.label,
+      formatNumber(op.quantity),
+      op.unit,
+      formatNumber(op.pricePerUnit),
+      formatNumber(op.totalCost)
+    ]);
+  } else {
+    tableHeaders = [['Tyyppi', 'Määrä', 'Yksikkö']];
+    tableData = mergedOperations.map(op => [
+      op.label,
+      formatNumber(op.quantity),
+      op.unit
+    ]);
+  }
+
+  autoTable(doc, {
+    startY: 55,
+    head: tableHeaders,
+    body: tableData,
+    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [0, 82, 204], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [245, 247, 250] },
+    columnStyles: includePrices ? {
+      0: { cellWidth: 70 },
+      1: { halign: 'right', cellWidth: 25 },
+      2: { cellWidth: 20 },
+      3: { halign: 'right', cellWidth: 30 },
+      4: { halign: 'right', cellWidth: 35 }
+    } : {
+      0: { cellWidth: 100 },
+      1: { halign: 'right', cellWidth: 40 },
+      2: { cellWidth: 30 }
     }
-    
+  });
+
+  // Totals (only with prices)
+  if (includePrices) {
+    const finalY = doc.lastAutoTable.finalY + 15;
     const vat = vatPercentage || 25.5;
     
-    doc.setFontSize(11);
-    doc.setTextColor(...BRAND_DARK);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Yhteensä (ALV 0%):`, MARGIN_LEFT, yPos);
-    doc.text(`${formatNumber(totalCostAlv0)} €`, pageWidth - MARGIN_RIGHT, yPos, { align: 'right' });
-    yPos += 7;
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(120, finalY - 5, 70, 35, 2, 2, 'F');
     
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`ALV ${vat}%:`, MARGIN_LEFT, yPos);
-    doc.text(`${formatNumber(vatAmount)} €`, pageWidth - MARGIN_RIGHT, yPos, { align: 'right' });
-    yPos += 7;
+    doc.text('Yhteensä (ALV 0%):', 125, finalY + 5);
+    doc.text(formatCurrency(totalCostAlv0), 185, finalY + 5, { align: 'right' });
+    
+    doc.text(`ALV ${vat}%:`, 125, finalY + 13);
+    doc.text(formatCurrency(vatAmount), 185, finalY + 13, { align: 'right' });
     
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text(`Yhteensä (sis. ALV):`, MARGIN_LEFT, yPos);
-    doc.text(`${formatNumber(totalWithVat)} €`, pageWidth - MARGIN_RIGHT, yPos, { align: 'right' });
+    doc.text('Yhteensä (sis. ALV):', 125, finalY + 23);
+    doc.text(formatCurrency(totalWithVat), 185, finalY + 23, { align: 'right' });
   }
   
   // Save
