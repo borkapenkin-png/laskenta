@@ -142,26 +142,18 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Labels on PDF now match values shown in TakeoffPanel
 - ✅ All 4 tests passed in iteration_12
 
-## New Feature: Settings Panel (Asetukset) - 2025-03-03
-- ✅ Added "Asetukset" button to toolbar
-- ✅ Created SettingsDialog.js component with two tabs:
-  - **Mittaus presetit**: Edit measurement presets (name, price, unit, construction type)
-  - **Maksuerätaulukko**: Add custom payment schedule presets
-- ✅ Presets saved to localStorage (persistent across sessions)
-- ✅ "Palauta oletukset" resets to default presets
-- ✅ Construction type dropdown auto-adds Karkass/Villa/Kipsi options
-- ✅ All 10 tests passed in iteration_13
+## Settings Panel (Asetukset) with MongoDB - 2025-03-17
+- ✅ Backend CRUD: GET/PUT /api/presets/tools, GET/PUT /api/presets/maksuera, POST /api/presets/reset
+- ✅ All presets stored in MongoDB (replaced localStorage)
+- ✅ Settings dialog loads from API, saves to API
+- ✅ Fixed "Muu" custom preset: BOTH name AND price input (was price=0 bug)
+- ✅ Preset list shows prices next to names
+- ✅ Add/Edit/Delete/Restore fully functional
+- ✅ 26 tests passed (10 backend + 16 frontend) - iteration_16
 
-## New Feature: AI Room Detection (SAM 3 → Flood Fill) - 2025-03-17
-- ✅ Added "Ruumituvastus (AI)" tool to toolbar
-- ✅ Initially integrated fal.ai SAM 3 - didn't work for floor plan line drawings
-- ✅ Replaced with client-side flood fill algorithm (instant, free, works with floor plans)
-- ✅ Workflow: Click tool → Click inside room → Flood fill detects enclosed area → Select preset → Measurement added
-- ✅ Fixed: Overlay z-index blocking ToolPresetSelector clicks (presetSelectorOpen prop)
-- ✅ Fixed: handlePresetClose now clears detectedRoom state
-- ✅ Highlight canvas shows detected area in teal overlay
-- ✅ Room detector stays active after measurement for detecting more rooms
-- ✅ All tests passed - iteration_14 (backend) + iteration_15 (frontend)
+## AI Room Detection - REMOVED 2025-03-17
+- Removed: SAM 3 and flood fill approaches both had issues with floor plans
+- Feature was removed per user request
 
 ## Notes for Development
 - All changes are client-side only
