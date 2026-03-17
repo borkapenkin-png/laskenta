@@ -56,8 +56,15 @@ code {
 
 /* Hide Emergent badge */
 #emergent-badge,
-[id="emergent-badge"] {
+[id="emergent-badge"],
+[class*="emergent"],
+div[style*="Made with"],
+body > div:last-child[style*="position: fixed"][style*="bottom"] {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
 }
