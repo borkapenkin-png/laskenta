@@ -1,0 +1,98 @@
+{
+  "summary": "Comprehensive testing of preset system (Asetukset) with MongoDB persistence. All backend APIs and frontend UI components work correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_presets_api.py",
+    "/app/test_reports/pytest/presets_api_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_presets_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": "None required",
+  "seed_data_creation": "Tests use TEST_ prefix for test data and clean up via /api/presets/reset",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preset system is fully functional. Backend CRUD APIs tested via pytest. Frontend SettingsDialog tested via Playwright. Key features verified: 1) GET/PUT /api/presets/tools with MongoDB persistence, 2) GET/PUT /api/presets/maksuera with MongoDB persistence, 3) POST /api/presets/reset returns defaults, 4) SettingsDialog opens/closes correctly, 5) Add/delete/edit presets in dialog, 6) Tallenna saves to MongoDB, 7) Palauta oletukset resets to defaults, 8) 'Muu' custom option has BOTH name AND price input fields (data-testid='custom-preset-name' and 'custom-preset-price'), 9) Prices displayed next to preset names in selector.",
+  "tests_executed": {
+    "backend": [
+      {"test": "test_api_health", "status": "PASSED", "description": "API healthy, MongoDB connected"},
+      {"test": "test_get_tool_presets_returns_defaults", "status": "PASSED", "description": "GET /api/presets/tools returns default presets with correct structure"},
+      {"test": "test_put_tool_presets_saves_to_mongodb", "status": "PASSED", "description": "PUT /api/presets/tools saves and persists to MongoDB"},
+      {"test": "test_tool_preset_with_construction_type", "status": "PASSED", "description": "Items with constructionType and hasOptions work correctly"},
+      {"test": "test_get_maksuera_presets_returns_defaults", "status": "PASSED", "description": "GET /api/presets/maksuera returns default YSE presets"},
+      {"test": "test_put_maksuera_presets_saves_to_mongodb", "status": "PASSED", "description": "PUT /api/presets/maksuera saves and persists to MongoDB"},
+      {"test": "test_reset_presets_clears_custom_and_returns_defaults", "status": "PASSED", "description": "POST /api/presets/reset deletes custom and returns defaults"},
+      {"test": "test_reset_presets_persists_defaults", "status": "PASSED", "description": "After reset, GET returns default presets"},
+      {"test": "test_preset_price_types", "status": "PASSED", "description": "Decimal prices (e.g., 2.5) handled correctly"},
+      {"test": "test_empty_preset_save_and_load", "status": "PASSED", "description": "Empty presets can be saved and loaded"}
+    ],
+    "frontend": [
+      {"test": "Settings button opens Asetukset dialog", "status": "PASSED", "selector": "[data-testid='settings-button']"},
+      {"test": "Mittaus presetit tab shows tool presets", "status": "PASSED"},
+      {"test": "Maksuerätaulukko tab shows YSE-6 and YSE-8 presets", "status": "PASSED"},
+      {"test": "Tool selector dropdown works (Suorakulmio, Viiva, etc.)", "status": "PASSED"},
+      {"test": "Group selector works (Katto, Lattia, Alakatto rakennus)", "status": "PASSED"},
+      {"test": "'+ Lisää preset' button adds new preset", "status": "PASSED"},
+      {"test": "Delete (trash icon) removes preset", "status": "PASSED"},
+      {"test": "Tallenna button saves to MongoDB", "status": "PASSED", "toast": "Asetukset tallennettu"},
+      {"test": "Preset persists after dialog close/reopen", "status": "PASSED"},
+      {"test": "Palauta oletukset shows confirmation and resets", "status": "PASSED"},
+      {"test": "ToolPresetSelector shows prices next to names", "status": "PASSED", "example": "20 €/m², 40 €/m², 2.5 €/m²"},
+      {"test": "'Muu' custom option shows name input field", "status": "PASSED", "selector": "[data-testid='custom-preset-name']"},
+      {"test": "'Muu' custom option shows price input field", "status": "PASSED", "selector": "[data-testid='custom-preset-price']"},
+      {"test": "Custom name and price can be filled and submitted", "status": "PASSED"},
+      {"test": "Maksuerätaulukko shows rows with selite and percent", "status": "PASSED"},
+      {"test": "Yhteensä: 100% total indicator works", "status": "PASSED"}
+    ]
+  },
+  "verified_features": {
+    "backend_presets_api": {
+      "GET /api/presets/tools": "Returns default presets if none saved, or custom presets from MongoDB",
+      "PUT /api/presets/tools": "Saves presets to MongoDB with upsert",
+      "GET /api/presets/maksuera": "Returns default YSE presets or custom from MongoDB",
+      "PUT /api/presets/maksuera": "Saves maksuerä presets to MongoDB with upsert",
+      "POST /api/presets/reset": "Deletes all custom presets from MongoDB and returns defaults"
+    },
+    "frontend_settings_dialog": {
+      "preset_management": "Add/edit/delete presets with immediate UI feedback",
+      "mongodb_persistence": "Tallenna saves to API, reopening dialog loads from API",
+      "reset_functionality": "Palauta oletukset clears custom presets via API"
+    },
+    "tool_preset_selector": {
+      "price_display": "Shows prices next to preset names (e.g., 'Pölysidonta 2.5 €/m²')",
+      "muu_custom_input": "Both name AND price input fields with data-testid attributes",
+      "groups": "Shows grouped presets (Katto, Lattia, Alakatto rakennus, Muu)"
+    }
+  },
+  "code_verification": {
+    "ToolPresetSelector.js": {
+      "lines_278-460": "'Muu' custom input has name field (data-testid='custom-preset-name') and price field (data-testid='custom-preset-price')",
+      "line_457": "Prices displayed next to preset names when preset.price > 0"
+    },
+    "SettingsDialog.js": {
+      "lines_37-93": "API functions for fetch/save/reset presets",
+      "lines_753-767": "handleSave calls saveToolPresetsAPI and saveMaksueraPresetsAPI",
+      "lines_769-779": "handleReset calls resetPresetsAPI and updates state"
+    },
+    "App.js": {
+      "lines_91-97": "Loads tool presets from API on mount via fetch"
+    },
+    "server.py": {
+      "lines_453-528": "CRUD endpoints for presets with MongoDB persistence"
+    }
+  }
+}

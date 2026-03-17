@@ -276,6 +276,7 @@ export const ToolPresetSelector = ({
   customPresets
 }) => {
   const [customName, setCustomName] = useState('');
+  const [customPrice, setCustomPrice] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(null);
   const containerRef = useRef(null);
@@ -303,6 +304,7 @@ export const ToolPresetSelector = ({
     if (!isOpen) {
       setShowCustomInput(false);
       setCustomName('');
+      setCustomPrice('');
       setSelectedPreset(null);
     }
   }, [isOpen]);
@@ -359,7 +361,7 @@ export const ToolPresetSelector = ({
     if (selectedPreset) {
       onSelect({
         label: customName || 'Nimetön',
-        pricePerUnit: selectedPreset.price,
+        pricePerUnit: parseFloat(customPrice) || 0,
         unit: selectedPreset.unit,
         isPystykotelot: selectedPreset.isPystykotelot || false,
         constructionType: null,
@@ -400,6 +402,15 @@ export const ToolPresetSelector = ({
               onChange={(e) => setCustomName(e.target.value)}
               placeholder="Anna nimi..."
               className="h-9"
+              data-testid="custom-preset-name"
+            />
+            <Input
+              type="number"
+              value={customPrice}
+              onChange={(e) => setCustomPrice(e.target.value)}
+              placeholder={`Hinta (€/${selectedPreset?.unit || 'yks'})`}
+              className="h-9"
+              data-testid="custom-preset-price"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleCustomSubmit();
                 if (e.key === 'Escape') onClose();
@@ -419,6 +430,7 @@ export const ToolPresetSelector = ({
                 onClick={() => {
                   setShowCustomInput(false);
                   setCustomName('');
+                  setCustomPrice('');
                 }}
               >
                 Takaisin
@@ -436,10 +448,14 @@ export const ToolPresetSelector = ({
                   {group.items.map((preset) => (
                     <button
                       key={preset.id}
+                      data-testid={`preset-${preset.id}`}
                       onClick={() => handlePresetClick(preset)}
                       className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 transition-colors flex items-center justify-between group"
                     >
                       <span className="text-sm">{preset.name}</span>
+                      {!preset.isCustom && preset.price > 0 && (
+                        <span className="text-xs text-gray-400">{preset.price} €/{preset.unit}</span>
+                      )}
                     </button>
                   ))}
                 </div>

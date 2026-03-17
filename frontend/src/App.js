@@ -14,7 +14,7 @@ import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
 import { QAPanel, useQAMode } from '@/components/QAPanel';
-import { SettingsDialog, loadCustomPresets } from '@/components/SettingsDialog';
+import { SettingsDialog } from '@/components/SettingsDialog';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -35,6 +35,8 @@ import {
   saveTarjousSnapshot
 } from '@/utils/storage';
 import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF, exportKoontitarjousPDF } from '@/utils/export';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 function App() {
   const [pdfFile, setPdfFile] = useState(null);
@@ -63,7 +65,7 @@ function App() {
   const [koontitarjousDialogOpen, setKoontitarjousDialogOpen] = useState(false);
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-  const [customToolPresets, setCustomToolPresets] = useState(() => loadCustomPresets());
+  const [customToolPresets, setCustomToolPresets] = useState(null);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
   const [currentView, setCurrentView] = useState('main'); // 'main' or 'maksuerataulukko'
@@ -84,6 +86,14 @@ function App() {
     setSettings(loadedSettings);
     const loadedPresets = getPresets();
     setPresets(loadedPresets);
+
+    // Load tool presets from MongoDB API
+    fetch(`${API_URL}/api/presets/tools`)
+      .then(res => res.json())
+      .then(data => {
+        if (data?.presets) setCustomToolPresets(data.presets);
+      })
+      .catch(err => console.error('Failed to load tool presets:', err));
 
     const savedPanelState = localStorage.getItem('rakenna_right_panel_open');
     if (savedPanelState !== null) {

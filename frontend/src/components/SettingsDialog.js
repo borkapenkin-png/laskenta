@@ -31,8 +31,66 @@ import {
 import { toast } from 'sonner';
 
 // ==================== STORAGE KEYS ====================
-const STORAGE_KEY_PRESETS = 'rakenna_custom_presets';
-const STORAGE_KEY_MAKSUERAPRESETS = 'rakenna_maksuerapresets';
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+// ==================== API FUNCTIONS ====================
+const fetchToolPresets = async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/presets/tools`);
+    const data = await res.json();
+    return data?.presets || getDefaultPresets();
+  } catch (e) {
+    console.error('Failed to load presets from API:', e);
+    return getDefaultPresets();
+  }
+};
+
+const fetchMaksueraPresets = async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/presets/maksuera`);
+    const data = await res.json();
+    return data?.presets || getDefaultMaksueraPresets();
+  } catch (e) {
+    console.error('Failed to load maksuerä presets from API:', e);
+    return getDefaultMaksueraPresets();
+  }
+};
+
+const saveToolPresetsAPI = async (presets) => {
+  try {
+    await fetch(`${API_URL}/api/presets/tools`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presets }),
+    });
+  } catch (e) {
+    console.error('Failed to save presets:', e);
+    throw e;
+  }
+};
+
+const saveMaksueraPresetsAPI = async (presets) => {
+  try {
+    await fetch(`${API_URL}/api/presets/maksuera`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presets }),
+    });
+  } catch (e) {
+    console.error('Failed to save maksuerä presets:', e);
+    throw e;
+  }
+};
+
+const resetPresetsAPI = async () => {
+  try {
+    const res = await fetch(`${API_URL}/api/presets/reset`, { method: 'POST' });
+    return await res.json();
+  } catch (e) {
+    console.error('Failed to reset presets:', e);
+    return { presets_tools: getDefaultPresets(), presets_maksuera: getDefaultMaksueraPresets() };
+  }
+};
 
 // ==================== DEFAULT CONSTRUCTION TYPES ====================
 const CONSTRUCTION_TYPES = [
@@ -216,46 +274,11 @@ const UNIT_OPTIONS = [
   { value: 'kpl', label: 'kpl (kappale)' }
 ];
 
-// ==================== LOAD/SAVE FUNCTIONS ====================
-export const loadCustomPresets = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_PRESETS);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error('Error loading custom presets:', e);
-  }
-  return getDefaultPresets();
-};
-
-export const saveCustomPresets = (presets) => {
-  try {
-    localStorage.setItem(STORAGE_KEY_PRESETS, JSON.stringify(presets));
-  } catch (e) {
-    console.error('Error saving custom presets:', e);
-  }
-};
-
-export const loadMaksueraPresets = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_MAKSUERAPRESETS);
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {
-    console.error('Error loading maksuerä presets:', e);
-  }
-  return getDefaultMaksueraPresets();
-};
-
-export const saveMaksueraPresets = (presets) => {
-  try {
-    localStorage.setItem(STORAGE_KEY_MAKSUERAPRESETS, JSON.stringify(presets));
-  } catch (e) {
-    console.error('Error saving maksuerä presets:', e);
-  }
-};
+// ==================== LOAD/SAVE (legacy - now uses API) ====================
+export const loadCustomPresets = () => getDefaultPresets();
+export const saveCustomPresets = () => {};
+export const loadMaksueraPresets = () => getDefaultMaksueraPresets();
+export const saveMaksueraPresets = () => {};
 
 // ==================== PRESET ITEM EDITOR ====================
 const PresetItemEditor = ({ item, onUpdate, onDelete }) => {
@@ -703,36 +726,54 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
 
 // ==================== MAIN SETTINGS DIALOG ====================
 export const SettingsDialog = ({ open, onClose, onPresetsChange }) => {
-  const [toolPresets, setToolPresets] = useState(() => loadCustomPresets());
-  const [maksueraPresets, setMaksueraPresets] = useState(() => loadMaksueraPresets());
+  const [toolPresets, setToolPresets] = useState(() => getDefaultPresets());
+  const [maksueraPresets, setMaksueraPresets] = useState(() => getDefaultMaksueraPresets());
   const [hasChanges, setHasChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Load from API when dialog opens
+  useEffect(() => {
+    if (open) {
+      setIsLoading(true);
+      Promise.all([fetchToolPresets(), fetchMaksueraPresets()])
+        .then(([tools, maksuera]) => {
+          setToolPresets(tools);
+          setMaksueraPresets(maksuera);
+          setHasChanges(false);
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, [open]);
   
   // Track changes
   useEffect(() => {
-    setHasChanges(true);
+    if (!isLoading) setHasChanges(true);
   }, [toolPresets, maksueraPresets]);
   
-  const handleSave = () => {
-    saveCustomPresets(toolPresets);
-    saveMaksueraPresets(maksueraPresets);
-    if (onPresetsChange) {
-      onPresetsChange(toolPresets, maksueraPresets);
+  const handleSave = async () => {
+    try {
+      await Promise.all([
+        saveToolPresetsAPI(toolPresets),
+        saveMaksueraPresetsAPI(maksueraPresets),
+      ]);
+      if (onPresetsChange) {
+        onPresetsChange(toolPresets, maksueraPresets);
+      }
+      setHasChanges(false);
+      toast.success('Asetukset tallennettu');
+    } catch (e) {
+      toast.error('Virhe tallennuksessa: ' + e.message);
     }
-    setHasChanges(false);
-    toast.success('Asetukset tallennettu');
   };
   
-  const handleReset = () => {
+  const handleReset = async () => {
     if (!confirm('Haluatko varmasti palauttaa kaikki oletusasetukset? Tämä poistaa kaikki mukautetut presetit.')) return;
     
-    const defaults = getDefaultPresets();
-    const defaultMaksuera = getDefaultMaksueraPresets();
-    setToolPresets(defaults);
-    setMaksueraPresets(defaultMaksuera);
-    saveCustomPresets(defaults);
-    saveMaksueraPresets(defaultMaksuera);
+    const result = await resetPresetsAPI();
+    setToolPresets(result.presets_tools);
+    setMaksueraPresets(result.presets_maksuera);
     if (onPresetsChange) {
-      onPresetsChange(defaults, defaultMaksuera);
+      onPresetsChange(result.presets_tools, result.presets_maksuera);
     }
     toast.success('Oletusasetukset palautettu');
   };
