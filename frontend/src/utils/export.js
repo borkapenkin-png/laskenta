@@ -1564,13 +1564,12 @@ export const exportWorkSchedulePDF = (data) => {
   
   yPos += 5;
   
-  const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit', 'Päivät']];
+  const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit']];
   const tableData = scheduleRows.map(row => [
     row.label,
     `${formatNumber(row.totalQuantity)} ${row.unit}`,
     `${formatNumber(row.productivityRate, 1)} ${row.unit}/h`,
-    `${formatNumber(row.hoursTotal, 1)} h`,
-    `${formatNumber(row.daysPerWorker, 1)} pv`
+    `${formatNumber(row.hoursTotal, 1)} h`
   ]);
   
   autoTable(doc, {
@@ -1595,10 +1594,9 @@ export const exportWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 30 },
-      2: { halign: 'right', cellWidth: 30 },
-      3: { halign: 'right', cellWidth: 25 },
-      4: { halign: 'right', cellWidth: 25 }
+      1: { halign: 'right', cellWidth: 35 },
+      2: { halign: 'right', cellWidth: 35 },
+      3: { halign: 'right', cellWidth: 30 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
@@ -1754,12 +1752,11 @@ export const exportKoontiWorkSchedulePDF = (data) => {
   
   yPos += 5;
   
-  const tableHead = [['Projekti', 'Työvaiheita', 'Tunnit', 'Päivät']];
+  const tableHead = [['Projekti', 'Työvaiheita', 'Tunnit']];
   const tableData = projects.map(p => [
     p.name,
     `${p.rows.length} kpl`,
-    `${formatNumber(p.totalHours, 1)} h`,
-    `${formatNumber(p.totalHours / (workerCount * hoursPerDay), 1)} pv`
+    `${formatNumber(p.totalHours, 1)} h`
   ]);
   
   autoTable(doc, {
@@ -1784,9 +1781,8 @@ export const exportKoontiWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 30 },
-      2: { halign: 'right', cellWidth: 30 },
-      3: { halign: 'right', cellWidth: 30 }
+      1: { halign: 'right', cellWidth: 35 },
+      2: { halign: 'right', cellWidth: 35 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
@@ -1926,13 +1922,12 @@ export const exportCustomWorkSchedulePDF = (data) => {
   
   yPos += 5;
   
-  const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit', 'Päivät']];
+  const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit']];
   const tableData = scheduleRows.map(row => [
     row.name,
     `${formatNumber(row.quantity)} ${row.unit}`,
     `${formatNumber(row.productivityRate, 1)} ${row.unit}/h`,
-    `${formatNumber(row.hoursTotal, 1)} h`,
-    `${formatNumber(row.daysPerWorker, 1)} pv`
+    `${formatNumber(row.hoursTotal, 1)} h`
   ]);
   
   autoTable(doc, {
@@ -1957,10 +1952,9 @@ export const exportCustomWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 30 },
-      2: { halign: 'right', cellWidth: 30 },
-      3: { halign: 'right', cellWidth: 25 },
-      4: { halign: 'right', cellWidth: 25 }
+      1: { halign: 'right', cellWidth: 35 },
+      2: { halign: 'right', cellWidth: 35 },
+      3: { halign: 'right', cellWidth: 30 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
