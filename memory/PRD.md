@@ -187,6 +187,18 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Terms saved to MongoDB, loaded for PDF export
 - ✅ exportTarjousPDF and exportKoontitarjousPDF updated to use custom terms
 
+## Work Schedule PDF as Official Document (Työmääräerittely) - 2025-03-18
+- ✅ Refactored all three work schedule PDF exports to official document format:
+  - **Title:** TYÖMÄÄRÄERITTELY (not TYÖAIKATAULU)
+  - **Subtitle:** "Liite urakkasopimukseen"
+  - **Regulatory references box:** TES, MaalausRYL 2012, Työturvallisuuslaki (738/2002)
+  - **Removed:** YSE 1998 (company-to-company), Arvioitu kesto (estimated duration), Gantt chart
+  - **Added:** Y-tunnus in header, company address in footer
+  - **Summary:** Shows total hours + hours per worker (no days/weeks)
+  - **Disclaimer:** Clear note that estimates may vary
+- ✅ Same format for all three variants: Työaikataulu, Oma työaikataulu, Koonti työaikataulu
+- ✅ Filename changed to "Tyomaaraerittely_..." for clarity
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration
