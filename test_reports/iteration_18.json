@@ -1,0 +1,98 @@
+{
+  "summary": "Tested Work Schedule Generator feature with 3 modes: Työaikataulu, Koonti työaikataulu, Oma työaikataulu. All backend APIs and frontend UI components working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "All Work Schedule Dialogs",
+        "issues": ["Console warnings about missing DialogTitle/Description accessibility attributes (non-blocking accessibility warning from Radix UI)"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_productivity_api.py",
+    "/app/test_reports/pytest/productivity_api_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_productivity_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": "None required",
+  "seed_data_creation": "Backend tests use TEST_ prefix for custom rates and reset via /api/presets/reset",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Work Schedule Generator feature is fully functional with all 3 modes. All features tested and verified.",
+  "tests_executed": {
+    "backend": [
+      {"test": "test_api_health", "status": "PASSED"},
+      {"test": "test_get_productivity_rates_returns_rates", "status": "PASSED"},
+      {"test": "test_get_productivity_rates_structure", "status": "PASSED"},
+      {"test": "test_get_productivity_rates_categories", "status": "PASSED"},
+      {"test": "test_put_productivity_rates_saves_custom_rate", "status": "PASSED"},
+      {"test": "test_put_productivity_rates_updates_existing_rate", "status": "PASSED"},
+      {"test": "test_reset_presets_restores_defaults", "status": "PASSED"},
+      {"test": "test_get_tool_presets", "status": "PASSED"},
+      {"test": "test_custom_tool_preset_appears_in_productivity_rates", "status": "PASSED"},
+      {"test": "test_get_maksuera_presets", "status": "PASSED"}
+    ],
+    "frontend": [
+      {"test": "Laskelmat dropdown shows 4 options", "status": "PASSED", "details": "Maksuerätaulukko, Työaikataulu, Koonti työaikataulu, Oma työaikataulu"},
+      {"test": "Oma työaikataulu dialog opens", "status": "PASSED"},
+      {"test": "Project name input exists", "status": "PASSED", "selector": "[data-testid='custom-project-name']"},
+      {"test": "Worker count input exists", "status": "PASSED", "selector": "[data-testid='custom-worker-count']"},
+      {"test": "Hours per day input exists", "status": "PASSED", "selector": "[data-testid='custom-hours-per-day']"},
+      {"test": "Tuottavuusmäärät button opens rates editor", "status": "PASSED", "selector": "[data-testid='toggle-rates-editor']"},
+      {"test": "'+ Lisa oma' button visible in rates editor", "status": "PASSED"},
+      {"test": "'Tallenna muutokset' button visible", "status": "PASSED"},
+      {"test": "Phase selector dropdown works", "status": "PASSED", "selector": "[data-testid='phase-select-0']"},
+      {"test": "Quantity input works", "status": "PASSED", "selector": "[data-testid='phase-quantity-0']"},
+      {"test": "Hours calculation works correctly", "status": "PASSED", "details": "150m² / 15m²/h = 10h calculated correctly"},
+      {"test": "Koonti työaikataulu dialog opens", "status": "PASSED"},
+      {"test": "File upload button exists in Koonti", "status": "PASSED", "selector": "[data-testid='upload-projects-btn']"},
+      {"test": "Työaikataulu shows 'Ei mittauksia' empty state", "status": "PASSED"}
+    ]
+  },
+  "verified_features": {
+    "Laskelmat_dropdown": {
+      "testid": "laskelmat-dropdown",
+      "menu_items": [
+        {"testid": "menu-maksuerataulukko", "name": "Maksuerätaulukko"},
+        {"testid": "menu-work-schedule", "name": "Työaikataulu"},
+        {"testid": "menu-koonti-work-schedule", "name": "Koonti työaikataulu"},
+        {"testid": "menu-custom-work-schedule", "name": "Oma työaikataulu"}
+      ]
+    },
+    "Oma_tyoaikataulu": {
+      "project_name_input": "Working",
+      "worker_count_input": "Working",
+      "hours_per_day_input": "Working",
+      "tuottavuusmaarat_button": "Opens rates editor panel",
+      "lisa_oma_button": "Visible in rates editor for adding custom rates",
+      "tallenna_muutokset_button": "Saves rates to MongoDB via PUT /api/presets/productivity",
+      "phase_selector": "Shows all categories (Maalaus, Katto, Lattia, Rakennus, Kotelot, Ovet, Pystykotelot) with productivity rates",
+      "hours_calculation": "Correctly calculates hours = quantity / rate"
+    },
+    "Koonti_tyoaikataulu": {
+      "file_upload": "Button visible for uploading .json project files",
+      "empty_state": "Shows 'Lataa projektitiedostoja aloittaaksesi'"
+    },
+    "Tyoaikataulu": {
+      "empty_state": "Shows 'Ei mittauksia. Lisää mittauksia projektiin ensin.' with AlertCircle icon"
+    },
+    "backend_productivity_api": {
+      "GET /api/presets/productivity": "Returns 21 default rates merged with custom tool presets",
+      "PUT /api/presets/productivity": "Saves rates to MongoDB",
+      "POST /api/presets/reset": "Resets all presets to defaults"
+    }
+  }
+}
