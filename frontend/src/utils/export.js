@@ -1612,7 +1612,8 @@ export const exportWorkSchedulePDF = (data) => {
       cellPadding: 4,
       textColor: BRAND_DARK,
       lineColor: [220, 220, 220],
-      lineWidth: 0.1
+      lineWidth: 0.1,
+      overflow: 'visible'
     },
     headStyles: { 
       fillColor: BRAND_TEAL,
@@ -1625,10 +1626,10 @@ export const exportWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 22 },
-      2: { halign: 'center', cellWidth: 18 },
-      3: { halign: 'right', cellWidth: 30 },
-      4: { halign: 'right', cellWidth: 22 }
+      1: { halign: 'right', cellWidth: 20 },
+      2: { halign: 'center', cellWidth: 22 },
+      3: { halign: 'right', cellWidth: 32 },
+      4: { halign: 'right', cellWidth: 20 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
@@ -2033,7 +2034,8 @@ export const exportCustomWorkSchedulePDF = (data) => {
       cellPadding: 4,
       textColor: BRAND_DARK,
       lineColor: [220, 220, 220],
-      lineWidth: 0.1
+      lineWidth: 0.1,
+      overflow: 'visible'
     },
     headStyles: { 
       fillColor: BRAND_TEAL,
@@ -2046,10 +2048,10 @@ export const exportCustomWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 22 },
-      2: { halign: 'center', cellWidth: 18 },
-      3: { halign: 'right', cellWidth: 30 },
-      4: { halign: 'right', cellWidth: 22 }
+      1: { halign: 'right', cellWidth: 20 },
+      2: { halign: 'center', cellWidth: 22 },
+      3: { halign: 'right', cellWidth: 32 },
+      4: { halign: 'right', cellWidth: 20 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
