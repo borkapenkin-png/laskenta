@@ -168,6 +168,13 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Unified PDF format across all three variants (2025-03-18)
 - ✅ Toolbar refactored: "Laskelmat" dropdown menu groups all schedule options
 
+## Custom TES Price Integration - 2025-03-18
+- ✅ New API: POST /api/presets/tes-prices/add-custom
+- ✅ When user creates a "Muu" (custom) work item via ToolPresetSelector, it's automatically added to TES prices
+- ✅ New custom items default to price = 0€ (user should update in Settings → TES hinnat)
+- ✅ Duplicate detection prevents adding the same item twice
+- ✅ Cleaned up: removed unused `fal_client` dependency from requirements.txt
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration

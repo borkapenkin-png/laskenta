@@ -272,6 +272,65 @@ async def save_tes_prices(body: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.post("/presets/tes-prices/add-custom")
+async def add_custom_tes_price(body: dict):
+    """Add a custom work item to TES prices if it doesn't exist"""
+    database = await get_database()
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        name = body.get("name", "").strip()
+        unit = body.get("unit", "m²")
+        
+        if not name:
+            raise HTTPException(status_code=400, detail="Name is required")
+        
+        # Get current TES prices
+        tes_data = await get_tes_prices()
+        prices = tes_data.get("prices", [])
+        hourly_target = tes_data.get("hourlyTarget", DEFAULT_HOURLY_TARGET)
+        
+        # Check if item already exists (case-insensitive)
+        name_lower = name.lower()
+        existing = next((p for p in prices if p.get("name", "").lower() == name_lower), None)
+        
+        if existing:
+            # Already exists, no need to add
+            return {"success": True, "added": False, "message": "Item already exists"}
+        
+        # Add new custom item with price = 0 (user needs to set it)
+        new_item = {
+            "id": f"custom-{len(prices) + 1}-{name_lower.replace(' ', '-')}",
+            "name": name,
+            "unit": unit,
+            "price": 0.0,  # Default to 0, user should update
+            "category": "Custom"
+        }
+        prices.append(new_item)
+        
+        # Save updated prices
+        await database.presets.update_one(
+            {"type": "tes_prices"},
+            {"$set": {
+                "type": "tes_prices", 
+                "data": prices, 
+                "hourlyTarget": hourly_target,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        
+        logger.info(f"Added custom TES price: {name} ({unit})")
+        return {"success": True, "added": True, "item": new_item}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to add custom TES price: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Keep old endpoint for backward compatibility but redirect to new logic
 @api_router.get("/presets/productivity")
 async def get_productivity_rates():

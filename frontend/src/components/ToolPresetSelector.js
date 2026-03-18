@@ -357,12 +357,34 @@ export const ToolPresetSelector = ({
     }
   };
 
-  const handleCustomSubmit = () => {
+  const handleCustomSubmit = async () => {
     if (selectedPreset) {
+      const label = customName || 'Nimetön';
+      const unit = selectedPreset.unit;
+      
+      // Add custom item to TES prices (async, don't block the UI)
+      try {
+        const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+        fetch(`${API_URL}/api/presets/tes-prices/add-custom`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: label, unit })
+        }).then(res => {
+          if (res.ok) {
+            console.log(`Custom TES price added: ${label}`);
+          }
+        }).catch(err => {
+          console.warn('Failed to add custom TES price:', err);
+        });
+      } catch (e) {
+        // Silently fail - this is a nice-to-have feature
+        console.warn('Failed to add custom TES price:', e);
+      }
+      
       onSelect({
-        label: customName || 'Nimetön',
+        label,
         pricePerUnit: parseFloat(customPrice) || 0,
-        unit: selectedPreset.unit,
+        unit,
         isPystykotelot: selectedPreset.isPystykotelot || false,
         constructionType: null,
         constructionOptions: null
