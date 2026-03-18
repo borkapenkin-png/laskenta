@@ -1569,20 +1569,21 @@ export const exportWorkSchedulePDF = (data) => {
   doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
   doc.setDrawColor(74, 155, 173);
   doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'S');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 38, 2, 2, 'S');
   
   doc.setFontSize(8);
   doc.setTextColor(74, 155, 173);
   doc.setFont('helvetica', 'bold');
-  doc.text('Tämä työmääräerittely on laadittu seuraavien määräysten mukaisesti:', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 8);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
-  doc.text('• Rakennusalan työehtosopimus (TES)', MARGIN_LEFT + 8, yPos + 15);
-  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset', MARGIN_LEFT + 8, yPos + 21);
-  doc.text('• Työturvallisuuslaki (738/2002)', MARGIN_LEFT + 8, yPos + 27);
+  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 15);
+  doc.text('• Rakennusalan työehtosopimus (Maalausala TES) – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 8, yPos + 22);
+  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset (Rakennustieto Oy)', MARGIN_LEFT + 8, yPos + 29);
+  doc.text('• Työturvallisuuslaki 738/2002 ja VNa rakennustyön turvallisuudesta 205/2009', MARGIN_LEFT + 8, yPos + 36);
   
-  yPos += 40;
+  yPos += 46;
   
   // ==================== WORK PHASES TABLE ====================
   doc.setFont('helvetica', 'bold');
@@ -1782,20 +1783,21 @@ export const exportKoontiWorkSchedulePDF = (data) => {
   doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
   doc.setDrawColor(74, 155, 173);
   doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'S');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 38, 2, 2, 'S');
   
   doc.setFontSize(8);
   doc.setTextColor(74, 155, 173);
   doc.setFont('helvetica', 'bold');
-  doc.text('Tämä työmääräerittely on laadittu seuraavien määräysten mukaisesti:', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 8);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
-  doc.text('• Rakennusalan työehtosopimus (TES)', MARGIN_LEFT + 8, yPos + 15);
-  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset', MARGIN_LEFT + 8, yPos + 21);
-  doc.text('• Työturvallisuuslaki (738/2002)', MARGIN_LEFT + 8, yPos + 27);
+  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 15);
+  doc.text('• Rakennusalan työehtosopimus (Maalausala TES) – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 8, yPos + 22);
+  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset (Rakennustieto Oy)', MARGIN_LEFT + 8, yPos + 29);
+  doc.text('• Työturvallisuuslaki 738/2002 ja VNa rakennustyön turvallisuudesta 205/2009', MARGIN_LEFT + 8, yPos + 36);
   
-  yPos += 40;
+  yPos += 46;
   
   // ==================== PROJECTS TABLE ====================
   doc.setFont('helvetica', 'bold');
@@ -1986,20 +1988,21 @@ export const exportCustomWorkSchedulePDF = (data) => {
   doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
   doc.setDrawColor(74, 155, 173);
   doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'S');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 38, 2, 2, 'S');
   
   doc.setFontSize(8);
   doc.setTextColor(74, 155, 173);
   doc.setFont('helvetica', 'bold');
-  doc.text('Tämä työmääräerittely on laadittu seuraavien määräysten mukaisesti:', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 8);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(60, 60, 60);
-  doc.text('• Rakennusalan työehtosopimus (TES)', MARGIN_LEFT + 8, yPos + 15);
-  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset', MARGIN_LEFT + 8, yPos + 21);
-  doc.text('• Työturvallisuuslaki (738/2002)', MARGIN_LEFT + 8, yPos + 27);
+  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 15);
+  doc.text('• Rakennusalan työehtosopimus (Maalausala TES) – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 8, yPos + 22);
+  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset (Rakennustieto Oy)', MARGIN_LEFT + 8, yPos + 29);
+  doc.text('• Työturvallisuuslaki 738/2002 ja VNa rakennustyön turvallisuudesta 205/2009', MARGIN_LEFT + 8, yPos + 36);
   
-  yPos += 40;
+  yPos += 46;
   
   // ==================== WORK PHASES TABLE ====================
   doc.setFont('helvetica', 'bold');
