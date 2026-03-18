@@ -213,14 +213,28 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
   // Save TES prices to API
   const handleSavePrices = async () => {
     try {
-      await fetch(`${API_URL}/api/presets/tes-prices`, {
+      const response = await fetch(`${API_URL}/api/presets/tes-prices`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prices: tesPrices, hourlyTarget }),
       });
-      toast.success('TES hinnat tallennettu');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Save failed:', response.status, errorData);
+        toast.error(`Virhe tallennuksessa: ${response.status}`);
+        return;
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        toast.success('TES hinnat tallennettu');
+      } else {
+        toast.error('Tallentaminen epäonnistui');
+      }
     } catch (e) {
-      toast.error('Virhe tallennuksessa');
+      console.error('Save error:', e);
+      toast.error('Virhe tallennuksessa: ' + e.message);
     }
   };
   
