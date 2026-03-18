@@ -1565,25 +1565,26 @@ export const exportWorkSchedulePDF = (data) => {
   yPos += 30;
   
   // ==================== REGULATORY REFERENCES ====================
-  doc.setFillColor(240, 253, 250);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
-  doc.setDrawColor(74, 155, 173);
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'F');
+  doc.setDrawColor(200, 210, 220);
   doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 38, 2, 2, 'S');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'S');
   
   doc.setFontSize(8);
-  doc.setTextColor(74, 155, 173);
+  doc.setTextColor(52, 73, 94);
   doc.setFont('helvetica', 'bold');
-  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 9);
   
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60, 60, 60);
-  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 15);
-  doc.text('• Rakennusalan työehtosopimus (Maalausala TES) – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 8, yPos + 22);
-  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset (Rakennustieto Oy)', MARGIN_LEFT + 8, yPos + 29);
-  doc.text('• Työturvallisuuslaki 738/2002 ja VNa rakennustyön turvallisuudesta 205/2009', MARGIN_LEFT + 8, yPos + 36);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 17);
+  doc.text('• Maalausalan TES – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 10, yPos + 24);
+  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset', MARGIN_LEFT + 10, yPos + 30);
+  doc.text('• Työturvallisuuslaki 738/2002, VNa 205/2009', MARGIN_LEFT + 10, yPos + 36);
   
-  yPos += 46;
+  yPos += 50;
   
   // ==================== WORK PHASES TABLE ====================
   doc.setFont('helvetica', 'bold');
@@ -1779,25 +1780,26 @@ export const exportKoontiWorkSchedulePDF = (data) => {
   yPos += 30;
   
   // ==================== REGULATORY REFERENCES ====================
-  doc.setFillColor(240, 253, 250);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
-  doc.setDrawColor(74, 155, 173);
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'F');
+  doc.setDrawColor(200, 210, 220);
   doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 38, 2, 2, 'S');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'S');
   
   doc.setFontSize(8);
-  doc.setTextColor(74, 155, 173);
+  doc.setTextColor(52, 73, 94);
   doc.setFont('helvetica', 'bold');
-  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 9);
   
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60, 60, 60);
-  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 15);
-  doc.text('• Rakennusalan työehtosopimus (Maalausala TES) – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 8, yPos + 22);
-  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset (Rakennustieto Oy)', MARGIN_LEFT + 8, yPos + 29);
-  doc.text('• Työturvallisuuslaki 738/2002 ja VNa rakennustyön turvallisuudesta 205/2009', MARGIN_LEFT + 8, yPos + 36);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 17);
+  doc.text('• Maalausalan TES – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 10, yPos + 24);
+  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset', MARGIN_LEFT + 10, yPos + 30);
+  doc.text('• Työturvallisuuslaki 738/2002, VNa 205/2009', MARGIN_LEFT + 10, yPos + 36);
   
-  yPos += 46;
+  yPos += 50;
   
   // ==================== PROJECTS TABLE ====================
   doc.setFont('helvetica', 'bold');
@@ -1984,25 +1986,26 @@ export const exportCustomWorkSchedulePDF = (data) => {
   yPos += 30;
   
   // ==================== REGULATORY REFERENCES ====================
-  doc.setFillColor(240, 253, 250);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 32, 2, 2, 'F');
-  doc.setDrawColor(74, 155, 173);
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'F');
+  doc.setDrawColor(200, 210, 220);
   doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 38, 2, 2, 'S');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 42, 2, 2, 'S');
   
   doc.setFontSize(8);
-  doc.setTextColor(74, 155, 173);
+  doc.setTextColor(52, 73, 94);
   doc.setFont('helvetica', 'bold');
-  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Työmääräerittelyn perusteet', MARGIN_LEFT + 5, yPos + 9);
   
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(60, 60, 60);
-  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 15);
-  doc.text('• Rakennusalan työehtosopimus (Maalausala TES) – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 8, yPos + 22);
-  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset (Rakennustieto Oy)', MARGIN_LEFT + 8, yPos + 29);
-  doc.text('• Työturvallisuuslaki 738/2002 ja VNa rakennustyön turvallisuudesta 205/2009', MARGIN_LEFT + 8, yPos + 36);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Tämä erittely on laadittu noudattaen seuraavia säädöksiä ja sopimuksia:', MARGIN_LEFT + 8, yPos + 17);
+  doc.text('• Maalausalan TES – urakkahinnoittelu ja tuottavuusnormit', MARGIN_LEFT + 10, yPos + 24);
+  doc.text('• MaalausRYL 2012 – Maalaustöiden yleiset laatuvaatimukset', MARGIN_LEFT + 10, yPos + 30);
+  doc.text('• Työturvallisuuslaki 738/2002, VNa 205/2009', MARGIN_LEFT + 10, yPos + 36);
   
-  yPos += 46;
+  yPos += 50;
   
   // ==================== WORK PHASES TABLE ====================
   doc.setFont('helvetica', 'bold');
