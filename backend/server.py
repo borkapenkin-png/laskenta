@@ -181,7 +181,7 @@ DEFAULT_TES_PRICES = [
 ]
 
 # Default hourly target rate
-DEFAULT_HOURLY_TARGET = 20.0
+DEFAULT_HOURLY_TARGET = 18.0
 
 @api_router.get("/presets/tes-prices")
 async def get_tes_prices():
