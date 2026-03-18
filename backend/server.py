@@ -140,81 +140,85 @@ async def get_status_checks():
 
 # ==================== PRODUCTIVITY RATES ENDPOINTS ====================
 # Used for Work Schedule Generator feature
+# Stores TES prices per unit - productivity is calculated: rate = hourlyTarget / price
 
-# Default productivity rates based on "maalaus TES" standards
-DEFAULT_PRODUCTIVITY_RATES = [
-    # Maalaus ja tasoitus (m²)
-    {"id": "prod-1", "name": "Huoltomaalaus", "rate": 15.0, "unit": "m²/h", "category": "Maalaus"},
-    {"id": "prod-2", "name": "Kipsiseinä tasoitus ja maalaus", "rate": 8.0, "unit": "m²/h", "category": "Maalaus"},
-    {"id": "prod-3", "name": "Verkkotus, tasoitus ja maalaus", "rate": 5.0, "unit": "m²/h", "category": "Maalaus"},
-    {"id": "prod-4", "name": "Tapetointi", "rate": 6.0, "unit": "m²/h", "category": "Maalaus"},
-    {"id": "prod-5", "name": "Mikrotsementi", "rate": 3.0, "unit": "m²/h", "category": "Maalaus"},
+# Default TES prices (€ per unit) - productivity calculated from these
+DEFAULT_TES_PRICES = [
+    # Maalaus ja tasoitus (€/m²)
+    {"id": "prod-1", "name": "Huoltomaalaus", "price": 4.0, "unit": "m²", "category": "Maalaus"},
+    {"id": "prod-2", "name": "Kipsiseinä tasoitus ja maalaus", "price": 10.0, "unit": "m²", "category": "Maalaus"},
+    {"id": "prod-3", "name": "Verkkotus, tasoitus ja maalaus", "price": 15.0, "unit": "m²", "category": "Maalaus"},
+    {"id": "prod-4", "name": "Tapetointi", "price": 8.0, "unit": "m²", "category": "Maalaus"},
+    {"id": "prod-5", "name": "Mikrotsementi", "price": 25.0, "unit": "m²", "category": "Maalaus"},
     
-    # Katto (m²)
-    {"id": "prod-6", "name": "Kipsikatto tasoitus ja maalaus", "rate": 7.0, "unit": "m²/h", "category": "Katto"},
-    {"id": "prod-7", "name": "MT Kipsikatto tasoitus ja maalaus", "rate": 5.0, "unit": "m²/h", "category": "Katto"},
-    {"id": "prod-8", "name": "AK huoltomaalaus", "rate": 12.0, "unit": "m²/h", "category": "Katto"},
-    {"id": "prod-9", "name": "Katto verkotus, tasoitus ja maalaus", "rate": 4.0, "unit": "m²/h", "category": "Katto"},
+    # Katto (€/m²)
+    {"id": "prod-6", "name": "Kipsikatto tasoitus ja maalaus", "price": 10.0, "unit": "m²", "category": "Katto"},
+    {"id": "prod-7", "name": "MT Kipsikatto tasoitus ja maalaus", "price": 15.0, "unit": "m²", "category": "Katto"},
+    {"id": "prod-8", "name": "AK huoltomaalaus", "price": 5.0, "unit": "m²", "category": "Katto"},
+    {"id": "prod-9", "name": "Katto verkotus, tasoitus ja maalaus", "price": 18.0, "unit": "m²", "category": "Katto"},
     
-    # Lattia (m²)
-    {"id": "prod-10", "name": "Pölysidonta", "rate": 40.0, "unit": "m²/h", "category": "Lattia"},
-    {"id": "prod-11", "name": "Lattiamaalaus/lakkaus", "rate": 10.0, "unit": "m²/h", "category": "Lattia"},
-    {"id": "prod-12", "name": "Lattiapinnoitus", "rate": 4.0, "unit": "m²/h", "category": "Lattia"},
+    # Lattia (€/m²)
+    {"id": "prod-10", "name": "Pölysidonta", "price": 2.5, "unit": "m²", "category": "Lattia"},
+    {"id": "prod-11", "name": "Lattiamaalaus/lakkaus", "price": 8.0, "unit": "m²", "category": "Lattia"},
+    {"id": "prod-12", "name": "Lattiapinnoitus", "price": 20.0, "unit": "m²", "category": "Lattia"},
     
-    # Rakennus (m²)
-    {"id": "prod-13", "name": "Kipsiseinä rakennus", "rate": 4.0, "unit": "m²/h", "category": "Rakennus"},
-    {"id": "prod-14", "name": "Alakatto rakennus", "rate": 3.5, "unit": "m²/h", "category": "Rakennus"},
+    # Rakennus (€/m²)
+    {"id": "prod-13", "name": "Kipsiseinä rakennus", "price": 18.0, "unit": "m²", "category": "Rakennus"},
+    {"id": "prod-14", "name": "Alakatto rakennus", "price": 20.0, "unit": "m²", "category": "Rakennus"},
     
-    # Kotelot (jm)
-    {"id": "prod-15", "name": "Kotelo rakennus", "rate": 3.0, "unit": "jm/h", "category": "Kotelot"},
-    {"id": "prod-16", "name": "Kotelo tasoitus ja maalaus", "rate": 4.0, "unit": "jm/h", "category": "Kotelot"},
+    # Kotelot (€/jm)
+    {"id": "prod-15", "name": "Kotelo rakennus", "price": 25.0, "unit": "jm", "category": "Kotelot"},
+    {"id": "prod-16", "name": "Kotelo tasoitus ja maalaus", "price": 18.0, "unit": "jm", "category": "Kotelot"},
     
-    # Ovet ja ikkunat (kpl)
-    {"id": "prod-17", "name": "Oven maalaus yheltä puolelta", "rate": 2.0, "unit": "kpl/h", "category": "Ovet"},
-    {"id": "prod-18", "name": "Oven maalaus molemmilta puolelta", "rate": 1.0, "unit": "kpl/h", "category": "Ovet"},
-    {"id": "prod-19", "name": "Ikkunan maalaus", "rate": 1.5, "unit": "kpl/h", "category": "Ovet"},
+    # Ovet ja ikkunat (€/kpl)
+    {"id": "prod-17", "name": "Oven maalaus yheltä puolelta", "price": 40.0, "unit": "kpl", "category": "Ovet"},
+    {"id": "prod-18", "name": "Oven maalaus molemmilta puolelta", "price": 70.0, "unit": "kpl", "category": "Ovet"},
+    {"id": "prod-19", "name": "Ikkunan maalaus", "price": 50.0, "unit": "kpl", "category": "Ovet"},
     
-    # Pystykotelot (kpl)
-    {"id": "prod-20", "name": "Pystykotelo rakennus", "rate": 1.5, "unit": "kpl/h", "category": "Pystykotelot"},
-    {"id": "prod-21", "name": "Pystykotelot tasoitus ja maalaus", "rate": 2.0, "unit": "kpl/h", "category": "Pystykotelot"},
+    # Pystykotelot (€/kpl)
+    {"id": "prod-20", "name": "Pystykotelo rakennus", "price": 50.0, "unit": "kpl", "category": "Pystykotelot"},
+    {"id": "prod-21", "name": "Pystykotelot tasoitus ja maalaus", "price": 35.0, "unit": "kpl", "category": "Pystykotelot"},
 ]
 
-@api_router.get("/presets/productivity")
-async def get_productivity_rates():
-    """Get productivity rates from MongoDB, merged with custom tool presets"""
+# Default hourly target rate
+DEFAULT_HOURLY_TARGET = 20.0
+
+@api_router.get("/presets/tes-prices")
+async def get_tes_prices():
+    """Get TES prices from MongoDB or return defaults. Productivity is calculated client-side."""
     database = await get_database()
     
-    # Start with saved productivity rates or defaults
-    saved_rates = []
+    # Get saved TES prices or defaults
+    saved_prices = []
+    hourly_target = DEFAULT_HOURLY_TARGET
+    
     if database is not None:
         try:
-            doc = await database.presets.find_one({"type": "productivity"}, {"_id": 0})
+            doc = await database.presets.find_one({"type": "tes_prices"}, {"_id": 0})
             if doc and "data" in doc:
-                saved_rates = doc["data"]
+                saved_prices = doc["data"]
+                hourly_target = doc.get("hourlyTarget", DEFAULT_HOURLY_TARGET)
         except Exception as e:
-            logger.error(f"Failed to load productivity rates: {e}")
+            logger.error(f"Failed to load TES prices: {e}")
     
-    if not saved_rates:
-        saved_rates = [r.copy() for r in DEFAULT_PRODUCTIVITY_RATES]
+    if not saved_prices:
+        saved_prices = [p.copy() for p in DEFAULT_TES_PRICES]
     
     # Get tool presets to find custom presets
-    custom_presets = []
+    custom_prices = []
     if database is not None:
         try:
             tool_presets_doc = await database.presets.find_one({"type": "tools"}, {"_id": 0})
             if tool_presets_doc and "data" in tool_presets_doc:
                 tool_presets = tool_presets_doc["data"]
                 
-                # Extract all preset names/labels from saved rates (lowercase for comparison)
-                existing_names = {r["name"].lower() for r in saved_rates}
+                existing_names = {p["name"].lower() for p in saved_prices}
                 
-                # Also add default tool preset names to existing_names
                 for tool_type, tool_data in DEFAULT_TOOL_PRESETS.items():
                     for group in tool_data.get("groups", []):
                         for item in group.get("items", []):
                             existing_names.add(item.get("name", "").lower())
                 
-                # Extract custom presets from tool_presets that aren't in defaults
                 for tool_type, tool_data in tool_presets.items():
                     groups = tool_data.get("groups", [])
                     for group in groups:
@@ -222,34 +226,81 @@ async def get_productivity_rates():
                         for item in items:
                             name = item.get("name", "") or item.get("label", "")
                             unit = item.get("unit", "m²")
+                            price = item.get("price", 10.0)
                             
-                            # Skip empty names
-                            if not name:
+                            if not name or name.lower() in existing_names:
                                 continue
                             
-                            # Skip if already exists in productivity rates
-                            if name.lower() in existing_names:
-                                continue
-                            
-                            # Add custom preset with default productivity rate
-                            unit_rate = "m²/h" if unit == "m²" else ("jm/h" if unit == "jm" else "kpl/h")
-                            default_rate = 8.0 if unit == "m²" else (4.0 if unit == "jm" else 2.0)
-                            
-                            custom_presets.append({
-                                "id": f"custom-{len(custom_presets) + 1}",
+                            custom_prices.append({
+                                "id": f"custom-{len(custom_prices) + 1}",
                                 "name": name,
-                                "rate": default_rate,
-                                "unit": unit_rate,
+                                "price": price,
+                                "unit": unit,
                                 "category": "Custom"
                             })
                             existing_names.add(name.lower())
         except Exception as e:
             logger.error(f"Failed to load tool presets for merging: {e}")
     
-    # Merge: saved rates + custom presets
-    all_rates = saved_rates + custom_presets
+    all_prices = saved_prices + custom_prices
     
-    return {"rates": all_rates}
+    return {"prices": all_prices, "hourlyTarget": hourly_target}
+
+
+@api_router.put("/presets/tes-prices")
+async def save_tes_prices(body: dict):
+    """Save TES prices to MongoDB"""
+    database = await get_database()
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    try:
+        prices_data = body.get("prices", [])
+        hourly_target = body.get("hourlyTarget", DEFAULT_HOURLY_TARGET)
+        await database.presets.update_one(
+            {"type": "tes_prices"},
+            {"$set": {
+                "type": "tes_prices", 
+                "data": prices_data, 
+                "hourlyTarget": hourly_target,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Failed to save TES prices: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Keep old endpoint for backward compatibility but redirect to new logic
+@api_router.get("/presets/productivity")
+async def get_productivity_rates():
+    """Get productivity rates calculated from TES prices"""
+    # Get TES prices
+    tes_response = await get_tes_prices()
+    prices = tes_response["prices"]
+    hourly_target = tes_response["hourlyTarget"]
+    
+    # Calculate productivity rates from prices
+    rates = []
+    for p in prices:
+        price = p.get("price", 10.0)
+        if price <= 0:
+            price = 1.0  # Prevent division by zero
+        
+        unit = p.get("unit", "m²")
+        rate = hourly_target / price  # e.g., 20€/h ÷ 4€/m² = 5 m²/h
+        
+        rates.append({
+            "id": p["id"],
+            "name": p["name"],
+            "price": price,
+            "rate": round(rate, 2),
+            "unit": f"{unit}/h",
+            "category": p.get("category", "Muut")
+        })
+    
+    return {"rates": rates, "hourlyTarget": hourly_target}
 
 
 @api_router.put("/presets/productivity")

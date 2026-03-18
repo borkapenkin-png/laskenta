@@ -32,7 +32,8 @@ import {
   FileDown,
   Plus,
   Trash2,
-  Settings2
+  Settings2,
+  Euro
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportCustomWorkSchedulePDF } from '@/utils/export';
@@ -51,23 +52,25 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   const [projectName, setProjectName] = useState('');
   const [workerCount, setWorkerCount] = useState(2);
   const [hoursPerDay, setHoursPerDay] = useState(8);
-  const [productivityRates, setProductivityRates] = useState([]);
+  const [hourlyTarget, setHourlyTarget] = useState(20);
+  const [tesPrices, setTesPrices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showRatesEditor, setShowRatesEditor] = useState(false);
   const [workPhases, setWorkPhases] = useState([
-    { id: 1, rateId: '', quantity: 0 }
+    { id: 1, priceId: '', quantity: 0 }
   ]);
   
-  // Load productivity rates from API
+  // Load TES prices from API
   useEffect(() => {
     if (open) {
       setIsLoading(true);
-      fetch(`${API_URL}/api/presets/productivity`)
+      fetch(`${API_URL}/api/presets/tes-prices`)
         .then(res => res.json())
         .then(data => {
-          if (data?.rates) setProductivityRates(data.rates);
+          if (data?.prices) setTesPrices(data.prices);
+          if (data?.hourlyTarget) setHourlyTarget(data.hourlyTarget);
         })
-        .catch(err => console.error('Failed to load rates:', err))
+        .catch(err => console.error('Failed to load TES prices:', err))
         .finally(() => setIsLoading(false));
     }
   }, [open]);
@@ -76,19 +79,25 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   useEffect(() => {
     if (open) {
       setProjectName('');
-      setWorkPhases([{ id: 1, rateId: '', quantity: 0 }]);
+      setWorkPhases([{ id: 1, priceId: '', quantity: 0 }]);
     }
   }, [open]);
   
-  // Get rate by ID
-  const getRateById = (rateId) => {
-    return productivityRates.find(r => r.id === rateId);
+  // Get price by ID
+  const getPriceById = (priceId) => {
+    return tesPrices.find(p => p.id === priceId);
+  };
+  
+  // Calculate productivity rate from price
+  const calculateRate = (price) => {
+    if (!price || price <= 0) return 1;
+    return hourlyTarget / price;
   };
   
   // Add new phase
   const handleAddPhase = () => {
     const newId = Math.max(...workPhases.map(p => p.id), 0) + 1;
-    setWorkPhases([...workPhases, { id: newId, rateId: '', quantity: 0 }]);
+    setWorkPhases([...workPhases, { id: newId, priceId: '', quantity: 0 }]);
   };
   
   // Remove phase
@@ -104,23 +113,23 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
     ));
   };
   
-  // Update a single rate
-  const handleRateChange = (rateId, newRate) => {
-    const updated = productivityRates.map(r => 
-      r.id === rateId ? { ...r, rate: parseFloat(newRate) || 1 } : r
+  // Update a single TES price
+  const handlePriceChange = (priceId, newPrice) => {
+    const updated = tesPrices.map(p => 
+      p.id === priceId ? { ...p, price: parseFloat(newPrice) || 1 } : p
     );
-    setProductivityRates(updated);
+    setTesPrices(updated);
   };
   
-  // Save rates to API
-  const handleSaveRates = async () => {
+  // Save TES prices to API
+  const handleSavePrices = async () => {
     try {
-      await fetch(`${API_URL}/api/presets/productivity`, {
+      await fetch(`${API_URL}/api/presets/tes-prices`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rates: productivityRates }),
+        body: JSON.stringify({ prices: tesPrices, hourlyTarget }),
       });
-      toast.success('Tuottavuusmäärät tallennettu');
+      toast.success('TES hinnat tallennettu');
     } catch (e) {
       toast.error('Virhe tallennuksessa');
     }
@@ -129,25 +138,27 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   // Calculate schedule rows with hours
   const scheduleRows = useMemo(() => {
     return workPhases
-      .filter(p => p.rateId && p.quantity > 0)
+      .filter(p => p.priceId && p.quantity > 0)
       .map(phase => {
-        const rate = getRateById(phase.rateId);
-        if (!rate) return null;
+        const priceData = getPriceById(phase.priceId);
+        if (!priceData) return null;
         
-        const hours = phase.quantity / rate.rate;
+        const rate = calculateRate(priceData.price);
+        const hours = phase.quantity / rate;
+        
         return {
           id: phase.id,
-          name: rate.name,
+          name: priceData.name,
           quantity: phase.quantity,
-          unit: rate.unit.replace('/h', ''),
-          productivityRate: rate.rate,
-          productivityUnit: rate.unit,
+          unit: priceData.unit,
+          price: priceData.price,
+          productivityRate: rate,
           hoursTotal: hours,
           daysPerWorker: hours / (workerCount * hoursPerDay)
         };
       })
       .filter(Boolean);
-  }, [workPhases, productivityRates, workerCount, hoursPerDay]);
+  }, [workPhases, tesPrices, hourlyTarget, workerCount, hoursPerDay]);
   
   // Calculate totals
   const totals = useMemo(() => {
@@ -173,7 +184,8 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
         scheduleRows,
         totals,
         workerCount,
-        hoursPerDay
+        hoursPerDay,
+        hourlyTarget
       });
       toast.success('Oma työaikataulu PDF luotu');
     } catch (e) {
@@ -182,38 +194,37 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
     }
   };
   
-  // Group rates by category for better selection UX
-  const ratesByCategory = useMemo(() => {
+  // Group prices by category
+  const pricesByCategory = useMemo(() => {
     const grouped = {};
-    productivityRates.forEach(rate => {
-      const cat = rate.category || 'Muut';
+    tesPrices.forEach(price => {
+      const cat = price.category || 'Muut';
       if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(rate);
+      grouped[cat].push(price);
     });
     return grouped;
-  }, [productivityRates]);
+  }, [tesPrices]);
   
-  // Add custom rate
-  const handleAddCustomRate = () => {
+  // Add custom TES price
+  const handleAddCustomPrice = () => {
     const name = prompt('Työvaihe nimi:');
     if (!name) return;
     
     const unitChoice = prompt('Yksikkö (1 = m², 2 = jm, 3 = kpl):', '1');
     const unit = unitChoice === '2' ? 'jm' : (unitChoice === '3' ? 'kpl' : 'm²');
-    const unitRate = unit === 'm²' ? 'm²/h' : (unit === 'jm' ? 'jm/h' : 'kpl/h');
     
-    const rateValue = prompt(`Tuottavuus (${unitRate}):`, unit === 'm²' ? '8' : (unit === 'jm' ? '4' : '2'));
-    const rate = parseFloat(rateValue) || (unit === 'm²' ? 8 : (unit === 'jm' ? 4 : 2));
+    const priceValue = prompt(`TES hinta (€/${unit}):`, '10');
+    const price = parseFloat(priceValue) || 10;
     
-    const newRate = {
+    const newPrice = {
       id: `custom-new-${Date.now()}`,
       name,
-      rate,
-      unit: unitRate,
+      price,
+      unit,
       category: 'Custom'
     };
     
-    setProductivityRates(prev => [...prev, newRate]);
+    setTesPrices(prev => [...prev, newPrice]);
     toast.success(`Lisätty: ${name}`);
   };
   
@@ -238,7 +249,7 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
             Oma työaikataulu
           </DialogTitle>
           <DialogDescription>
-            Valitse työvaiheet ja syötä määrät - tunnit lasketaan automaattisesti
+            Valitse työvaiheet ja syötä määrät - tunnit lasketaan TES hinnoista
           </DialogDescription>
         </DialogHeader>
         
@@ -255,7 +266,7 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
         </div>
         
         {/* Settings Row */}
-        <div className="flex items-end gap-4 py-4 border-b">
+        <div className="flex items-end gap-4 py-4 border-b flex-wrap">
           <div>
             <Label className="text-sm text-gray-500 flex items-center gap-1">
               <Users className="h-4 w-4" />
@@ -267,7 +278,7 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
               max="20"
               value={workerCount}
               onChange={(e) => setWorkerCount(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-24 mt-1"
+              className="w-20 mt-1"
               data-testid="custom-worker-count"
             />
           </div>
@@ -282,8 +293,23 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
               max="12"
               value={hoursPerDay}
               onChange={(e) => setHoursPerDay(Math.max(1, parseInt(e.target.value) || 8))}
-              className="w-24 mt-1"
+              className="w-20 mt-1"
               data-testid="custom-hours-per-day"
+            />
+          </div>
+          <div>
+            <Label className="text-sm text-gray-500 flex items-center gap-1">
+              <Euro className="h-4 w-4" />
+              Tuntipalkka €/h
+            </Label>
+            <Input
+              type="number"
+              min="1"
+              step="0.5"
+              value={hourlyTarget}
+              onChange={(e) => setHourlyTarget(Math.max(1, parseFloat(e.target.value) || 20))}
+              className="w-20 mt-1"
+              data-testid="custom-hourly-target"
             />
           </div>
           <Button
@@ -293,41 +319,45 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
             data-testid="toggle-rates-editor"
           >
             <Settings2 className="h-4 w-4" />
-            {showRatesEditor ? 'Piilota' : 'Tuottavuusmäärät'}
+            {showRatesEditor ? 'Piilota' : 'TES hinnat'}
           </Button>
         </div>
         
-        {/* Productivity Rates Editor */}
+        {/* TES Prices Editor */}
         {showRatesEditor && (
           <div className="py-4 border-b bg-gray-50 -mx-6 px-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-sm">Tuottavuusmäärät (maalaus TES)</h3>
+              <h3 className="font-medium text-sm">TES hinnat (€/yksikkö) → Tuottavuus = {hourlyTarget}€ / hinta</h3>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={handleAddCustomRate}>
+                <Button size="sm" variant="outline" onClick={handleAddCustomPrice}>
                   <Plus className="h-3 w-3 mr-1" />
                   Lisa oma
                 </Button>
-                <Button size="sm" onClick={handleSaveRates} className="bg-teal-600 hover:bg-teal-700">
+                <Button size="sm" onClick={handleSavePrices} className="bg-teal-600 hover:bg-teal-700">
                   Tallenna muutokset
                 </Button>
               </div>
             </div>
             <ScrollArea className="h-[180px]">
               <div className="grid grid-cols-2 gap-2">
-                {productivityRates.map(rate => (
-                  <div key={rate.id} className="flex items-center gap-2 bg-white p-2 rounded border">
-                    <span className="flex-1 text-sm truncate" title={rate.name}>{rate.name}</span>
-                    <Input
-                      type="number"
-                      step="0.5"
-                      min="0.1"
-                      value={rate.rate}
-                      onChange={(e) => handleRateChange(rate.id, e.target.value)}
-                      className="w-16 h-7 text-right text-sm"
-                    />
-                    <span className="text-xs text-gray-500 w-10">{rate.unit}</span>
-                  </div>
-                ))}
+                {tesPrices.map(price => {
+                  const rate = calculateRate(price.price);
+                  return (
+                    <div key={price.id} className="flex items-center gap-2 bg-white p-2 rounded border">
+                      <span className="flex-1 text-sm truncate" title={price.name}>{price.name}</span>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min="0.1"
+                        value={price.price}
+                        onChange={(e) => handlePriceChange(price.id, e.target.value)}
+                        className="w-16 h-7 text-right text-sm"
+                      />
+                      <span className="text-xs text-gray-500 w-12">€/{price.unit}</span>
+                      <span className="text-xs text-teal-600 w-16">={formatNumber(rate, 1)}/h</span>
+                    </div>
+                  );
+                })}
               </div>
             </ScrollArea>
           </div>
@@ -338,18 +368,21 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[45%]">Työvaihe</TableHead>
-                <TableHead className="w-[20%]">Määrä</TableHead>
-                <TableHead className="text-right w-[15%]">Tunnit</TableHead>
-                <TableHead className="text-right w-[15%]">Päivät</TableHead>
-                <TableHead className="w-[5%]"></TableHead>
+                <TableHead className="w-[35%]">Työvaihe</TableHead>
+                <TableHead className="w-[15%]">Määrä</TableHead>
+                <TableHead className="text-right w-[12%]">Hinta</TableHead>
+                <TableHead className="text-right w-[12%]">Tuottavuus</TableHead>
+                <TableHead className="text-right w-[12%]">Tunnit</TableHead>
+                <TableHead className="text-right w-[10%]">Päivät</TableHead>
+                <TableHead className="w-[4%]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {workPhases.map((phase, idx) => {
-                const selectedRate = getRateById(phase.rateId);
-                const hours = selectedRate && phase.quantity > 0 
-                  ? phase.quantity / selectedRate.rate 
+                const selectedPrice = getPriceById(phase.priceId);
+                const rate = selectedPrice ? calculateRate(selectedPrice.price) : 0;
+                const hours = selectedPrice && phase.quantity > 0 
+                  ? phase.quantity / rate 
                   : 0;
                 const days = hours / (workerCount * hoursPerDay);
                 
@@ -357,24 +390,24 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
                   <TableRow key={phase.id}>
                     <TableCell>
                       <Select
-                        value={phase.rateId}
-                        onValueChange={(value) => handleUpdatePhase(phase.id, 'rateId', value)}
+                        value={phase.priceId}
+                        onValueChange={(value) => handleUpdatePhase(phase.id, 'priceId', value)}
                       >
                         <SelectTrigger data-testid={`phase-select-${idx}`}>
                           <SelectValue placeholder="Valitse työvaihe..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(ratesByCategory).map(([category, rates]) => (
+                          {Object.entries(pricesByCategory).map(([category, prices]) => (
                             <div key={category}>
                               <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50">
                                 {category}
                               </div>
-                              {rates.map(rate => (
-                                <SelectItem key={rate.id} value={rate.id}>
+                              {prices.map(p => (
+                                <SelectItem key={p.id} value={p.id}>
                                   <span className="flex items-center justify-between w-full gap-4">
-                                    <span>{rate.name}</span>
+                                    <span>{p.name}</span>
                                     <span className="text-xs text-gray-400">
-                                      {rate.rate} {rate.unit}
+                                      {p.price}€/{p.unit}
                                     </span>
                                   </span>
                                 </SelectItem>
@@ -397,9 +430,15 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
                           data-testid={`phase-quantity-${idx}`}
                         />
                         <span className="text-sm text-gray-500 w-8">
-                          {selectedRate ? selectedRate.unit.replace('/h', '') : ''}
+                          {selectedPrice?.unit || ''}
                         </span>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right text-sm">
+                      {selectedPrice ? `${formatNumber(selectedPrice.price)}€` : '-'}
+                    </TableCell>
+                    <TableCell className="text-right text-sm text-teal-600">
+                      {rate > 0 ? `${formatNumber(rate, 1)}/h` : '-'}
                     </TableCell>
                     <TableCell className="text-right font-medium">
                       {hours > 0 ? `${formatNumber(hours, 1)} h` : '-'}
