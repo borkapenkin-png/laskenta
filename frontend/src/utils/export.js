@@ -246,7 +246,10 @@ const checkPageBreak = (doc, yPos, neededHeight, pageHeight) => {
 };
 
 // Export professional tarjous (offer/quote) PDF
-export const exportTarjousPDF = (project, measurements, settings, tarjousData) => {
+export const exportTarjousPDF = (project, measurements, settings, tarjousData, customTerms = null) => {
+  // Use custom terms if provided, otherwise fall back to defaults
+  const termsToUse = customTerms && customTerms.length > 0 ? customTerms : DEFAULT_TERMS;
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -760,7 +763,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
     doc.setFontSize(7.5); // Smaller font for terms
     doc.setTextColor(80, 80, 80);
     
-    DEFAULT_TERMS.forEach((term, index) => {
+    termsToUse.forEach((term, index) => {
       // Split term by newlines for bullet points
       const termLines = term.split('\n');
       
@@ -879,7 +882,10 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData) =
 };
 
 // Export koontitarjous (summary offer) PDF - uses same template as Tee tarjous
-export const exportKoontitarjousPDF = (koontitarjousData) => {
+export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) => {
+  // Use custom terms if provided, otherwise fall back to defaults
+  const termsToUse = customTerms && customTerms.length > 0 ? customTerms : DEFAULT_TERMS;
+  
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -1237,7 +1243,7 @@ export const exportKoontitarjousPDF = (koontitarjousData) => {
     doc.setFontSize(7.5);
     doc.setTextColor(80, 80, 80);
     
-    DEFAULT_TERMS.forEach((term, index) => {
+    termsToUse.forEach((term, index) => {
       const termLines = term.split('\n');
       
       termLines.forEach((line, lineIdx) => {

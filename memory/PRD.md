@@ -175,6 +175,18 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Duplicate detection prevents adding the same item twice
 - ✅ Cleaned up: removed unused `fal_client` dependency from requirements.txt
 
+## Offer Terms Editor (Tarjouksen ehdot) - 2025-03-18
+- ✅ New API endpoints: GET/PUT /api/presets/offer-terms, POST /api/presets/offer-terms/reset
+- ✅ New OfferTermsEditor component with full CRUD:
+  - Add new terms
+  - Edit existing terms (click to edit)
+  - Delete terms
+  - Drag & drop to reorder
+  - Reset to defaults
+- ✅ Accessible via Tarjous dropdown → "Tarjouksen ehdot"
+- ✅ Terms saved to MongoDB, loaded for PDF export
+- ✅ exportTarjousPDF and exportKoontitarjousPDF updated to use custom terms
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration

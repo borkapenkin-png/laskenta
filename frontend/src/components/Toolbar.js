@@ -50,6 +50,7 @@ export const Toolbar = ({
   onOpenWorkSchedule,
   onOpenKoontiWorkSchedule,
   onOpenCustomWorkSchedule,
+  onOpenOfferTerms,
   onOpenSettings,
   currentTool,
   onToolSelect,
@@ -351,6 +352,14 @@ export const Toolbar = ({
                 >
                   <Layers className="h-4 w-4 mr-2 text-[#4A9BAD]" />
                   Koontitarjous
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onOpenOfferTerms}
+                  data-testid="menu-offer-terms"
+                  className="cursor-pointer"
+                >
+                  <Settings className="h-4 w-4 mr-2 text-gray-500" />
+                  Tarjouksen ehdot
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

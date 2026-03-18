@@ -19,6 +19,7 @@ import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
 import { QAPanel, useQAMode } from '@/components/QAPanel';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import OfferTermsEditor from '@/components/OfferTermsEditor';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,7 @@ function App() {
   const [koontiMaaralaskentaDialogOpen, setKoontiMaaralaskentaDialogOpen] = useState(false);
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+  const [offerTermsDialogOpen, setOfferTermsDialogOpen] = useState(false);
   const [workScheduleDialogOpen, setWorkScheduleDialogOpen] = useState(false);
   const [koontiWorkScheduleDialogOpen, setKoontiWorkScheduleDialogOpen] = useState(false);
   const [customWorkScheduleDialogOpen, setCustomWorkScheduleDialogOpen] = useState(false);
@@ -578,13 +580,26 @@ function App() {
     setTarjousDialogOpen(true);
   };
 
-  const handleGenerateTarjous = (tarjousData) => {
+  const handleGenerateTarjous = async (tarjousData) => {
     try {
       // Dismiss any existing tarjous toast
       toast.dismiss('tarjous-export');
       
-      // Generate the PDF
-      const tarjousResult = exportTarjousPDF(project, measurements, settings, tarjousData);
+      // Load custom offer terms from API
+      let customTerms = null;
+      try {
+        const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+        const res = await fetch(`${API_URL}/api/presets/offer-terms`);
+        if (res.ok) {
+          const data = await res.json();
+          customTerms = data.terms;
+        }
+      } catch (e) {
+        console.warn('Failed to load custom offer terms, using defaults:', e);
+      }
+      
+      // Generate the PDF with custom terms
+      const tarjousResult = exportTarjousPDF(project, measurements, settings, tarjousData, customTerms);
       
       // Save snapshot for koontitarjous if generation was successful
       if (tarjousResult) {
@@ -608,10 +623,24 @@ function App() {
     }
   };
 
-  const handleGenerateKoontitarjous = (koontitarjousData) => {
+  const handleGenerateKoontitarjous = async (koontitarjousData) => {
     try {
       toast.dismiss('koontitarjous-export');
-      exportKoontitarjousPDF(koontitarjousData);
+      
+      // Load custom offer terms from API
+      let customTerms = null;
+      try {
+        const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+        const res = await fetch(`${API_URL}/api/presets/offer-terms`);
+        if (res.ok) {
+          const data = await res.json();
+          customTerms = data.terms;
+        }
+      } catch (e) {
+        console.warn('Failed to load custom offer terms, using defaults:', e);
+      }
+      
+      exportKoontitarjousPDF(koontitarjousData, customTerms);
       toast.success('Koontitarjous PDF luotu!', { 
         id: 'koontitarjous-export',
         duration: 3000 
@@ -760,6 +789,7 @@ function App() {
         onOpenWorkSchedule={() => setWorkScheduleDialogOpen(true)}
         onOpenKoontiWorkSchedule={() => setKoontiWorkScheduleDialogOpen(true)}
         onOpenCustomWorkSchedule={() => setCustomWorkScheduleDialogOpen(true)}
+        onOpenOfferTerms={() => setOfferTermsDialogOpen(true)}
         onOpenSettings={() => setSettingsDialogOpen(true)}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
@@ -996,6 +1026,12 @@ function App() {
         onPresetsChange={(newToolPresets) => {
           setCustomToolPresets(newToolPresets);
         }}
+      />
+
+      {/* Offer Terms Editor Dialog */}
+      <OfferTermsEditor
+        open={offerTermsDialogOpen}
+        onClose={() => setOfferTermsDialogOpen(false)}
       />
 
       {/* Work Schedule Dialog */}

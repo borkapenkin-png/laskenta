@@ -381,6 +381,88 @@ async def save_productivity_rates(body: dict):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ==================== OFFER TERMS ENDPOINTS ====================
+
+# Default offer terms (Finnish construction industry standard)
+DEFAULT_OFFER_TERMS = [
+    "Tarjous perustuu kohteesta saatuihin tietoihin, piirustuksiin sekä urakoitsijan tekemiin havaintoihin tarjouksen laadintahetkellä.",
+    "Urakkahinta sisältää sovitut maalaus- ja tasoitustyöt tarjouksen mukaisessa laajuudessa. Mahdolliset lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan erikseen sovituin perustein.",
+    "Urakkaan sisältyy normaalit työnaikaiset suojaukset ja siisteys. Erityissuojaukset, työskentely käytössä olevissa tiloissa, ilta- tai viikonlopputyöt hinnoitellaan erikseen.",
+    "Tilaaja vastaa työalueen esteettömyydestä sekä sähkön ja veden saatavuudesta sovitusti.",
+    "Työn vastaanotto ja laadunarviointi suoritetaan MaalausRYL 2012 -julkaisun mukaisten periaatteiden ja tarkasteluetäisyyksien mukaisesti. Pintojen laatua arvioidaan normaalissa valaistuksessa ja normaalilta katseluetäisyydeltä.",
+    "Urakoitsija myöntää työlle kahden (2) vuoden takuun vastaanotosta lukien YSE 1998 -ehtojen periaatteiden mukaisesti, ellei toisin sovita.",
+    "Takuu kattaa työn suorituksessa ilmenevät virheet, jotka johtuvat urakoitsijan työvirheestä, virheellisestä työmenetelmästä tai materiaalin virheellisestä käsittelystä.",
+    "Takuu ei kata:\\n– rakenteellisesta liikkeestä, rakennuksen painumisesta tai alustan elämisestä johtuvia halkeamia\\n– kosteusrasituksesta tai rakenteellisista puutteista aiheutuvia vaurioita\\n– normaalia kulumista tai mekaanisia vaurioita\\n– tilaajan tai kolmannen osapuolen aiheuttamia vaurioita\\n– alustan piileviä virheitä, joita ei ole voitu kohtuudella havaita ennen työn aloittamista",
+    "Maksuehto sovitun mukaisesti. Viivästyskorko korkolain mukaisesti.",
+    "Tarjous on voimassa valitun ajan päiväyksestä.",
+    "Mahdolliset erimielisyydet pyritään ratkaisemaan ensisijaisesti neuvottelemalla."
+]
+
+
+@api_router.get("/presets/offer-terms")
+async def get_offer_terms():
+    """Get offer terms from MongoDB or return defaults"""
+    database = await get_database()
+    if database is None:
+        return {"terms": DEFAULT_OFFER_TERMS}
+    
+    try:
+        doc = await database.presets.find_one({"type": "offer_terms"}, {"_id": 0})
+        if doc and "data" in doc:
+            return {"terms": doc["data"]}
+        return {"terms": DEFAULT_OFFER_TERMS}
+    except Exception as e:
+        logger.error(f"Failed to get offer terms: {e}")
+        return {"terms": DEFAULT_OFFER_TERMS}
+
+
+@api_router.put("/presets/offer-terms")
+async def save_offer_terms(body: dict):
+    """Save offer terms to MongoDB"""
+    database = await get_database()
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        terms = body.get("terms", DEFAULT_OFFER_TERMS)
+        await database.presets.update_one(
+            {"type": "offer_terms"},
+            {"$set": {
+                "type": "offer_terms",
+                "data": terms,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        return {"success": True}
+    except Exception as e:
+        logger.error(f"Failed to save offer terms: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/presets/offer-terms/reset")
+async def reset_offer_terms():
+    """Reset offer terms to defaults"""
+    database = await get_database()
+    if database is None:
+        raise HTTPException(status_code=503, detail="Database not available")
+    
+    try:
+        await database.presets.update_one(
+            {"type": "offer_terms"},
+            {"$set": {
+                "type": "offer_terms",
+                "data": DEFAULT_OFFER_TERMS,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        return {"success": True, "terms": DEFAULT_OFFER_TERMS}
+    except Exception as e:
+        logger.error(f"Failed to reset offer terms: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ==================== PRESET ENDPOINTS ====================
 
 # Default presets (same as frontend defaults - single source of truth)
