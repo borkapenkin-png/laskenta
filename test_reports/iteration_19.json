@@ -1,0 +1,111 @@
+{
+  "summary": "CRITICAL: Verified all TES price calculations for Finnish painting company. All formulas work correctly. User's important work tomorrow is safe.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "All Work Schedule Dialogs",
+        "issues": ["Console warnings about missing DialogTitle/Description accessibility attributes (non-blocking Radix UI warning)"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tes_calculations.py",
+    "/app/test_reports/pytest/tes_calculations_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_tes_calculations.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": "None required",
+  "seed_data_creation": "None - tests use existing TES prices from MongoDB",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All TES calculation formulas verified. App ready for production use.",
+  "verified_calculations": {
+    "hourly_target": "18€/h (TES standard) - VERIFIED",
+    "productivity_formula": "tuottavuus = tuntipalkka / yksikköhinta - VERIFIED",
+    "example_productivity": "18€/h / 2.60€/m² = 6.92 m²/h - CORRECT",
+    "hours_formula": "tunnit = määrä / tuottavuus - VERIFIED",
+    "example_hours": "100m² / 6.92 m²/h = 14.45h - CORRECT (UI shows 14.4h)",
+    "days_formula": "päivät = tunnit / (työntekijät × tuntia/päivä) - VERIFIED",
+    "example_days": "14.45h / (2 × 8) = 0.9 days - CORRECT"
+  },
+  "tests_executed": {
+    "backend": [
+      {"test": "test_api_health", "status": "PASSED"},
+      {"test": "test_tes_prices_returns_hourly_target_18_euros", "status": "PASSED"},
+      {"test": "test_tes_prices_returns_prices_array", "status": "PASSED"},
+      {"test": "test_tes_price_structure", "status": "PASSED"},
+      {"test": "test_huoltomaalaus_price", "status": "PASSED"},
+      {"test": "test_tes_categories_present", "status": "PASSED"},
+      {"test": "test_productivity_formula_with_2_60_price", "status": "PASSED"},
+      {"test": "test_productivity_api_returns_calculated_rates", "status": "PASSED"},
+      {"test": "test_hours_calculation_100m2_with_2_60_price", "status": "PASSED"},
+      {"test": "test_various_quantity_calculations", "status": "PASSED"},
+      {"test": "test_days_calculation_with_example", "status": "PASSED"},
+      {"test": "test_full_calculation_chain", "status": "PASSED"},
+      {"test": "test_offer_terms_returns_array", "status": "PASSED"},
+      {"test": "test_tool_presets_returns_presets", "status": "PASSED"},
+      {"test": "test_tool_presets_structure", "status": "PASSED"}
+    ],
+    "frontend": [
+      {"test": "Oma työaikataulu dialog opens", "status": "PASSED"},
+      {"test": "Hourly target shows 18€/h", "status": "PASSED", "critical": true},
+      {"test": "TES hinnat editor opens", "status": "PASSED"},
+      {"test": "Huoltomaalaus shows 2.6€/m² and productivity 6.9/h", "status": "PASSED", "critical": true},
+      {"test": "100m² calculation shows 14.4h and 0.9 days", "status": "PASSED", "critical": true},
+      {"test": "Työaikataulu shows 'Ei mittauksia' empty state", "status": "PASSED"},
+      {"test": "Koonti työaikataulu shows file upload button", "status": "PASSED"},
+      {"test": "Koonti empty state message correct", "status": "PASSED"}
+    ]
+  },
+  "verified_apis": {
+    "GET /api/presets/tes-prices": {
+      "status": "WORKING",
+      "response": {
+        "hourlyTarget": 18,
+        "prices": "23+ items with categories Maalaus, Katto, Lattia, Rakennus, Kotelot, Ovet, Pystykotelot"
+      }
+    },
+    "GET /api/presets/productivity": {
+      "status": "WORKING",
+      "response": "Returns calculated rates from TES prices"
+    },
+    "GET /api/presets/offer-terms": {
+      "status": "WORKING",
+      "response": "Returns 12 terms array"
+    },
+    "GET /api/presets/tools": {
+      "status": "WORKING",
+      "response": "Returns presets for line, wall, rectangle, polygon, count with prices"
+    }
+  },
+  "verified_frontend_features": {
+    "Oma työaikataulu": {
+      "inputs": "Worker count (2), Hours/day (8), Hourly target (18€/h) - all working",
+      "TES prices editor": "Shows all prices with calculated productivity rates",
+      "Phase selector": "Dropdown with categories and prices",
+      "Calculations": "Hours and days calculated correctly in real-time",
+      "Totals section": "Shows total hours, hours/worker, days, weeks"
+    },
+    "Työaikataulu": {
+      "empty_state": "Shows 'Ei mittauksia. Lisää mittauksia projektiin ensin.' with AlertCircle icon"
+    },
+    "Koonti työaikataulu": {
+      "file_upload": "Button to upload .json project files",
+      "empty_state": "Shows 'Lataa projektitiedostoja aloittaaksesi'"
+    }
+  },
+  "rca_of_issue": "No issues found - all calculations verified correct"
+}
