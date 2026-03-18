@@ -19,7 +19,6 @@ import {
   ZoomIn,
   ZoomOut,
   Calculator,
-  MoreHorizontal,
   ChevronDown,
   Settings,
   Calendar
@@ -93,46 +92,6 @@ export const Toolbar = ({
   const currentScaleDisplay = scale ? 
     (scale.ratio || `1:${scale.scaleValue || '?'}`) : 
     'Ei asetettu';
-
-  // Secondary actions for overflow menu
-  const secondaryActions = [
-    { 
-      label: 'Töögraafik', 
-      icon: Calendar, 
-      onClick: onOpenWorkSchedule,
-      testId: 'menu-work-schedule'
-    },
-    { 
-      label: 'Koontitarjous', 
-      icon: Layers, 
-      onClick: onCreateKoontitarjous,
-      testId: 'menu-koontitarjous'
-    },
-    { 
-      label: 'Koonti määrälaskenta', 
-      icon: Layers, 
-      onClick: onCreateKoontiMaaralaskenta,
-      testId: 'menu-koonti-maaralaskenta'
-    },
-    { 
-      label: 'Maksuerätaulukko', 
-      icon: Calculator, 
-      onClick: onOpenMaksuerataulukko,
-      testId: 'menu-maksuerataulukko'
-    },
-    { 
-      label: 'Vie PDF', 
-      icon: FileDown, 
-      onClick: onExportPDF,
-      testId: 'menu-export-pdf'
-    },
-    { 
-      label: 'Asetukset', 
-      icon: Settings, 
-      onClick: onOpenSettings,
-      testId: 'menu-settings'
-    }
-  ];
 
   return (
     <div 
@@ -351,149 +310,152 @@ export const Toolbar = ({
         {/* ===== RIGHT GROUP: Primary actions (flex-shrink-0) ===== */}
         <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
           <TooltipProvider delayDuration={300}>
-            {/* Primary button: Tee tarjous - ALWAYS visible */}
+            
+            {/* === TARJOUS DROPDOWN === */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      data-testid="tarjous-dropdown"
+                      size="sm"
+                      className="bg-[#4A9BAD] hover:bg-[#3d8699] text-white whitespace-nowrap"
+                    >
+                      <FileText className="h-4 w-4" />
+                      {!isVeryCompact && (
+                        <>
+                          <span className="ml-1.5">Tarjous</span>
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Tarjous-toiminnot</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  onClick={onCreateTarjous}
+                  data-testid="menu-tarjous"
+                  className="cursor-pointer"
+                >
+                  <FileText className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Tee tarjous
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onCreateKoontitarjous}
+                  data-testid="menu-koontitarjous"
+                  className="cursor-pointer"
+                >
+                  <Layers className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Koontitarjous
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* === PDF DROPDOWN === */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      data-testid="pdf-dropdown"
+                      variant="outline"
+                      size="sm"
+                      className="whitespace-nowrap"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      {!isVeryCompact && (
+                        <>
+                          <span className="ml-1.5">PDF</span>
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>PDF-toiminnot</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  onClick={onExportPDF}
+                  data-testid="menu-export-pdf"
+                  className="cursor-pointer"
+                >
+                  <FileDown className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Määrälaskenta PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onCreateKoontiMaaralaskenta}
+                  data-testid="menu-koonti-maaralaskenta"
+                  className="cursor-pointer"
+                >
+                  <Layers className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Koonti määrälaskenta
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* === LASKELMAT DROPDOWN (Maksuerät + Töögraafik) === */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      data-testid="laskelmat-dropdown"
+                      variant="outline"
+                      size="sm"
+                      className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10 whitespace-nowrap"
+                    >
+                      <Calculator className="h-4 w-4" />
+                      {!isVeryCompact && (
+                        <>
+                          <span className="ml-1.5">Laskelmat</span>
+                          <ChevronDown className="h-3 w-3 ml-1" />
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Laskelmat ja aikataulut</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  onClick={onOpenMaksuerataulukko}
+                  data-testid="menu-maksuerataulukko"
+                  className="cursor-pointer"
+                >
+                  <Calculator className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Maksuerätaulukko
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onOpenWorkSchedule}
+                  data-testid="menu-work-schedule"
+                  className="cursor-pointer"
+                >
+                  <Calendar className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Töögraafik
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* === ASETUKSET BUTTON === */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  data-testid="create-tarjous-button"
+                  data-testid="settings-button"
+                  variant="outline"
                   size="sm"
-                  onClick={onCreateTarjous}
-                  className="bg-[#4A9BAD] hover:bg-[#3d8699] text-white whitespace-nowrap"
+                  onClick={onOpenSettings}
+                  className="whitespace-nowrap"
                 >
-                  <FileText className="h-4 w-4" />
-                  {!isVeryCompact && <span className="ml-1.5">Tee tarjous</span>}
+                  <Settings className="h-4 w-4" />
+                  {!isCompact && <span className="ml-1.5">Asetukset</span>}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Luo ammattimainen tarjous PDF</TooltipContent>
+              <TooltipContent>Avaa asetukset</TooltipContent>
             </Tooltip>
 
-            {/* When NOT compact: show all buttons */}
-            {!isCompact && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid="create-koontitarjous-button"
-                      size="sm"
-                      variant="outline"
-                      onClick={onCreateKoontitarjous}
-                      className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10 whitespace-nowrap"
-                    >
-                      <Layers className="h-4 w-4 mr-1.5" />
-                      Koontitarjous
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Yhdistä useita tarjouksia</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid="create-koonti-maaralaskenta-button"
-                      size="sm"
-                      variant="outline"
-                      onClick={onCreateKoontiMaaralaskenta}
-                      className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10 whitespace-nowrap"
-                    >
-                      <Layers className="h-4 w-4 mr-1.5" />
-                      Koonti määrät
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Yhdistä useita projekteja määrälaskennaksi</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid="maksuerataulukko-button"
-                      size="sm"
-                      variant="outline"
-                      onClick={onOpenMaksuerataulukko}
-                      className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10 whitespace-nowrap"
-                    >
-                      <Calculator className="h-4 w-4 mr-1.5" />
-                      Maksuerät
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Maksuerätaulukko</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid="export-pdf-button"
-                      variant="outline"
-                      size="sm"
-                      onClick={onExportPDF}
-                      className="whitespace-nowrap"
-                    >
-                      <FileDown className="h-4 w-4 mr-1.5" />
-                      PDF
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Vie PDF-tiedosto</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      data-testid="settings-button"
-                      variant="outline"
-                      size="sm"
-                      onClick={onOpenSettings}
-                      className="whitespace-nowrap"
-                    >
-                      <Settings className="h-4 w-4 mr-1.5" />
-                      Asetukset
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Avaa asetukset</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-
-            {/* When compact: show overflow menu */}
-            {isCompact && (
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        data-testid="toolbar-overflow-menu"
-                        variant="outline"
-                        size="sm"
-                        className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD]/10"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                        {!isVeryCompact && (
-                          <>
-                            <span className="ml-1">Lisää</span>
-                            <ChevronDown className="h-3 w-3 ml-1" />
-                          </>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>Lisää toimintoja</TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="end" className="w-48">
-                  {secondaryActions.map((action) => {
-                    const Icon = action.icon;
-                    return (
-                      <DropdownMenuItem
-                        key={action.testId}
-                        onClick={action.onClick}
-                        data-testid={action.testId}
-                        className="cursor-pointer"
-                      >
-                        <Icon className="h-4 w-4 mr-2 text-[#4A9BAD]" />
-                        {action.label}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
           </TooltipProvider>
         </div>
       </div>
