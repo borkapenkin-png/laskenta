@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -242,8 +241,8 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-teal-600" />
             Oma työaikataulu
@@ -253,93 +252,94 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
           </DialogDescription>
         </DialogHeader>
         
-        {/* Project Name */}
-        <div className="py-4 border-b">
-          <Label className="text-sm text-gray-500">Projektin nimi</Label>
-          <Input
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            placeholder="Esim. Kerrostalo A, rappaus"
-            className="mt-1"
-            data-testid="custom-project-name"
-          />
-        </div>
-        
-        {/* Settings Row */}
-        <div className="flex items-end gap-4 py-4 border-b flex-wrap">
-          <div>
-            <Label className="text-sm text-gray-500 flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              Työntekijämäärä
-            </Label>
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {/* Project Name */}
+          <div className="py-3 border-b">
+            <Label className="text-sm text-gray-500">Projektin nimi</Label>
             <Input
-              type="number"
-              min="1"
-              max="20"
-              value={workerCount}
-              onChange={(e) => setWorkerCount(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-20 mt-1"
-              data-testid="custom-worker-count"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              placeholder="Esim. Kerrostalo A, rappaus"
+              className="mt-1"
+              data-testid="custom-project-name"
             />
           </div>
-          <div>
-            <Label className="text-sm text-gray-500 flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              Tuntia/päivä
-            </Label>
-            <Input
-              type="number"
-              min="1"
-              max="12"
-              value={hoursPerDay}
-              onChange={(e) => setHoursPerDay(Math.max(1, parseInt(e.target.value) || 8))}
-              className="w-20 mt-1"
-              data-testid="custom-hours-per-day"
-            />
-          </div>
-          <div>
-            <Label className="text-sm text-gray-500 flex items-center gap-1">
-              <Euro className="h-4 w-4" />
-              Tuntipalkka €/h
-            </Label>
-            <Input
-              type="number"
-              min="1"
-              step="0.5"
-              value={hourlyTarget}
-              onChange={(e) => setHourlyTarget(Math.max(1, parseFloat(e.target.value) || 20))}
-              className="w-20 mt-1"
-              data-testid="custom-hourly-target"
-            />
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => setShowRatesEditor(!showRatesEditor)}
-            className="flex items-center gap-2"
-            data-testid="toggle-rates-editor"
-          >
-            <Settings2 className="h-4 w-4" />
-            {showRatesEditor ? 'Piilota' : 'TES hinnat'}
-          </Button>
-        </div>
-        
-        {/* TES Prices Editor */}
-        {showRatesEditor && (
-          <div className="py-4 border-b bg-gray-50 -mx-6 px-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-sm">TES hinnat (€/yksikkö) → Tuottavuus = {hourlyTarget}€ / hinta</h3>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={handleAddCustomPrice}>
-                  <Plus className="h-3 w-3 mr-1" />
-                  Lisa oma
-                </Button>
-                <Button size="sm" onClick={handleSavePrices} className="bg-teal-600 hover:bg-teal-700">
-                  Tallenna muutokset
-                </Button>
-              </div>
+          
+          {/* Settings Row */}
+          <div className="flex items-end gap-4 py-3 border-b flex-wrap">
+            <div>
+              <Label className="text-sm text-gray-500 flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Työntekijämäärä
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                max="20"
+                value={workerCount}
+                onChange={(e) => setWorkerCount(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-20 mt-1"
+                data-testid="custom-worker-count"
+              />
             </div>
-            <ScrollArea className="h-[180px]">
-              <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-sm text-gray-500 flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                Tuntia/päivä
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                max="12"
+                value={hoursPerDay}
+                onChange={(e) => setHoursPerDay(Math.max(1, parseInt(e.target.value) || 8))}
+                className="w-20 mt-1"
+                data-testid="custom-hours-per-day"
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-gray-500 flex items-center gap-1">
+                <Euro className="h-4 w-4" />
+                Tuntipalkka €/h
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                step="0.5"
+                value={hourlyTarget}
+                onChange={(e) => setHourlyTarget(Math.max(1, parseFloat(e.target.value) || 20))}
+                className="w-20 mt-1"
+                data-testid="custom-hourly-target"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setShowRatesEditor(!showRatesEditor)}
+              className="flex items-center gap-2"
+              data-testid="toggle-rates-editor"
+            >
+              <Settings2 className="h-4 w-4" />
+              {showRatesEditor ? 'Piilota' : 'TES hinnat'}
+            </Button>
+          </div>
+          
+          {/* TES Prices Editor */}
+          {showRatesEditor && (
+            <div className="py-3 border-b bg-gray-50">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium text-sm">TES hinnat (€/yksikkö) → Tuottavuus = {hourlyTarget}€ / hinta</h3>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={handleAddCustomPrice}>
+                    <Plus className="h-3 w-3 mr-1" />
+                    Lisa oma
+                  </Button>
+                  <Button size="sm" onClick={handleSavePrices} className="bg-teal-600 hover:bg-teal-700">
+                    Tallenna muutokset
+                  </Button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto">
                 {tesPrices.map(price => {
                   const rate = calculateRate(price.price);
                   return (
@@ -359,25 +359,24 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
                   );
                 })}
               </div>
-            </ScrollArea>
-          </div>
-        )}
-        
-        {/* Work Phases Input */}
-        <ScrollArea className="flex-1 min-h-[200px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[35%]">Työvaihe</TableHead>
-                <TableHead className="w-[15%]">Määrä</TableHead>
-                <TableHead className="text-right w-[12%]">Hinta</TableHead>
-                <TableHead className="text-right w-[12%]">Tuottavuus</TableHead>
-                <TableHead className="text-right w-[12%]">Tunnit</TableHead>
-                <TableHead className="text-right w-[10%]">Päivät</TableHead>
-                <TableHead className="w-[4%]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+            </div>
+          )}
+          
+          {/* Work Phases Table */}
+          <div className="py-3">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[35%]">Työvaihe</TableHead>
+                  <TableHead className="w-[15%]">Määrä</TableHead>
+                  <TableHead className="text-right w-[12%]">Hinta</TableHead>
+                  <TableHead className="text-right w-[12%]">Tuottavuus</TableHead>
+                  <TableHead className="text-right w-[12%]">Tunnit</TableHead>
+                  <TableHead className="text-right w-[10%]">Päivät</TableHead>
+                  <TableHead className="w-[4%]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {workPhases.map((phase, idx) => {
                 const selectedPrice = getPriceById(phase.priceId);
                 const rate = selectedPrice ? calculateRate(selectedPrice.price) : 0;
@@ -459,52 +458,53 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
                 );
               })}
             </TableBody>
-          </Table>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleAddPhase}
-            className="mt-2 text-teal-600 hover:text-teal-700"
-            data-testid="add-phase-btn"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Lisää työvaihe
-          </Button>
-        </ScrollArea>
+            </Table>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleAddPhase}
+              className="mt-2 text-teal-600 hover:text-teal-700"
+              data-testid="add-phase-btn"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Lisää työvaihe
+            </Button>
+          </div>
+        </div>
         
-        {/* Totals */}
-        <div className="pt-4 border-t bg-teal-50 -mx-6 px-6 py-4 rounded-b-lg">
+        {/* Totals - Fixed at bottom */}
+        <div className="flex-shrink-0 pt-3 border-t bg-teal-50 -mx-6 px-6 py-3">
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-teal-700">
+              <div className="text-xl font-bold text-teal-700">
                 {formatNumber(totals.totalHours, 0)}
               </div>
-              <div className="text-sm text-gray-600">tuntia yhteensä</div>
+              <div className="text-xs text-gray-600">tuntia yhteensä</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-teal-700">
+              <div className="text-xl font-bold text-teal-700">
                 {formatNumber(totals.totalHoursPerWorker, 0)}
               </div>
-              <div className="text-sm text-gray-600">tuntia / työntekijä</div>
+              <div className="text-xs text-gray-600">tuntia / työntekijä</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-teal-700">
+              <div className="text-xl font-bold text-teal-700">
                 {formatNumber(totals.totalDays, 1)}
               </div>
-              <div className="text-sm text-gray-600">työpäivää ({workerCount} hlö)</div>
+              <div className="text-xs text-gray-600">työpäivää ({workerCount} hlö)</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-teal-700">
+              <div className="text-xl font-bold text-teal-700">
                 {formatNumber(totals.totalWeeks, 1)}
               </div>
-              <div className="text-sm text-gray-600">viikkoa</div>
+              <div className="text-xs text-gray-600">viikkoa</div>
             </div>
           </div>
         </div>
         
-        {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
+        {/* Actions - Fixed at bottom */}
+        <div className="flex-shrink-0 flex justify-end gap-2 pt-3 border-t">
           <Button variant="outline" onClick={onClose}>
             Sulje
           </Button>
