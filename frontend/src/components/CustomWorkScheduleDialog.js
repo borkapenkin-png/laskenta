@@ -193,6 +193,30 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
     return grouped;
   }, [productivityRates]);
   
+  // Add custom rate
+  const handleAddCustomRate = () => {
+    const name = prompt('Työvaihe nimi:');
+    if (!name) return;
+    
+    const unitChoice = prompt('Yksikkö (1 = m², 2 = jm, 3 = kpl):', '1');
+    const unit = unitChoice === '2' ? 'jm' : (unitChoice === '3' ? 'kpl' : 'm²');
+    const unitRate = unit === 'm²' ? 'm²/h' : (unit === 'jm' ? 'jm/h' : 'kpl/h');
+    
+    const rateValue = prompt(`Tuottavuus (${unitRate}):`, unit === 'm²' ? '8' : (unit === 'jm' ? '4' : '2'));
+    const rate = parseFloat(rateValue) || (unit === 'm²' ? 8 : (unit === 'jm' ? 4 : 2));
+    
+    const newRate = {
+      id: `custom-new-${Date.now()}`,
+      name,
+      rate,
+      unit: unitRate,
+      category: 'Custom'
+    };
+    
+    setProductivityRates(prev => [...prev, newRate]);
+    toast.success(`Lisätty: ${name}`);
+  };
+  
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
@@ -278,9 +302,15 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
           <div className="py-4 border-b bg-gray-50 -mx-6 px-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-sm">Tuottavuusmäärät (maalaus TES)</h3>
-              <Button size="sm" onClick={handleSaveRates} className="bg-teal-600 hover:bg-teal-700">
-                Tallenna muutokset
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={handleAddCustomRate}>
+                  <Plus className="h-3 w-3 mr-1" />
+                  Lisa oma
+                </Button>
+                <Button size="sm" onClick={handleSaveRates} className="bg-teal-600 hover:bg-teal-700">
+                  Tallenna muutokset
+                </Button>
+              </div>
             </div>
             <ScrollArea className="h-[180px]">
               <div className="grid grid-cols-2 gap-2">

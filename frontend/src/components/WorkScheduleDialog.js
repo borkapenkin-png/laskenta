@@ -110,7 +110,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
   const [isLoading, setIsLoading] = useState(false);
   const [showRatesEditor, setShowRatesEditor] = useState(false);
   
-  // Load productivity rates from API
+  // Load productivity rates from API and merge with custom labels from measurements
   useEffect(() => {
     if (open) {
       setIsLoading(true);
@@ -118,7 +118,31 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
         .then(res => res.json())
         .then(data => {
           if (data?.rates) {
-            setProductivityRates(data.rates);
+            let rates = data.rates;
+            
+            // Extract unique labels from measurements that aren't in rates
+            const existingNames = new Set(rates.map(r => r.name.toLowerCase()));
+            const customRates = [];
+            
+            measurements.forEach(m => {
+              const label = m.label || '';
+              if (label && !existingNames.has(label.toLowerCase())) {
+                const unit = m.unit || 'm²';
+                const unitRate = unit === 'm²' ? 'm²/h' : (unit === 'jm' ? 'jm/h' : 'kpl/h');
+                const defaultRate = unit === 'm²' ? 8.0 : (unit === 'jm' ? 4.0 : 2.0);
+                
+                customRates.push({
+                  id: `measurement-${customRates.length + 1}`,
+                  name: label,
+                  rate: defaultRate,
+                  unit: unitRate,
+                  category: 'Custom'
+                });
+                existingNames.add(label.toLowerCase());
+              }
+            });
+            
+            setProductivityRates([...rates, ...customRates]);
           }
         })
         .catch(err => {
@@ -127,7 +151,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
         })
         .finally(() => setIsLoading(false));
     }
-  }, [open]);
+  }, [open, measurements]);
   
   // Group measurements
   const groupedMeasurements = useMemo(() => {

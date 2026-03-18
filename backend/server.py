@@ -181,16 +181,75 @@ DEFAULT_PRODUCTIVITY_RATES = [
 
 @api_router.get("/presets/productivity")
 async def get_productivity_rates():
-    """Get productivity rates from MongoDB or return defaults"""
+    """Get productivity rates from MongoDB, merged with custom tool presets"""
     database = await get_database()
+    
+    # Start with saved productivity rates or defaults
+    saved_rates = []
     if database is not None:
         try:
             doc = await database.presets.find_one({"type": "productivity"}, {"_id": 0})
             if doc and "data" in doc:
-                return {"rates": doc["data"]}
+                saved_rates = doc["data"]
         except Exception as e:
             logger.error(f"Failed to load productivity rates: {e}")
-    return {"rates": DEFAULT_PRODUCTIVITY_RATES}
+    
+    if not saved_rates:
+        saved_rates = [r.copy() for r in DEFAULT_PRODUCTIVITY_RATES]
+    
+    # Get tool presets to find custom presets
+    custom_presets = []
+    if database is not None:
+        try:
+            tool_presets_doc = await database.presets.find_one({"type": "tools"}, {"_id": 0})
+            if tool_presets_doc and "data" in tool_presets_doc:
+                tool_presets = tool_presets_doc["data"]
+                
+                # Extract all preset names/labels from saved rates (lowercase for comparison)
+                existing_names = {r["name"].lower() for r in saved_rates}
+                
+                # Also add default tool preset names to existing_names
+                for tool_type, tool_data in DEFAULT_TOOL_PRESETS.items():
+                    for group in tool_data.get("groups", []):
+                        for item in group.get("items", []):
+                            existing_names.add(item.get("name", "").lower())
+                
+                # Extract custom presets from tool_presets that aren't in defaults
+                for tool_type, tool_data in tool_presets.items():
+                    groups = tool_data.get("groups", [])
+                    for group in groups:
+                        items = group.get("items", [])
+                        for item in items:
+                            name = item.get("name", "") or item.get("label", "")
+                            unit = item.get("unit", "m²")
+                            
+                            # Skip empty names
+                            if not name:
+                                continue
+                            
+                            # Skip if already exists in productivity rates
+                            if name.lower() in existing_names:
+                                continue
+                            
+                            # Add custom preset with default productivity rate
+                            unit_rate = "m²/h" if unit == "m²" else ("jm/h" if unit == "jm" else "kpl/h")
+                            default_rate = 8.0 if unit == "m²" else (4.0 if unit == "jm" else 2.0)
+                            
+                            custom_presets.append({
+                                "id": f"custom-{len(custom_presets) + 1}",
+                                "name": name,
+                                "rate": default_rate,
+                                "unit": unit_rate,
+                                "category": "Custom"
+                            })
+                            existing_names.add(name.lower())
+        except Exception as e:
+            logger.error(f"Failed to load tool presets for merging: {e}")
+    
+    # Merge: saved rates + custom presets
+    all_rates = saved_rates + custom_presets
+    
+    return {"rates": all_rates}
 
 
 @api_router.put("/presets/productivity")

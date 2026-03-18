@@ -164,9 +164,37 @@ export const KoontiWorkScheduleDialog = ({ open, onClose }) => {
     setLoadedProjects(prev => prev.filter((_, i) => i !== index));
   };
   
-  // Process all loaded projects
+  // Process all loaded projects and extract custom labels
   const processedProjects = useMemo(() => {
-    return loadedProjects.map(p => processProject(p, productivityRates));
+    // First, extract all unique labels from loaded projects
+    const existingNames = new Set(productivityRates.map(r => r.name.toLowerCase()));
+    const customRates = [];
+    
+    loadedProjects.forEach(project => {
+      const measurements = project.measurements || [];
+      measurements.forEach(m => {
+        const label = m.label || '';
+        if (label && !existingNames.has(label.toLowerCase())) {
+          const unit = m.unit || 'm²';
+          const unitRate = unit === 'm²' ? 'm²/h' : (unit === 'jm' ? 'jm/h' : 'kpl/h');
+          const defaultRate = unit === 'm²' ? 8.0 : (unit === 'jm' ? 4.0 : 2.0);
+          
+          customRates.push({
+            id: `project-custom-${customRates.length + 1}`,
+            name: label,
+            rate: defaultRate,
+            unit: unitRate,
+            category: 'Custom'
+          });
+          existingNames.add(label.toLowerCase());
+        }
+      });
+    });
+    
+    // Merge custom rates with existing rates for processing
+    const allRates = [...productivityRates, ...customRates];
+    
+    return loadedProjects.map(p => processProject(p, allRates));
   }, [loadedProjects, productivityRates]);
   
   // Calculate grand totals
