@@ -48,6 +48,8 @@ export const Toolbar = ({
   onCreateKoontiMaaralaskenta,
   onOpenMaksuerataulukko,
   onOpenWorkSchedule,
+  onOpenKoontiWorkSchedule,
+  onOpenCustomWorkSchedule,
   onOpenSettings,
   currentTool,
   onToolSelect,
@@ -434,7 +436,23 @@ export const Toolbar = ({
                   className="cursor-pointer"
                 >
                   <Calendar className="h-4 w-4 mr-2 text-[#4A9BAD]" />
-                  Töögraafik
+                  Työaikataulu
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onOpenKoontiWorkSchedule}
+                  data-testid="menu-koonti-work-schedule"
+                  className="cursor-pointer"
+                >
+                  <Layers className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Koonti työaikataulu
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={onOpenCustomWorkSchedule}
+                  data-testid="menu-custom-work-schedule"
+                  className="cursor-pointer"
+                >
+                  <Calendar className="h-4 w-4 mr-2 text-[#4A9BAD]" />
+                  Oma työaikataulu
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

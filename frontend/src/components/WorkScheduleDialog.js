@@ -199,7 +199,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
         workerCount,
         hoursPerDay
       });
-      toast.success('Töögraafik PDF luotu');
+      toast.success('Työaikataulu PDF luotu');
     } catch (e) {
       console.error('PDF export failed:', e);
       toast.error('PDF:n luominen epäonnistui');
@@ -224,10 +224,10 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-teal-600" />
-            Töögraafik
+            Työaikataulu
           </DialogTitle>
           <DialogDescription>
-            Arvioitu tööaeg perustuu mittauksiin ja tuottavuusmääriin
+            Arvioitu työaika perustuu mittauksiin ja tuottavuusmääriin
           </DialogDescription>
         </DialogHeader>
         

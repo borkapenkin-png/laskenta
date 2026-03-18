@@ -12,6 +12,8 @@ import { TarjousDialog } from '@/components/TarjousDialog';
 import { KoontitarjousDialog } from '@/components/KoontitarjousDialog';
 import { KoontiMaaralaskentaDialog } from '@/components/KoontiMaaralaskentaDialog';
 import { WorkScheduleDialog } from '@/components/WorkScheduleDialog';
+import { KoontiWorkScheduleDialog } from '@/components/KoontiWorkScheduleDialog';
+import { CustomWorkScheduleDialog } from '@/components/CustomWorkScheduleDialog';
 import { PDFExportDialog } from '@/components/PDFExportDialog';
 import { ToolPresetSelector } from '@/components/ToolPresetSelector';
 import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
@@ -69,6 +71,8 @@ function App() {
   const [pdfExportDialogOpen, setPdfExportDialogOpen] = useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [workScheduleDialogOpen, setWorkScheduleDialogOpen] = useState(false);
+  const [koontiWorkScheduleDialogOpen, setKoontiWorkScheduleDialogOpen] = useState(false);
+  const [customWorkScheduleDialogOpen, setCustomWorkScheduleDialogOpen] = useState(false);
   const [customToolPresets, setCustomToolPresets] = useState(null);
   const [isLoadingProject, setIsLoadingProject] = useState(false);
   const [pendingMeasurements, setPendingMeasurements] = useState(null);
@@ -754,6 +758,8 @@ function App() {
         onCreateKoontiMaaralaskenta={() => setKoontiMaaralaskentaDialogOpen(true)}
         onOpenMaksuerataulukko={() => setCurrentView('maksuerataulukko')}
         onOpenWorkSchedule={() => setWorkScheduleDialogOpen(true)}
+        onOpenKoontiWorkSchedule={() => setKoontiWorkScheduleDialogOpen(true)}
+        onOpenCustomWorkSchedule={() => setCustomWorkScheduleDialogOpen(true)}
         onOpenSettings={() => setSettingsDialogOpen(true)}
         currentTool={currentTool}
         onToolSelect={handleToolSelect}
@@ -998,6 +1004,18 @@ function App() {
         onClose={() => setWorkScheduleDialogOpen(false)}
         measurements={measurements}
         projectName={project.name}
+      />
+
+      {/* Koonti Work Schedule Dialog */}
+      <KoontiWorkScheduleDialog
+        open={koontiWorkScheduleDialogOpen}
+        onClose={() => setKoontiWorkScheduleDialogOpen(false)}
+      />
+
+      {/* Custom Work Schedule Dialog */}
+      <CustomWorkScheduleDialog
+        open={customWorkScheduleDialogOpen}
+        onClose={() => setCustomWorkScheduleDialogOpen(false)}
       />
     </div>
   );
