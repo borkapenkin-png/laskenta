@@ -1568,7 +1568,7 @@ export const exportWorkSchedulePDF = (data) => {
   const tableData = scheduleRows.map(row => [
     row.label,
     `${formatNumber(row.totalQuantity)} ${row.unit}`,
-    `${formatNumber(row.productivityRate, 1)} ${row.productivityUnit}`,
+    `${formatNumber(row.productivityRate, 1)} ${row.unit}/h`,
     `${formatNumber(row.hoursTotal, 1)} h`,
     `${formatNumber(row.daysPerWorker, 1)} pv`
   ]);
@@ -1930,7 +1930,7 @@ export const exportCustomWorkSchedulePDF = (data) => {
   const tableData = scheduleRows.map(row => [
     row.name,
     `${formatNumber(row.quantity)} ${row.unit}`,
-    `${formatNumber(row.productivityRate, 1)} ${row.productivityUnit}`,
+    `${formatNumber(row.productivityRate, 1)} ${row.unit}/h`,
     `${formatNumber(row.hoursTotal, 1)} h`,
     `${formatNumber(row.daysPerWorker, 1)} pv`
   ]);
