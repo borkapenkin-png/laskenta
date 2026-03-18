@@ -1839,14 +1839,14 @@ export const exportKoontiWorkSchedulePDF = (data) => {
 };
 
 // ==================== CUSTOM WORK SCHEDULE PDF ====================
-// Manual work schedule without calculations
+// Work schedule with user-entered quantities using productivity rates
 export const exportCustomWorkSchedulePDF = (data) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const contentWidth = pageWidth - MARGIN_LEFT - MARGIN_RIGHT;
   
-  const { projectName, workPhases, totals, workerCount, hoursPerDay } = data;
+  const { projectName, scheduleRows, totals, workerCount, hoursPerDay } = data;
   
   let yPos = MARGIN_TOP;
   
@@ -1926,11 +1926,13 @@ export const exportCustomWorkSchedulePDF = (data) => {
   
   yPos += 5;
   
-  const tableHead = [['Työvaihe', 'Tunnit', 'Päivät']];
-  const tableData = workPhases.map(phase => [
-    phase.name,
-    `${formatNumber(phase.hours, 1)} h`,
-    `${formatNumber(phase.hours / (workerCount * hoursPerDay), 1)} pv`
+  const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit', 'Päivät']];
+  const tableData = scheduleRows.map(row => [
+    row.name,
+    `${formatNumber(row.quantity)} ${row.unit}`,
+    `${formatNumber(row.productivityRate, 1)} ${row.productivityUnit}`,
+    `${formatNumber(row.hoursTotal, 1)} h`,
+    `${formatNumber(row.daysPerWorker, 1)} pv`
   ]);
   
   autoTable(doc, {
@@ -1955,8 +1957,10 @@ export const exportCustomWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 35 },
-      2: { halign: 'right', cellWidth: 35 }
+      1: { halign: 'right', cellWidth: 30 },
+      2: { halign: 'right', cellWidth: 30 },
+      3: { halign: 'right', cellWidth: 25 },
+      4: { halign: 'right', cellWidth: 25 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,10 +31,13 @@ import {
   Users, 
   FileDown,
   Plus,
-  Trash2
+  Trash2,
+  Settings2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportCustomWorkSchedulePDF } from '@/utils/export';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 const formatNumber = (value, decimals = 2) => {
   if (value === null || value === undefined || isNaN(value)) return '0,00';
@@ -44,46 +47,48 @@ const formatNumber = (value, decimals = 2) => {
   });
 };
 
-// Default work phases that user can choose from
-const DEFAULT_PHASES = [
-  'Huoltomaalaus',
-  'Kipsiseinä tasoitus ja maalaus',
-  'Verkkotus, tasoitus ja maalaus',
-  'Tapetointi',
-  'Mikrotsementi',
-  'Kipsikatto tasoitus ja maalaus',
-  'AK huoltomaalaus',
-  'Pölysidonta',
-  'Lattiamaalaus/lakkaus',
-  'Lattiapinnoitus',
-  'Kipsiseinä rakennus',
-  'Alakatto rakennus',
-  'Kotelo rakennus',
-  'Oven maalaus',
-  'Ikkunan maalaus',
-  'Muu työ'
-];
-
 export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   const [projectName, setProjectName] = useState('');
   const [workerCount, setWorkerCount] = useState(2);
   const [hoursPerDay, setHoursPerDay] = useState(8);
+  const [productivityRates, setProductivityRates] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showRatesEditor, setShowRatesEditor] = useState(false);
   const [workPhases, setWorkPhases] = useState([
-    { id: 1, name: '', hours: 0 }
+    { id: 1, rateId: '', quantity: 0 }
   ]);
+  
+  // Load productivity rates from API
+  useEffect(() => {
+    if (open) {
+      setIsLoading(true);
+      fetch(`${API_URL}/api/presets/productivity`)
+        .then(res => res.json())
+        .then(data => {
+          if (data?.rates) setProductivityRates(data.rates);
+        })
+        .catch(err => console.error('Failed to load rates:', err))
+        .finally(() => setIsLoading(false));
+    }
+  }, [open]);
   
   // Reset when dialog opens
   useEffect(() => {
     if (open) {
       setProjectName('');
-      setWorkPhases([{ id: 1, name: '', hours: 0 }]);
+      setWorkPhases([{ id: 1, rateId: '', quantity: 0 }]);
     }
   }, [open]);
+  
+  // Get rate by ID
+  const getRateById = (rateId) => {
+    return productivityRates.find(r => r.id === rateId);
+  };
   
   // Add new phase
   const handleAddPhase = () => {
     const newId = Math.max(...workPhases.map(p => p.id), 0) + 1;
-    setWorkPhases([...workPhases, { id: newId, name: '', hours: 0 }]);
+    setWorkPhases([...workPhases, { id: newId, rateId: '', quantity: 0 }]);
   };
   
   // Remove phase
@@ -95,24 +100,69 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   // Update phase
   const handleUpdatePhase = (id, field, value) => {
     setWorkPhases(workPhases.map(p => 
-      p.id === id ? { ...p, [field]: field === 'hours' ? parseFloat(value) || 0 : value } : p
+      p.id === id ? { ...p, [field]: field === 'quantity' ? parseFloat(value) || 0 : value } : p
     ));
   };
   
-  // Calculate totals
-  const totals = {
-    totalHours: workPhases.reduce((sum, p) => sum + (p.hours || 0), 0),
-    get totalHoursPerWorker() { return this.totalHours / workerCount; },
-    get totalDays() { return this.totalHours / (workerCount * hoursPerDay); },
-    get totalWeeks() { return this.totalDays / 5; }
+  // Update a single rate
+  const handleRateChange = (rateId, newRate) => {
+    const updated = productivityRates.map(r => 
+      r.id === rateId ? { ...r, rate: parseFloat(newRate) || 1 } : r
+    );
+    setProductivityRates(updated);
   };
   
-  // Valid phases (has name and hours > 0)
-  const validPhases = workPhases.filter(p => p.name && p.hours > 0);
+  // Save rates to API
+  const handleSaveRates = async () => {
+    try {
+      await fetch(`${API_URL}/api/presets/productivity`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rates: productivityRates }),
+      });
+      toast.success('Tuottavuusmäärät tallennettu');
+    } catch (e) {
+      toast.error('Virhe tallennuksessa');
+    }
+  };
+  
+  // Calculate schedule rows with hours
+  const scheduleRows = useMemo(() => {
+    return workPhases
+      .filter(p => p.rateId && p.quantity > 0)
+      .map(phase => {
+        const rate = getRateById(phase.rateId);
+        if (!rate) return null;
+        
+        const hours = phase.quantity / rate.rate;
+        return {
+          id: phase.id,
+          name: rate.name,
+          quantity: phase.quantity,
+          unit: rate.unit.replace('/h', ''),
+          productivityRate: rate.rate,
+          productivityUnit: rate.unit,
+          hoursTotal: hours,
+          daysPerWorker: hours / (workerCount * hoursPerDay)
+        };
+      })
+      .filter(Boolean);
+  }, [workPhases, productivityRates, workerCount, hoursPerDay]);
+  
+  // Calculate totals
+  const totals = useMemo(() => {
+    const totalHours = scheduleRows.reduce((sum, r) => sum + r.hoursTotal, 0);
+    return {
+      totalHours,
+      totalHoursPerWorker: totalHours / workerCount,
+      totalDays: totalHours / (workerCount * hoursPerDay),
+      totalWeeks: totalHours / (workerCount * hoursPerDay * 5)
+    };
+  }, [scheduleRows, workerCount, hoursPerDay]);
   
   // Export PDF
   const handleExportPDF = () => {
-    if (validPhases.length === 0) {
+    if (scheduleRows.length === 0) {
       toast.error('Lisää vähintään yksi työvaihe');
       return;
     }
@@ -120,13 +170,8 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
     try {
       exportCustomWorkSchedulePDF({
         projectName: projectName || 'Oma työaikataulu',
-        workPhases: validPhases,
-        totals: {
-          totalHours: totals.totalHours,
-          totalHoursPerWorker: totals.totalHoursPerWorker,
-          totalDays: totals.totalDays,
-          totalWeeks: totals.totalWeeks
-        },
+        scheduleRows,
+        totals,
         workerCount,
         hoursPerDay
       });
@@ -137,16 +182,39 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
     }
   };
   
+  // Group rates by category for better selection UX
+  const ratesByCategory = useMemo(() => {
+    const grouped = {};
+    productivityRates.forEach(rate => {
+      const cat = rate.category || 'Muut';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(rate);
+    });
+    return grouped;
+  }, [productivityRates]);
+  
+  if (isLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl">
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin h-8 w-8 border-4 border-teal-500 border-t-transparent rounded-full" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+  
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-teal-600" />
             Oma työaikataulu
           </DialogTitle>
           <DialogDescription>
-            Luo työaikataulu syöttämällä työvaiheet ja tunnit käsin
+            Valitse työvaiheet ja syötä määrät - tunnit lasketaan automaattisesti
           </DialogDescription>
         </DialogHeader>
         
@@ -194,66 +262,133 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
               data-testid="custom-hours-per-day"
             />
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowRatesEditor(!showRatesEditor)}
+            className="flex items-center gap-2"
+            data-testid="toggle-rates-editor"
+          >
+            <Settings2 className="h-4 w-4" />
+            {showRatesEditor ? 'Piilota' : 'Tuottavuusmäärät'}
+          </Button>
         </div>
         
-        {/* Work Phases Table */}
+        {/* Productivity Rates Editor */}
+        {showRatesEditor && (
+          <div className="py-4 border-b bg-gray-50 -mx-6 px-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-sm">Tuottavuusmäärät (maalaus TES)</h3>
+              <Button size="sm" onClick={handleSaveRates} className="bg-teal-600 hover:bg-teal-700">
+                Tallenna muutokset
+              </Button>
+            </div>
+            <ScrollArea className="h-[180px]">
+              <div className="grid grid-cols-2 gap-2">
+                {productivityRates.map(rate => (
+                  <div key={rate.id} className="flex items-center gap-2 bg-white p-2 rounded border">
+                    <span className="flex-1 text-sm truncate" title={rate.name}>{rate.name}</span>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      min="0.1"
+                      value={rate.rate}
+                      onChange={(e) => handleRateChange(rate.id, e.target.value)}
+                      className="w-16 h-7 text-right text-sm"
+                    />
+                    <span className="text-xs text-gray-500 w-10">{rate.unit}</span>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
+        
+        {/* Work Phases Input */}
         <ScrollArea className="flex-1 min-h-[200px]">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50%]">Työvaihe</TableHead>
-                <TableHead className="text-right w-[25%]">Tunnit</TableHead>
-                <TableHead className="text-right w-[20%]">Päivät ({workerCount} hlö)</TableHead>
+                <TableHead className="w-[45%]">Työvaihe</TableHead>
+                <TableHead className="w-[20%]">Määrä</TableHead>
+                <TableHead className="text-right w-[15%]">Tunnit</TableHead>
+                <TableHead className="text-right w-[15%]">Päivät</TableHead>
                 <TableHead className="w-[5%]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {workPhases.map((phase, idx) => (
-                <TableRow key={phase.id}>
-                  <TableCell>
-                    <Select
-                      value={phase.name}
-                      onValueChange={(value) => handleUpdatePhase(phase.id, 'name', value)}
-                    >
-                      <SelectTrigger data-testid={`phase-name-${idx}`}>
-                        <SelectValue placeholder="Valitse työvaihe..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DEFAULT_PHASES.map(name => (
-                          <SelectItem key={name} value={name}>{name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={phase.hours || ''}
-                      onChange={(e) => handleUpdatePhase(phase.id, 'hours', e.target.value)}
-                      placeholder="0"
-                      className="text-right"
-                      data-testid={`phase-hours-${idx}`}
-                    />
-                  </TableCell>
-                  <TableCell className="text-right text-gray-500">
-                    {phase.hours > 0 
-                      ? formatNumber(phase.hours / (workerCount * hoursPerDay), 1) + ' pv'
-                      : '-'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => handleRemovePhase(phase.id)}
-                      disabled={workPhases.length <= 1}
-                      className="text-gray-400 hover:text-red-500 disabled:opacity-30"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {workPhases.map((phase, idx) => {
+                const selectedRate = getRateById(phase.rateId);
+                const hours = selectedRate && phase.quantity > 0 
+                  ? phase.quantity / selectedRate.rate 
+                  : 0;
+                const days = hours / (workerCount * hoursPerDay);
+                
+                return (
+                  <TableRow key={phase.id}>
+                    <TableCell>
+                      <Select
+                        value={phase.rateId}
+                        onValueChange={(value) => handleUpdatePhase(phase.id, 'rateId', value)}
+                      >
+                        <SelectTrigger data-testid={`phase-select-${idx}`}>
+                          <SelectValue placeholder="Valitse työvaihe..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(ratesByCategory).map(([category, rates]) => (
+                            <div key={category}>
+                              <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50">
+                                {category}
+                              </div>
+                              {rates.map(rate => (
+                                <SelectItem key={rate.id} value={rate.id}>
+                                  <span className="flex items-center justify-between w-full gap-4">
+                                    <span>{rate.name}</span>
+                                    <span className="text-xs text-gray-400">
+                                      {rate.rate} {rate.unit}
+                                    </span>
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={phase.quantity || ''}
+                          onChange={(e) => handleUpdatePhase(phase.id, 'quantity', e.target.value)}
+                          placeholder="0"
+                          className="w-20 text-right"
+                          data-testid={`phase-quantity-${idx}`}
+                        />
+                        <span className="text-sm text-gray-500 w-8">
+                          {selectedRate ? selectedRate.unit.replace('/h', '') : ''}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {hours > 0 ? `${formatNumber(hours, 1)} h` : '-'}
+                    </TableCell>
+                    <TableCell className="text-right text-gray-500">
+                      {days > 0 ? `${formatNumber(days, 1)} pv` : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => handleRemovePhase(phase.id)}
+                        disabled={workPhases.length <= 1}
+                        className="text-gray-400 hover:text-red-500 disabled:opacity-30"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
           
@@ -306,7 +441,7 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
           </Button>
           <Button 
             onClick={handleExportPDF}
-            disabled={validPhases.length === 0}
+            disabled={scheduleRows.length === 0}
             className="bg-teal-600 hover:bg-teal-700"
             data-testid="export-custom-schedule-pdf"
           >
