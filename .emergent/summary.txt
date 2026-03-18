@@ -3,7 +3,7 @@ The user wants to build a modern, 100% client-side, browser-based PDF takeoff an
 
 **PRODUCT REQUIREMENTS:**
 - **Architecture:** A React frontend with a FastAPI/MongoDB backend.
-- **Data Persistence:** User-defined presets (work items) are stored in a MongoDB database. Project data is saved/loaded via  files.
+- **Data Persistence:** User-defined presets (work items and TES prices) are stored in a MongoDB database. Project data is saved/loaded via  files.
 - **Core Functionality:**
     - Open and view multi-page PDF floor plans, calibrate scale.
     - Measurement tools: Length (jm), Area (m²), and Count (kpl).
@@ -11,60 +11,73 @@ The user wants to build a modern, 100% client-side, browser-based PDF takeoff an
     - Calculate total costs, including a configurable VAT.
     - Generate professional PDF offers and quantity takeoffs.
     - Merge multiple projects into a Summary Offer () and a Summary Quantity Takeoff ().
-    - Bulk editing tools for efficiency (e.g., add baseboards to all walls, edit grouped items).
-- **New Feature Request:** A Work Schedule Generator to estimate project duration based on measurements and configurable productivity rates.
+- **New Feature: Work Schedule Generator ():**
+    - A new feature to estimate project duration based on measurements.
+    - The core logic was changed from direct productivity rates (m²/h) to a system where the user inputs unit prices (€/m²) based on a collective agreement (TES). Productivity is then calculated automatically using a configurable target hourly wage ().
+    - Formula: 
+    - The feature includes three modes: schedule from the current project, a summary schedule from multiple projects (), and a custom schedule builder ().
+    - All PDF exports for schedules must have a uniform layout, including a Gantt-style chart.
 
 **User's preferred language**: The user communicates in a mix of **Finnish** and **Estonian**. The next agent MUST respond in these languages.
 
 **what currently exists?**
-A functional full-stack application with a React frontend and a FastAPI/MongoDB backend. The application allows users to upload PDF floor plans, perform measurements, and calculate costs. The preset system for work items is fully functional, with data stored in MongoDB and managed through an Asetukset (Settings) panel. PDF export capabilities exist for single projects, summary offers, and summary quantity takeoffs. Recently, bulk-editing features were added to improve user workflow.
+A full-stack application with a React frontend and a FastAPI/MongoDB backend. The main features are PDF measurement, cost calculation, and preset management. A new, complex Work Schedule Generator () has been implemented. This feature calculates project duration based on user-managed TES unit prices and a target hourly wage, storing the prices in MongoDB. The UI toolbar has been refactored into dropdown menus for better organization. The schedule generator exists in three variants (standard, summary, custom) and includes PDF export capabilities that are being unified.
 
 **Last working item**:
-- **Last item agent was working:** The agent was about to begin implementation of a new Work Schedule Generator feature as requested by the user. The user provided the initial requirements.
-- **Status:** NOT STARTED
+- **Last item agent was working:** The agent was refactoring the PDF export functionality for all three work schedule variants (, , ) to use a single, unified format. This new format includes a Huomio (notes) section, removes the Työpäivät (workdays) column, and adds a Gantt-style bar chart to visualize the timeline.
+- **Status:** IN PROGRESS
 - **Agent Testing Done:** N
-- **Which testing method agent to use?** both. The frontend testing agent is needed to verify the new UI for managing productivity rates, the calculation logic, and the final PDF export. The backend may need new endpoints to store the productivity rates, which would require  testing.
+- **Which testing method agent to use?** frontend testing agent. The agent needs to verify that all three Työaikataulu PDF export buttons generate a PDF with the correct, unified layout, including the data table and the new Gantt chart.
 - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- There are no pending issues. All previously reported bugs have been addressed.
+  - **Issue 1 (P0): Uninvestigated Koonti työaikataulu bug.**
+    - **Description:** The user reported koonti aikataulu ei töötä (summary schedule doesn't work). The agent confirmed the dialog opens but could not reproduce the issue further and got redirected to other tasks. The root cause is unknown.
+    - **Attempted fixes:** None. The agent asked for clarification, but the conversation moved on before the user could provide details.
+    - **Next debug checklist:**
+        1. Ask the user to describe the exact steps to reproduce the error. What happens when they upload files? Does it fail to calculate, or does the PDF export fail?
+        2. View the browser's developer console for errors when using the Koonti työaikataulu feature.
+        3. Inspect the code in  to trace the file reading and calculation logic.
+    - **Why fix this issue and what will be achieved with the fix?** The summary schedule is a key part of the new feature set, allowing users to plan larger, multi-part jobs.
+    - **Status:** NOT STARTED
+    - **Is recurring issue?** N
+    - **Should Test frontend/backend/both after fix?** frontend
+    - **Blocked on other issue:** None.
 
 **In progress Task List**:
-- There are no tasks currently in progress. The last set of features was completed.
+  - **Task 1: Finalize and Test Unified PDF Export with Gantt Chart (P0)**
+     - **Where to resume:** The agent has created a new function  in  and updated the three calling functions (, , ). The next step is to test this.
+     - **What will be achieved with this?** This will complete the user's request for a consistent and more visual PDF report for all work schedule types.
+     - **Status:** IN PROGRESS
+     - **Should Test frontend/backend/both after fix?** frontend
+     - **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
-
 **Upcoming Tasks:**
-- **Implement Work Schedule Generator (P0 - HIGHEST):**
-    - **Description:** Build a new feature that generates a work schedule based on the project's measurements.
-    - **Requirements:**
-        1.  Calculate total project duration in hours.
-        2.  Use configurable productivity rates (e.g., m²/hour), based on maalaus tes, which the user can edit. This will likely require a new settings panel and backend API similar to the tool presets.
-        3.  Allow the user to input the number of workers to adjust the timeline.
-        4.  Generate and export the final schedule as a PDF.
-    - **Where to start:**
-        - **Backend:** Plan and create new API endpoints in  to store and manage productivity rates in MongoDB.
-        - **Frontend:** Design and implement a new component for managing these rates, a UI to input the number of workers, and a new PDF export function in .
+- **Custom Preset Integration (P1):** The user noted that custom work items (e.g., Pintamaalaus 2x) created via the Muu (Other) option do not automatically appear in the TES price editor. The current workaround is a manual + Lisa oma button. A better solution would be to automatically add any new custom work item from a project's measurements to the TES price list with a default price of 0, prompting the user to update it.
 
 **Future Tasks:**
-- **User Verification:** The recently added bulk-editing features (Lisää jalkalistat kaikille and editable summary rows) have not been explicitly verified by the user. This should be confirmed after the next feature delivery.
+- ** Refactoring:** The main  file continues to grow and handles too much state. It should be broken down using  or context providers for better maintainability.
+- **Enable  Loading:** The agent discovered that while the app saves its state to , it doesn't load this state on startup. Implementing this would improve user experience by restoring the last session. This logic is missing from the  hook in .
+- **Dependency Cleanup:** Remove the unused  dependency from  and review the  hook for removal, as it might be obsolete after the migration to a MongoDB backend.
 
 **Completed work in this session**
-- **Preset System Overhaul:** Migrated the entire preset management system from  to a MongoDB backend with FastAPI endpoints (). This includes creating, reading, updating, and deleting presets via the Asetukset panel.
-- **Muu (Custom) Preset Bugfix:** Fixed a critical bug where custom-added work items did not include a price, leading to incorrect calculations. A price input was added, and the logic was corrected to ensure the price flows through the entire system.
-- **Koonti Määrälaskenta Feature:** Implemented a new Summary Quantity Takeoff feature that allows the user to upload multiple project files and generate a single, consolidated PDF of all quantities.
-- **Bulk Editing Features:**
-    - Added a Lisää jalkalistat kaikille button to apply baseboard measurements to all existing wall measurements in one click.
-    - Made the summary rows in the Yhteenveto tyypeittäin section editable, allowing for bulk changes to the name or price of all measurements of the same type.
-- **AI Room Detection (Removed):** An AI-powered room detection tool was prototyped, iterated upon with a  algorithm, but ultimately removed from the codebase entirely at the user's request as it did not perform reliably on architectural drawings.
-- **General Bugfixes & UX Improvements:**
-    - Fixed an issue with leading zeros in number inputs for prices.
-    - Implemented a more robust fix to permanently hide the Made with Emergent badge.
-    - Added a Save As dialog for project exports in supported browsers.
-    - Corrected character encoding issues in UI components.
+- **Work Schedule Generator ():**
+  - Implemented the entire feature from scratch, including a major logic pivot from storing direct productivity rates to storing TES unit prices and calculating productivity on the fly.
+  - Created three modes: for the current project, a custom builder (), and a summary of multiple projects ().
+  - Built the backend API () and MongoDB schema ( collection) to manage TES prices.
+- **Toolbar Refactoring:**
+  - Reorganized the main toolbar by grouping related actions into three dropdown menus (Tarjous, PDF, Laskelmat) for a cleaner UI.
+- **Custom TES Price Management:**
+  - Implemented a TES hinnat editor where users can view, edit, and add custom TES unit prices, which are saved to MongoDB.
+- **UI/UX Fixes:**
+  - Fixed a layout bug where the Oma työaikataulu dialog was cut off by making the content scrollable.
+  - Fixed PDF export bugs where units were missing and an unnecessary workdays column was shown.
+- **Production Debugging:**
+  - Investigated and correctly diagnosed a feature not working in production issue as a deployment/caching problem, which was resolved.
 
 **Earlier issues found/mentioned but not fixed**
-- None.
+- **Koonti työaikataulu bug:** As detailed in the All Pending/In progress Issue list. The user reported it's not working, but the issue was not fully diagnosed or resolved.
 
 **Known issue recurrence from previous fork**
 - None.
@@ -74,83 +87,79 @@ A functional full-stack application with a React frontend and a FastAPI/MongoDB 
 
 **Key Technical Concepts**
 - **Frameworks:** React.js, FastAPI
-- **Database:** MongoDB (via  async driver).
-- **State Management:** Centralized state in  using React Hooks (, ).
-- **Data Persistence:** Presets are stored in MongoDB. Projects are exported/imported as  files.
-- **API:** RESTful API for CRUD operations on presets.
-- **PDF Generation:** Client-side using  and .
+- **Database:** MongoDB
+- **State Management:** ,  in .
+- **API:** RESTful API for CRUD on .
+- **PDF Generation:**  and . Now includes custom drawing logic () to create Gantt-style charts.
+- **Core Logic:** Dynamic calculation of productivity based on unit price and target hourly wage.
 
 **key DB schema**
+- ** collection:** Stores TES unit prices and the target hourly wage.
+  - 
 - ** collection:** Stores user-defined work items.
-  - 
 - ** collection:** Stores payment schedule presets.
-  - 
 
 **changes in tech stack**
-- **Added:** MongoDB is now a core part of the stack for data persistence.
-- **Added:**  and  dependencies in the backend.
-- **Removed:** The  integration and dependency were removed after the AI feature was abandoned.
+- No changes to the core stack, but  is now used for more advanced custom drawing (Gantt charts).
 
 **All files of reference**
-- : Major changes to add MongoDB connection and preset API endpoints.
-- : Core logic updated to handle API-based presets and new bulk-editing functions.
-- : Rewritten to use API calls instead of .
-- : Updated with new bulk-editing UI and handlers.
-- : Fixed the custom preset input form.
-- : New function  added;  implemented.
-- : New file for the summary quantity takeoff feature.
-- : Modified to add an inline style to hide the Emergent badge.
+- : API endpoint changed from  to .
+- : Updated to manage state for three new dialogs and their toggle functions.
+- : Completely refactored to use  components instead of a flat list of buttons.
+- : A new unified function  was added to create a consistent PDF with a Gantt chart. , , and  were updated to use it.
+- : Created and later refactored to use the new TES price logic.
+- : Created and heavily modified to implement the TES price logic and fix layout issues.
+- : Created for the summary schedule feature.
 
 **Areas that need refactoring**:
-- ** God Component:** This file's complexity continues to grow. It manages state and logic for almost all features and would benefit from being broken down using  or a state management library.
-- **Unused Dependency:** The  dependency may still be present in  and should be removed to clean up the project.
-- **Obsolete Hook:** The  hook, originally created for , may now be obsolete and should be reviewed for removal.
+- ** God Component:** Remains a primary candidate for refactoring.
+- **Work Schedule Dialogs:** The three dialog components (, , ) likely contain significant duplicated logic and UI. They could be combined or abstracted into a more reusable structure.
+- ** dependency and  hook:** These were identified in the previous handoff and still need to be cleaned up.
 
 **key api endpoints**
+-  (GET/POST): Manages the TES unit prices and target hourly wage.
 -  (GET/POST): Manages tool presets.
 -  (GET/POST): Manages payment schedule presets.
--  (GET): Health check endpoint.
 
 **Critical Info for New Agent**
-- Your primary task is to **design and implement the new Work Schedule Generator feature**. This is the user's highest priority.
-- The AI Magic Wand tool was a failure. The user has explicitly moved on. **Do not suggest or attempt to re-implement any form of AI room detection.**
-- The preset system is now backed by MongoDB. All preset modifications must go through the backend API.
-- Be careful not to introduce regressions in the recently added bulk-editing features on the .
+- The most critical concept is the new calculation logic: **Productivity is NOT stored, it is CALCULATED** from the TES unit price and a target hourly wage. Do not try to modify productivity rates directly.
+- The user's highest priority is fixing any remaining bugs in the  feature, especially the non-functional  (summary) version.
+- The PDF export for work schedules now has a unified function that includes a Gantt chart. All changes to the schedule PDF should be made in  in .
 
 **documents and test reports created in this job**
-- Test reports were generated at  and used to verify feature completion and bug fixes.
--  has been updated with the latest completed features.
+- : Updated to reflect the completion of the Work Schedule Generator.
+- : Multiple test reports were generated by the testing subagent, successfully verifying the backend API and frontend components at various stages.
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **(User)** Confirmed the detailed requirements for the work schedule generator. (Task is clear)
-9.  **(User)** Specified requirements for the work schedule generator: must be in hours, use editable productivity rates, export to PDF, and account for the number of workers. (Task is clear)
-8.  **(User)** Chose Work schedule generator from a list of ideas. (Task is clear)
-7.  **(User)** Rejected the first list of AI ideas and asked for more practical ones. (Completed)
-6.  **(User)** Asked for new AI ideas to enhance the system. (Completed)
-5.  **(User)** Requested two new bulk-editing features: a button to add baseboards to all walls at once, and the ability to edit summary rows to update all related measurements. (Completed)
-4.  **(User)** Provided feedback on the Koonti määrälaskenta PDF, requesting its format match the standard quantity export exactly. (Completed)
-3.  **(Agent)** Confirmed the  dialog UI looks correct.
-2.  **(Agent)** Noted that Finnish characters were appearing as broken Unicode in the new dialog. (Completed)
-1.  **(Agent)** Initial check of the new dialog, where the character bug was first noticed.
+10. **(User)** Requests a unified PDF export for all work schedules with a Huomio section, no työpäivät column, and a Gantt-style chart. (In Progress)
+9. **(User)** Asks for the default hourly wage to be 18€. (Completed)
+8. **(User)** hakkas tööle (It started working) - confirming the production issue is resolved. (Completed)
+7. **(User)** Insists a deployment was made. (Completed)
+6. **(Agent)** Response from deployment agent.
+5. **(User)** Reports the TES price feature that worked in preview is not working in production. (Resolved)
+4. **(User)** Reports a minor bug in the PDF export where the unit is undefined. (Completed)
+3. **(User)** Reports a layout bug where the bottom of the Oma aikataulu dialog is cut off. (Completed)
+2. **(User)** Confirms the new TES price logic with a target hourly wage is what they want. (Completed)
+1. **(User)** Provides a major new requirement: change the entire work schedule logic to be based on TES unit prices and a target hourly wage, rather than direct productivity rates. (Completed)
 
 **Project Health Check:**
-- **Broken:** None. The application is in a stable, working state.
+- **Broken:** The Koonti työaikataulu (Summary Work Schedule) feature is reported as not working by the user, but the issue is undiagnosed.
 - **Mocked:** None.
 
 **3rd Party Integrations**
 - **:** For rendering PDF files client-side.
-- ** / :** For generating PDF documents client-side.
-- **MongoDB:** Database for storing user-configured presets.
+- ** / :** For generating PDF documents client-side, now including custom-drawn Gantt charts.
+- **MongoDB:** Database for storing user-configured presets (tools, payments, and TES prices).
 
 **Testing status**
-- **Testing agent used after significant changes:** YES. It was used successfully to verify the MongoDB migration and several bug fixes.
+- **Testing agent used after significant changes:** YES. The agent used it multiple times to validate the backend API, the addition of new components, and the custom preset editor functionality.
 - **Troubleshoot agent used after agent stuck in loop:** NO.
 - **Test files created:** None.
 - **Known regressions:** None.
 
 **Credentials to test flow:**
-The application connects to MongoDB using the  environment variable in . No other credentials are required to test the application's flow.
+The application connects to MongoDB using the  environment variable in . No other credentials are required.
 
 **What agent forgot to execute**
-- The agent did not remove the  dependency from  after deleting the associated AI feature.
-- The agent did not confirm whether the  hook is now obsolete after the migration to a MongoDB backend.</analysis>
+- The agent never fully diagnosed or resolved the user's report that koonti aikataulu ei töötä (summary schedule doesn't work). The investigation was started but abandoned when the user provided new requirements.
+- The cleanup tasks from the previous fork (removing the  dependency and the  hook) have still not been addressed.</analysis>

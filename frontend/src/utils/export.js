@@ -1523,7 +1523,7 @@ export const exportWorkSchedulePDF = (data) => {
   doc.setFontSize(22);
   doc.setTextColor(...BRAND_TEAL);
   doc.setFont('helvetica', 'bold');
-  doc.text('TÖÖGRAAFIK', MARGIN_LEFT, yPos);
+  doc.text('TYÖAIKATAULU', MARGIN_LEFT, yPos);
   
   doc.setFontSize(10);
   doc.setTextColor(...BRAND_DARK);
@@ -1534,27 +1534,22 @@ export const exportWorkSchedulePDF = (data) => {
   
   // ==================== PROJECT INFO ====================
   doc.setFillColor(...BRAND_LIGHT);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 25, 2, 2, 'F');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'F');
   
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text('Projekti:', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Projekti:', MARGIN_LEFT + 5, yPos + 11);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(projectName, MARGIN_LEFT + 30, yPos + 8);
+  doc.text(projectName, MARGIN_LEFT + 28, yPos + 11);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text('Työntekijät:', MARGIN_LEFT + 5, yPos + 18);
+  doc.text('Työntekijät:', MARGIN_LEFT + 100, yPos + 11);
   doc.setTextColor(...BRAND_DARK);
-  doc.text(`${workerCount} hlö`, MARGIN_LEFT + 35, yPos + 18);
+  doc.text(`${workerCount} hlö`, MARGIN_LEFT + 130, yPos + 11);
   
-  doc.setTextColor(100, 100, 100);
-  doc.text('Työpäivä:', MARGIN_LEFT + 70, yPos + 18);
-  doc.setTextColor(...BRAND_DARK);
-  doc.text(`${hoursPerDay} h`, MARGIN_LEFT + 100, yPos + 18);
-  
-  yPos += 35;
+  yPos += 28;
   
   // ==================== SCHEDULE TABLE ====================
   doc.setFont('helvetica', 'bold');
@@ -1566,8 +1561,8 @@ export const exportWorkSchedulePDF = (data) => {
   
   const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit']];
   const tableData = scheduleRows.map(row => [
-    row.label,
-    `${formatNumber(row.totalQuantity)} ${row.unit}`,
+    row.label || row.name,
+    `${formatNumber(row.totalQuantity || row.quantity)} ${row.unit}`,
     `${formatNumber(row.productivityRate, 1)} ${row.unit}/h`,
     `${formatNumber(row.hoursTotal, 1)} h`
   ]);
@@ -1578,7 +1573,7 @@ export const exportWorkSchedulePDF = (data) => {
     body: tableData,
     styles: { 
       fontSize: 9,
-      cellPadding: 4,
+      cellPadding: 3,
       textColor: BRAND_DARK,
       lineColor: [220, 220, 220],
       lineWidth: 0.1
@@ -1594,64 +1589,138 @@ export const exportWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 35 },
-      2: { halign: 'right', cellWidth: 35 },
-      3: { halign: 'right', cellWidth: 30 }
+      1: { halign: 'right', cellWidth: 30 },
+      2: { halign: 'right', cellWidth: 30 },
+      3: { halign: 'right', cellWidth: 25 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
   
-  yPos = doc.lastAutoTable.finalY + 15;
+  yPos = doc.lastAutoTable.finalY + 10;
   
   // ==================== TOTALS ====================
-  yPos = checkPageBreak(doc, yPos, 50, pageHeight);
+  yPos = checkPageBreak(doc, yPos, 30, pageHeight);
   
   doc.setFillColor(...BRAND_TEAL);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 45, 2, 2, 'F');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 25, 2, 2, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('YHTEENVETO', MARGIN_LEFT + 10, yPos + 10);
-  
-  // 4-column layout for totals
-  const colWidth = contentWidth / 4;
-  const totY = yPos + 25;
+  doc.text('YHTEENSÄ:', MARGIN_LEFT + 10, yPos + 16);
   
   doc.setFontSize(16);
-  doc.text(formatNumber(totals.totalHours, 0), MARGIN_LEFT + colWidth * 0.5, totY, { align: 'center' });
-  doc.text(formatNumber(totals.totalHoursPerWorker, 0), MARGIN_LEFT + colWidth * 1.5, totY, { align: 'center' });
-  doc.text(formatNumber(totals.totalDays, 1), MARGIN_LEFT + colWidth * 2.5, totY, { align: 'center' });
-  doc.text(formatNumber(totals.totalWeeks, 1), MARGIN_LEFT + colWidth * 3.5, totY, { align: 'center' });
+  doc.text(`${formatNumber(totals.totalHours, 0)} tuntia`, MARGIN_LEFT + 55, yPos + 16);
   
-  doc.setFontSize(8);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('tuntia yht.', MARGIN_LEFT + colWidth * 0.5, totY + 8, { align: 'center' });
-  doc.text('h / työntekijä', MARGIN_LEFT + colWidth * 1.5, totY + 8, { align: 'center' });
-  doc.text(`työpäivää (${workerCount} hlö)`, MARGIN_LEFT + colWidth * 2.5, totY + 8, { align: 'center' });
-  doc.text('viikkoa', MARGIN_LEFT + colWidth * 3.5, totY + 8, { align: 'center' });
+  doc.text(`(${formatNumber(totals.totalHoursPerWorker, 0)} h / työntekijä)`, MARGIN_LEFT + 105, yPos + 16);
   
-  yPos += 55;
+  yPos += 35;
   
-  // ==================== NOTE ====================
-  yPos = checkPageBreak(doc, yPos, 30, pageHeight);
+  // ==================== GANTT CHART ====================
+  yPos = checkPageBreak(doc, yPos, 80, pageHeight);
   
-  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.text('Aikataulu', MARGIN_LEFT, yPos);
+  
+  yPos += 8;
+  
+  // Calculate chart dimensions
+  const chartWidth = contentWidth - 60;
+  const chartX = MARGIN_LEFT + 60;
+  const barHeight = 12;
+  const barGap = 4;
+  const totalHours = totals.totalHours || 1;
+  
+  // Draw header with hour markers
+  doc.setFontSize(7);
   doc.setTextColor(100, 100, 100);
-  doc.setFont('helvetica', 'italic');
-  const noteText = 'Huom: Arvio perustuu maalaus TES:n mukaisiin tuottavuusmääriin. Todellinen aika voi vaihdella kohteen olosuhteiden mukaan.';
-  const noteLines = doc.splitTextToSize(noteText, contentWidth);
-  noteLines.forEach(line => {
-    doc.text(line, MARGIN_LEFT, yPos);
-    yPos += 4;
+  doc.setFont('helvetica', 'normal');
+  
+  const hourMarkers = [0, Math.round(totalHours * 0.25), Math.round(totalHours * 0.5), Math.round(totalHours * 0.75), Math.round(totalHours)];
+  hourMarkers.forEach((hour, i) => {
+    const x = chartX + (i / 4) * chartWidth;
+    doc.text(`${hour}h`, x, yPos, { align: 'center' });
   });
   
+  yPos += 5;
+  
+  // Draw background grid
+  doc.setDrawColor(230, 230, 230);
+  doc.setLineWidth(0.2);
+  for (let i = 0; i <= 4; i++) {
+    const x = chartX + (i / 4) * chartWidth;
+    doc.line(x, yPos, x, yPos + scheduleRows.length * (barHeight + barGap));
+  }
+  
+  // Draw bars
+  let cumulativeHours = 0;
+  const colors = [
+    [74, 155, 173],   // Teal
+    [52, 73, 94],     // Dark blue
+    [155, 89, 182],   // Purple
+    [46, 204, 113],   // Green
+    [241, 196, 15],   // Yellow
+    [230, 126, 34],   // Orange
+    [231, 76, 60],    // Red
+    [149, 165, 166],  // Gray
+  ];
+  
+  scheduleRows.forEach((row, idx) => {
+    const rowY = yPos + idx * (barHeight + barGap);
+    const hours = row.hoursTotal || 0;
+    
+    // Label
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_DARK);
+    const label = (row.label || row.name || '').substring(0, 20);
+    doc.text(label, MARGIN_LEFT, rowY + barHeight - 3);
+    
+    // Bar
+    const barStartX = chartX + (cumulativeHours / totalHours) * chartWidth;
+    const barWidth = Math.max((hours / totalHours) * chartWidth, 2);
+    
+    const color = colors[idx % colors.length];
+    doc.setFillColor(...color);
+    doc.roundedRect(barStartX, rowY, barWidth, barHeight, 1, 1, 'F');
+    
+    // Hours label on bar
+    if (barWidth > 20) {
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${formatNumber(hours, 0)}h`, barStartX + barWidth / 2, rowY + barHeight - 3, { align: 'center' });
+    }
+    
+    cumulativeHours += hours;
+  });
+  
+  yPos += scheduleRows.length * (barHeight + barGap) + 15;
+  
+  // ==================== NOTE ====================
+  yPos = checkPageBreak(doc, yPos, 25, pageHeight);
+  
+  doc.setFillColor(255, 251, 235);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'F');
+  doc.setDrawColor(251, 191, 36);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'S');
+  
+  doc.setFontSize(8);
+  doc.setTextColor(146, 64, 14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Huom:', MARGIN_LEFT + 5, yPos + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Arvio perustuu TES:n mukaisiin tuottavuusmääriin. Todellinen aika voi vaihdella kohteen olosuhteiden mukaan.', MARGIN_LEFT + 22, yPos + 11);
+  
   // ==================== FOOTER ====================
-  const footerY = pageHeight - 20;
+  const footerY = pageHeight - 15;
   
   doc.setDrawColor(...BRAND_TEAL);
   doc.setLineWidth(0.3);
-  doc.line(MARGIN_LEFT, footerY - 8, pageWidth - MARGIN_RIGHT, footerY - 8);
+  doc.line(MARGIN_LEFT, footerY - 5, pageWidth - MARGIN_RIGHT, footerY - 5);
   
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
@@ -1660,7 +1729,7 @@ export const exportWorkSchedulePDF = (data) => {
   doc.text(`Sivu 1 / 1`, pageWidth - MARGIN_RIGHT, footerY, { align: 'right' });
   
   // Save
-  const fileName = `Töögraafik_${projectName?.replace(/\s+/g, '_') || 'projekti'}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`;
+  const fileName = `Työaikataulu_${projectName?.replace(/\s+/g, '_') || 'projekti'}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`;
   doc.save(fileName);
 };
 
@@ -1816,6 +1885,105 @@ export const exportKoontiWorkSchedulePDF = (data) => {
   doc.text(`työpäivää (${workerCount} hlö)`, MARGIN_LEFT + colWidth * 2.5, totY + 8, { align: 'center' });
   doc.text('viikkoa', MARGIN_LEFT + colWidth * 3.5, totY + 8, { align: 'center' });
   
+  yPos += 55;
+  
+  // ==================== GANTT CHART (Project Overview) ====================
+  yPos = checkPageBreak(doc, yPos, 80, pageHeight);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.text('Aikataulu', MARGIN_LEFT, yPos);
+  
+  yPos += 8;
+  
+  // Calculate chart dimensions
+  const chartWidth = contentWidth - 60;
+  const chartX = MARGIN_LEFT + 60;
+  const barHeight = 14;
+  const barGap = 4;
+  const totalProjectHours = totals.totalHours || 1;
+  
+  // Draw header with hour markers
+  doc.setFontSize(7);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  
+  const hourMarkers = [0, Math.round(totalProjectHours * 0.25), Math.round(totalProjectHours * 0.5), Math.round(totalProjectHours * 0.75), Math.round(totalProjectHours)];
+  hourMarkers.forEach((hour, i) => {
+    const x = chartX + (i / 4) * chartWidth;
+    doc.text(`${hour}h`, x, yPos, { align: 'center' });
+  });
+  
+  yPos += 5;
+  
+  // Draw background grid
+  doc.setDrawColor(230, 230, 230);
+  doc.setLineWidth(0.2);
+  for (let i = 0; i <= 4; i++) {
+    const x = chartX + (i / 4) * chartWidth;
+    doc.line(x, yPos, x, yPos + projects.length * (barHeight + barGap));
+  }
+  
+  // Draw bars for each project
+  let cumulativeProjectHours = 0;
+  const colors = [
+    [74, 155, 173],   // Teal
+    [52, 73, 94],     // Dark blue
+    [155, 89, 182],   // Purple
+    [46, 204, 113],   // Green
+    [241, 196, 15],   // Yellow
+    [230, 126, 34],   // Orange
+    [231, 76, 60],    // Red
+    [149, 165, 166],  // Gray
+  ];
+  
+  projects.forEach((project, idx) => {
+    const rowY = yPos + idx * (barHeight + barGap);
+    const hours = project.totalHours || 0;
+    
+    // Label
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_DARK);
+    const label = (project.name || '').substring(0, 22);
+    doc.text(label, MARGIN_LEFT, rowY + barHeight - 4);
+    
+    // Bar
+    const barStartX = chartX + (cumulativeProjectHours / totalProjectHours) * chartWidth;
+    const barWidth = Math.max((hours / totalProjectHours) * chartWidth, 2);
+    
+    const color = colors[idx % colors.length];
+    doc.setFillColor(...color);
+    doc.roundedRect(barStartX, rowY, barWidth, barHeight, 1, 1, 'F');
+    
+    // Hours label on bar
+    if (barWidth > 25) {
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${formatNumber(hours, 0)}h`, barStartX + barWidth / 2, rowY + barHeight - 4, { align: 'center' });
+    }
+    
+    cumulativeProjectHours += hours;
+  });
+  
+  yPos += projects.length * (barHeight + barGap) + 15;
+  
+  // ==================== NOTE ====================
+  yPos = checkPageBreak(doc, yPos, 25, pageHeight);
+  
+  doc.setFillColor(255, 251, 235);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'F');
+  doc.setDrawColor(251, 191, 36);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'S');
+  
+  doc.setFontSize(8);
+  doc.setTextColor(146, 64, 14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Huom:', MARGIN_LEFT + 5, yPos + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Arvio perustuu TES:n mukaisiin tuottavuusmääriin. Todellinen aika voi vaihdella kohteen olosuhteiden mukaan.', MARGIN_LEFT + 22, yPos + 11);
+  
   // ==================== FOOTER ====================
   const footerY = pageHeight - 20;
   
@@ -1892,29 +2060,24 @@ export const exportCustomWorkSchedulePDF = (data) => {
   
   // ==================== PROJECT INFO ====================
   doc.setFillColor(...BRAND_LIGHT);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 25, 2, 2, 'F');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'F');
   
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text('Projekti:', MARGIN_LEFT + 5, yPos + 8);
+  doc.text('Projekti:', MARGIN_LEFT + 5, yPos + 11);
   doc.setTextColor(...BRAND_DARK);
   doc.setFont('helvetica', 'bold');
-  doc.text(projectName, MARGIN_LEFT + 30, yPos + 8);
+  doc.text(projectName, MARGIN_LEFT + 28, yPos + 11);
   
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text('Työntekijät:', MARGIN_LEFT + 5, yPos + 18);
+  doc.text('Työntekijät:', MARGIN_LEFT + 100, yPos + 11);
   doc.setTextColor(...BRAND_DARK);
-  doc.text(`${workerCount} hlö`, MARGIN_LEFT + 35, yPos + 18);
+  doc.text(`${workerCount} hlö`, MARGIN_LEFT + 130, yPos + 11);
   
-  doc.setTextColor(100, 100, 100);
-  doc.text('Työpäivä:', MARGIN_LEFT + 70, yPos + 18);
-  doc.setTextColor(...BRAND_DARK);
-  doc.text(`${hoursPerDay} h`, MARGIN_LEFT + 100, yPos + 18);
+  yPos += 28;
   
-  yPos += 35;
-  
-  // ==================== WORK PHASES TABLE ====================
+  // ==================== SCHEDULE TABLE ====================
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.setTextColor(...BRAND_TEAL);
@@ -1924,8 +2087,8 @@ export const exportCustomWorkSchedulePDF = (data) => {
   
   const tableHead = [['Työvaihe', 'Määrä', 'Tuottavuus', 'Tunnit']];
   const tableData = scheduleRows.map(row => [
-    row.name,
-    `${formatNumber(row.quantity)} ${row.unit}`,
+    row.name || row.label,
+    `${formatNumber(row.quantity || row.totalQuantity)} ${row.unit}`,
     `${formatNumber(row.productivityRate, 1)} ${row.unit}/h`,
     `${formatNumber(row.hoursTotal, 1)} h`
   ]);
@@ -1936,7 +2099,7 @@ export const exportCustomWorkSchedulePDF = (data) => {
     body: tableData,
     styles: { 
       fontSize: 9,
-      cellPadding: 4,
+      cellPadding: 3,
       textColor: BRAND_DARK,
       lineColor: [220, 220, 220],
       lineWidth: 0.1
@@ -1952,48 +2115,138 @@ export const exportCustomWorkSchedulePDF = (data) => {
     },
     columnStyles: {
       0: { cellWidth: 'auto' },
-      1: { halign: 'right', cellWidth: 35 },
-      2: { halign: 'right', cellWidth: 35 },
-      3: { halign: 'right', cellWidth: 30 }
+      1: { halign: 'right', cellWidth: 30 },
+      2: { halign: 'right', cellWidth: 30 },
+      3: { halign: 'right', cellWidth: 25 }
     },
     margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
   });
   
-  yPos = doc.lastAutoTable.finalY + 15;
+  yPos = doc.lastAutoTable.finalY + 10;
   
   // ==================== TOTALS ====================
-  yPos = checkPageBreak(doc, yPos, 50, pageHeight);
+  yPos = checkPageBreak(doc, yPos, 30, pageHeight);
   
   doc.setFillColor(...BRAND_TEAL);
-  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 45, 2, 2, 'F');
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 25, 2, 2, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('YHTEENSÄ', MARGIN_LEFT + 10, yPos + 10);
-  
-  const colWidth = contentWidth / 4;
-  const totY = yPos + 25;
+  doc.text('YHTEENSÄ:', MARGIN_LEFT + 10, yPos + 16);
   
   doc.setFontSize(16);
-  doc.text(formatNumber(totals.totalHours, 0), MARGIN_LEFT + colWidth * 0.5, totY, { align: 'center' });
-  doc.text(formatNumber(totals.totalHoursPerWorker, 0), MARGIN_LEFT + colWidth * 1.5, totY, { align: 'center' });
-  doc.text(formatNumber(totals.totalDays, 1), MARGIN_LEFT + colWidth * 2.5, totY, { align: 'center' });
-  doc.text(formatNumber(totals.totalWeeks, 1), MARGIN_LEFT + colWidth * 3.5, totY, { align: 'center' });
+  doc.text(`${formatNumber(totals.totalHours, 0)} tuntia`, MARGIN_LEFT + 55, yPos + 16);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`(${formatNumber(totals.totalHoursPerWorker, 0)} h / työntekijä)`, MARGIN_LEFT + 105, yPos + 16);
+  
+  yPos += 35;
+  
+  // ==================== GANTT CHART ====================
+  yPos = checkPageBreak(doc, yPos, 80, pageHeight);
+  
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...BRAND_TEAL);
+  doc.text('Aikataulu', MARGIN_LEFT, yPos);
+  
+  yPos += 8;
+  
+  // Calculate chart dimensions
+  const chartWidth = contentWidth - 60;
+  const chartX = MARGIN_LEFT + 60;
+  const barHeight = 12;
+  const barGap = 4;
+  const totalHours = totals.totalHours || 1;
+  
+  // Draw header with hour markers
+  doc.setFontSize(7);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  
+  const hourMarkers = [0, Math.round(totalHours * 0.25), Math.round(totalHours * 0.5), Math.round(totalHours * 0.75), Math.round(totalHours)];
+  hourMarkers.forEach((hour, i) => {
+    const x = chartX + (i / 4) * chartWidth;
+    doc.text(`${hour}h`, x, yPos, { align: 'center' });
+  });
+  
+  yPos += 5;
+  
+  // Draw background grid
+  doc.setDrawColor(230, 230, 230);
+  doc.setLineWidth(0.2);
+  for (let i = 0; i <= 4; i++) {
+    const x = chartX + (i / 4) * chartWidth;
+    doc.line(x, yPos, x, yPos + scheduleRows.length * (barHeight + barGap));
+  }
+  
+  // Draw bars
+  let cumulativeHours = 0;
+  const colors = [
+    [74, 155, 173],   // Teal
+    [52, 73, 94],     // Dark blue
+    [155, 89, 182],   // Purple
+    [46, 204, 113],   // Green
+    [241, 196, 15],   // Yellow
+    [230, 126, 34],   // Orange
+    [231, 76, 60],    // Red
+    [149, 165, 166],  // Gray
+  ];
+  
+  scheduleRows.forEach((row, idx) => {
+    const rowY = yPos + idx * (barHeight + barGap);
+    const hours = row.hoursTotal || 0;
+    
+    // Label
+    doc.setFontSize(8);
+    doc.setTextColor(...BRAND_DARK);
+    const label = (row.name || row.label || '').substring(0, 20);
+    doc.text(label, MARGIN_LEFT, rowY + barHeight - 3);
+    
+    // Bar
+    const barStartX = chartX + (cumulativeHours / totalHours) * chartWidth;
+    const barWidth = Math.max((hours / totalHours) * chartWidth, 2);
+    
+    const color = colors[idx % colors.length];
+    doc.setFillColor(...color);
+    doc.roundedRect(barStartX, rowY, barWidth, barHeight, 1, 1, 'F');
+    
+    // Hours label on bar
+    if (barWidth > 20) {
+      doc.setFontSize(7);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${formatNumber(hours, 0)}h`, barStartX + barWidth / 2, rowY + barHeight - 3, { align: 'center' });
+    }
+    
+    cumulativeHours += hours;
+  });
+  
+  yPos += scheduleRows.length * (barHeight + barGap) + 15;
+  
+  // ==================== NOTE ====================
+  yPos = checkPageBreak(doc, yPos, 25, pageHeight);
+  
+  doc.setFillColor(255, 251, 235);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'F');
+  doc.setDrawColor(251, 191, 36);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(MARGIN_LEFT, yPos, contentWidth, 18, 2, 2, 'S');
   
   doc.setFontSize(8);
+  doc.setTextColor(146, 64, 14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Huom:', MARGIN_LEFT + 5, yPos + 11);
   doc.setFont('helvetica', 'normal');
-  doc.text('tuntia yht.', MARGIN_LEFT + colWidth * 0.5, totY + 8, { align: 'center' });
-  doc.text('h / työntekijä', MARGIN_LEFT + colWidth * 1.5, totY + 8, { align: 'center' });
-  doc.text(`työpäivää (${workerCount} hlö)`, MARGIN_LEFT + colWidth * 2.5, totY + 8, { align: 'center' });
-  doc.text('viikkoa', MARGIN_LEFT + colWidth * 3.5, totY + 8, { align: 'center' });
+  doc.text('Arvio perustuu TES:n mukaisiin tuottavuusmääriin. Todellinen aika voi vaihdella kohteen olosuhteiden mukaan.', MARGIN_LEFT + 22, yPos + 11);
   
   // ==================== FOOTER ====================
-  const footerY = pageHeight - 20;
+  const footerY = pageHeight - 15;
   
   doc.setDrawColor(...BRAND_TEAL);
   doc.setLineWidth(0.3);
-  doc.line(MARGIN_LEFT, footerY - 8, pageWidth - MARGIN_RIGHT, footerY - 8);
+  doc.line(MARGIN_LEFT, footerY - 5, pageWidth - MARGIN_RIGHT, footerY - 5);
   
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);

@@ -155,14 +155,18 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - Removed: SAM 3 and flood fill approaches both had issues with floor plans
 - Feature was removed per user request
 
-## Work Schedule Generator (Töögraafik) - 2025-03-17
-- ✅ Backend API: GET/PUT /api/presets/productivity for maalaus TES productivity rates
-- ✅ 21 default productivity rates across 7 categories (Maalaus, Katto, Lattia, Rakennus, Kotelot, Ovet, Pystykotelot)
-- ✅ Frontend: WorkScheduleDialog component with editable rates
-- ✅ Inputs: Worker count and hours/day for accurate calculations
-- ✅ Calculations: Hours total, hours per worker, days, weeks
-- ✅ PDF export: Professional format matching existing tarjous/määrälaskenta style
-- ✅ 8 backend + 10 frontend tests passed (iteration_17)
+## Work Schedule Generator (Töögraafik) - 2025-03-17 → 2025-03-18
+- ✅ Backend API: GET/PUT /api/presets/tes-prices for TES unit prices
+- ✅ **Logic Change:** Productivity is calculated from TES prices: `rate = hourlyTarget / price`
+- ✅ Default hourly target: 18€/h (configurable)
+- ✅ 21 default TES prices across 7 categories
+- ✅ Three dialog variants:
+  - **Työaikataulu:** Project-based schedule from current measurements
+  - **Oma työaikataulu:** Custom schedule builder with TES prices
+  - **Koonti työaikataulu:** Summary schedule from multiple project JSON files
+- ✅ PDF export with Gantt chart and "Huom:" notes section for all variants
+- ✅ Unified PDF format across all three variants (2025-03-18)
+- ✅ Toolbar refactored: "Laskelmat" dropdown menu groups all schedule options
 
 ## Notes for Development
 - All changes are client-side only
