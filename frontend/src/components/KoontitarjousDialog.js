@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Upload, FileJson, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { DEFAULT_TERMS } from '@/constants/company';
+import { VALIDITY_OPTIONS, PAYMENT_TERM_OPTIONS } from '@/constants/company';
 
 // ==================== PROJECT JSON PARSER ====================
 const parseProjectJSON = (jsonData, fileName) => {
@@ -520,7 +520,7 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
                 />
               </div>
               <div className="space-y-2">
-                <Label>Voimassa (pv)</Label>
+                <Label>Voimassa</Label>
                 <Select
                   value={String(formData.voimassa)}
                   onValueChange={(v) => handleChange('voimassa', parseInt(v))}
@@ -529,10 +529,11 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="14">14 päivää</SelectItem>
-                    <SelectItem value="30">30 päivää</SelectItem>
-                    <SelectItem value="60">60 päivää</SelectItem>
-                    <SelectItem value="90">90 päivää</SelectItem>
+                    {VALIDITY_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -546,10 +547,11 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="7">7 pv netto</SelectItem>
-                    <SelectItem value="14">14 pv netto</SelectItem>
-                    <SelectItem value="21">21 pv netto</SelectItem>
-                    <SelectItem value="30">30 pv netto</SelectItem>
+                    {PAYMENT_TERM_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -626,7 +628,44 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
                       ))}
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-gray-500">Lisätään materiaalien hankintahintaan</p>
                 </div>
+              </div>
+              
+              {/* Sisältää materiaalit toggle */}
+              <div className="flex items-center gap-3 py-2 border-t pt-4">
+                <Switch
+                  id="koonto-sisaltaaMateriaalit"
+                  checked={formData.sisaltaaMateriaalit}
+                  onCheckedChange={(v) => handleChange('sisaltaaMateriaalit', v)}
+                />
+                <Label htmlFor="koonto-sisaltaaMateriaalit" className="cursor-pointer text-sm">
+                  Sisältää Teknos maalit ja tarvikkeet
+                </Label>
+              </div>
+              
+              {/* Tuntityöt toggle + input */}
+              <div className="flex items-center gap-3 py-2">
+                <Switch
+                  id="koonto-tuntityotEnabled"
+                  checked={formData.tuntityotEnabled}
+                  onCheckedChange={(v) => handleChange('tuntityotEnabled', v)}
+                />
+                <Label htmlFor="koonto-tuntityotEnabled" className="cursor-pointer text-sm">
+                  Urakkaan laskettu tuntityöt
+                </Label>
+                {formData.tuntityotEnabled && (
+                  <div className="flex items-center gap-2 ml-4">
+                    <Input
+                      type="number"
+                      value={formData.tuntityotMaara}
+                      onChange={(e) => handleChange('tuntityotMaara', e.target.value)}
+                      placeholder="0"
+                      className="w-20"
+                    />
+                    <span className="text-sm text-gray-500">h</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -642,15 +681,20 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
               rows={3}
             />
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div>
+                <Label htmlFor="koonto-vakioehdot" className="text-sm font-medium">
+                  Käytä vakioehtoja
+                </Label>
+                <p className="text-xs text-gray-500 mt-1">
+                  Lisää yleiset sopimusehdot tarjoukseen
+                </p>
+              </div>
               <Switch
                 id="koonto-vakioehdot"
                 checked={formData.kaytaVakioehtoja}
                 onCheckedChange={(v) => handleChange('kaytaVakioehtoja', v)}
               />
-              <Label htmlFor="koonto-vakioehdot" className="cursor-pointer">
-                Käytä vakioehtoja (YSE + MaalausRYL 2012)
-              </Label>
             </div>
           </div>
 

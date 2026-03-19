@@ -597,7 +597,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                   data-testid="tarjous-materiaalit-toggle"
                 />
                 <Label htmlFor="sisaltaaMateriaalit" className="cursor-pointer text-sm">
-                  Sisältää materiaalit (Fescon tasoitteet ja Teknos maalijärjestelmät)
+                  Sisältää Teknos maalit ja tarvikkeet
                 </Label>
               </div>
               
