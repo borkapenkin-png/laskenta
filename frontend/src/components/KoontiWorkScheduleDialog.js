@@ -95,7 +95,9 @@ const groupMeasurements = (measurements) => {
 
 // Process a single project
 const processProject = (project, rates) => {
-  const grouped = groupMeasurements(project.measurements || []);
+  // Support both old (measurements) and new (objects) format
+  const measurements = project.measurements || project.objects || [];
+  const grouped = groupMeasurements(measurements);
   const rows = grouped.map(group => {
     const matchedRate = findMatchingRate(group, rates);
     const hours = group.totalQuantity / matchedRate.rate;
@@ -109,8 +111,11 @@ const processProject = (project, rates) => {
   
   const totalHours = rows.reduce((sum, r) => sum + r.hoursTotal, 0);
   
+  // Support both old (project.name) and new (meta.name) format
+  const projectName = project.project?.name || project.meta?.name || 'Tuntematon projekti';
+  
   return {
-    name: project.project?.name || 'Tuntematon projekti',
+    name: projectName,
     rows,
     totalHours
   };
@@ -147,8 +152,16 @@ export const KoontiWorkScheduleDialog = ({ open, onClose }) => {
       reader.onload = (event) => {
         try {
           const data = JSON.parse(event.target.result);
-          setLoadedProjects(prev => [...prev, data]);
-          toast.success(`Ladattu: ${data.project?.name || file.name}`);
+          
+          // Support both old format (project/measurements) and new format (meta/objects)
+          const normalizedData = {
+            project: data.project || data.meta || { name: file.name.replace('.json', '') },
+            measurements: data.measurements || data.objects || [],
+            scale: data.scale
+          };
+          
+          setLoadedProjects(prev => [...prev, normalizedData]);
+          toast.success(`Ladattu: ${normalizedData.project?.name || file.name}`);
         } catch (err) {
           toast.error(`Virhe tiedostossa: ${file.name}`);
         }
@@ -171,7 +184,8 @@ export const KoontiWorkScheduleDialog = ({ open, onClose }) => {
     const customRates = [];
     
     loadedProjects.forEach(project => {
-      const measurements = project.measurements || [];
+      // Support both old (measurements) and new (objects) format
+      const measurements = project.measurements || project.objects || [];
       measurements.forEach(m => {
         const label = m.label || '';
         if (label && !existingNames.has(label.toLowerCase())) {
