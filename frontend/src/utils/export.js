@@ -377,12 +377,13 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
   };
   
   // Calculate dynamic block height based on content
-  // Optimized layout: labels closer to values, right column more to the right
+  // Optimized layout: labels closer to values, right column adjusted for email
   const labelX = MARGIN_LEFT + 5;
   const valueX = MARGIN_LEFT + 35; // Reduced from 55 - closer to label
-  const rightLabelX = pageWidth - MARGIN_RIGHT - 55; // More to the right
-  const rightValueX = pageWidth - MARGIN_RIGHT - 30; // Right-aligned area
-  const maxLeftValueWidth = rightLabelX - valueX - 15; // Max width for left column values
+  const rightLabelX = pageWidth - MARGIN_RIGHT - 60; // Moved left for more space
+  const rightValueX = pageWidth - MARGIN_RIGHT - 35; // More space for values
+  const maxLeftValueWidth = rightLabelX - valueX - 10; // Max width for left column values
+  const maxRightValueWidth = pageWidth - MARGIN_RIGHT - rightValueX - 2; // Max width for right values
   
   // First, calculate total height needed
   let tempY = 8;
@@ -397,9 +398,17 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
   const kohdeLines = doc.splitTextToSize(tarjousData.kohde || project.name || '-', maxLeftValueWidth);
   tempY += (kohdeLines.length * lineHeight) + rowGap;
   
-  // Row 3: Yhteyshenkilö + Email (if present)
+  // Row 3: Yhteyshenkilö + Email (if present) - email may need extra line
   if (tarjousData.yhteyshenkilo || tarjousData.email) {
     tempY += lineHeight + rowGap;
+    // Check if email needs extra line
+    if (tarjousData.email) {
+      doc.setFontSize(9);
+      const emailLines = doc.splitTextToSize(tarjousData.email, maxRightValueWidth);
+      if (emailLines.length > 1) {
+        tempY += (emailLines.length - 1) * lineHeight;
+      }
+    }
   }
   
   // Row 4: Puhelin (if present)
@@ -478,21 +487,22 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
       doc.text(yhteysWrapped[0], valueX, infoY); // Only first line
     }
     
+    let emailExtraLines = 0;
     if (tarjousData.email) {
       doc.setTextColor(100, 100, 100);
       doc.setFont('helvetica', 'normal');
       doc.text('Sähköposti:', rightLabelX, infoY);
       doc.setTextColor(...BRAND_DARK);
       doc.setFont('helvetica', 'bold');
-      // Limit email width to fit within the box
-      const maxEmailWidth = pageWidth - MARGIN_RIGHT - rightValueX - 2;
-      doc.setFontSize(8); // Smaller font for long emails
-      const emailWrapped = doc.splitTextToSize(tarjousData.email, maxEmailWidth);
-      doc.text(emailWrapped[0], rightValueX, infoY); // Only first line
-      doc.setFontSize(9); // Reset font size
+      // Email uses maxRightValueWidth and shows all lines
+      const emailWrapped = doc.splitTextToSize(tarjousData.email, maxRightValueWidth);
+      emailWrapped.forEach((line, idx) => {
+        doc.text(line, rightValueX, infoY + (idx * lineHeight));
+      });
+      emailExtraLines = emailWrapped.length - 1;
     }
     
-    infoY += lineHeight + rowGap;
+    infoY += lineHeight + rowGap + (emailExtraLines * lineHeight);
   }
   
   // Row 4: Puhelin
@@ -974,12 +984,13 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   yPos += 12;
   
   // ==================== ASIAKASTIEDOT BLOCK ====================
-  // Optimized layout: labels closer to values, right column more to the right
+  // Optimized layout: labels closer to values, right column adjusted for email
   const col1X = MARGIN_LEFT + 5;
   const col2X = MARGIN_LEFT + 35; // Reduced - closer to label
-  const col3X = pageWidth - MARGIN_RIGHT - 55; // More to the right
-  const col4X = pageWidth - MARGIN_RIGHT - 30; // Right-aligned area
-  const maxLeftValueWidth = col3X - col2X - 15; // Max width for left column values
+  const col3X = pageWidth - MARGIN_RIGHT - 60; // Moved left for more space
+  const col4X = pageWidth - MARGIN_RIGHT - 35; // More space for values
+  const maxLeftValueWidth = col3X - col2X - 10; // Max width for left column values
+  const maxRightValueWidth = pageWidth - MARGIN_RIGHT - col4X - 2; // Max width for right values
   const lineHeight = 5;
   const rowGap = 3;
   
@@ -993,6 +1004,14 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   blockHeight += (kohdeLines.length * lineHeight) + rowGap;
   if (koontitarjousData.yhteyshenkilo || koontitarjousData.email) {
     blockHeight += lineHeight + rowGap;
+    // Check if email needs extra lines
+    if (koontitarjousData.email) {
+      doc.setFontSize(9);
+      const emailLines = doc.splitTextToSize(koontitarjousData.email, maxRightValueWidth);
+      if (emailLines.length > 1) {
+        blockHeight += (emailLines.length - 1) * lineHeight;
+      }
+    }
   }
   if (koontitarjousData.puhelin) {
     blockHeight += lineHeight + rowGap;
@@ -1044,6 +1063,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   
   // Row 3: Yhteyshenkilö (left) + Sähköposti (right)
   if (koontitarjousData.yhteyshenkilo || koontitarjousData.email) {
+    let emailExtraLines = 0;
     if (koontitarjousData.yhteyshenkilo) {
       doc.setTextColor(100, 100, 100);
       doc.setFont('helvetica', 'normal');
@@ -1059,15 +1079,16 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
       doc.setFont('helvetica', 'normal');
       doc.text('Sähköposti:', col3X, infoY);
       doc.setTextColor(...BRAND_DARK);
-      // Limit email width to fit within the box
-      const maxEmailWidth = pageWidth - MARGIN_RIGHT - col4X - 2;
-      doc.setFontSize(8); // Smaller font for long emails
-      const emailWrapped = doc.splitTextToSize(koontitarjousData.email, maxEmailWidth);
-      doc.text(emailWrapped[0], col4X, infoY); // Only first line
-      doc.setFontSize(9); // Reset font size
+      doc.setFont('helvetica', 'bold');
+      // Email uses maxRightValueWidth and shows all lines
+      const emailWrapped = doc.splitTextToSize(koontitarjousData.email, maxRightValueWidth);
+      emailWrapped.forEach((line, idx) => {
+        doc.text(line, col4X, infoY + (idx * lineHeight));
+      });
+      emailExtraLines = emailWrapped.length - 1;
     }
     
-    infoY += lineHeight + rowGap;
+    infoY += lineHeight + rowGap + (emailExtraLines * lineHeight);
   }
   
   // Row 4: Puhelin
