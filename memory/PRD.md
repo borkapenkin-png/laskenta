@@ -199,6 +199,21 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 - ✅ Same format for all three variants: Työaikataulu, Oma työaikataulu, Koonti työaikataulu
 - ✅ Filename changed to "Tyomaaraerittely_..." for clarity
 
+## Resend Email Integration (Tarjous sähköpostilla) - 2025-12-20
+- ✅ Backend API: POST /api/send-tarjous-email - sends emails with PDF attachment via Resend
+- ✅ Professional HTML email template with:
+  - Company logos (J&B logo + Suomen Vahvimmat)
+  - Gradient header
+  - Dynamic sender signature from yhteyshenkilö field
+  - Company contact info footer (Y-tunnus, address, phone, email)
+- ✅ TarjousDialog: "Lähetä tarjous" button sends generated PDF directly to customer email
+- ✅ KoontitarjousDialog: Same email functionality synchronized
+- ✅ Email requires: recipient_email, subject, body_text, pdf_base64, pdf_filename
+- ✅ Optional sender_name for personalized signature
+- ✅ Frontend generates PDF as base64 → sends to backend → backend calls Resend API
+- ✅ Toast notifications for success/failure
+- ✅ All 11 backend tests + all frontend tests passed (iteration_20)
+
 ## Notes for Development
 - All changes are client-side only
 - Project JSON must include embedded PDF base64 for full restoration
