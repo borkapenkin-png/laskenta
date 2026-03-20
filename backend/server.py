@@ -397,6 +397,7 @@ class EmailWithAttachmentRequest(BaseModel):
     body_text: str
     pdf_base64: str
     pdf_filename: str
+    sender_name: Optional[str] = None  # Yhteyshenkilö name
 
 
 @api_router.post("/send-tarjous-email")
@@ -410,24 +411,39 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
         # Decode base64 PDF
         pdf_content = base64.b64decode(request.pdf_base64)
         
-        # Build HTML email content
+        # Sender name for signature
+        sender_signature = f"<p style='margin: 0;'>{request.sender_name}</p>" if request.sender_name else ""
+        
+        # Build HTML email content with logo
         html_content = f"""
         <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="border-bottom: 2px solid #4A9BAD; padding-bottom: 10px; margin-bottom: 20px;">
-                    <h2 style="color: #4A9BAD; margin: 0;">J&B Tasoitus ja Maalaus Oy</h2>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                
+                <!-- Header with logo -->
+                <div style="background-color: #4A9BAD; padding: 20px; text-align: center;">
+                    <img src="https://i.imgur.com/JBLogoPlaceholder.png" alt="J&B" style="height: 40px; display: none;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">J&B Tasoitus ja Maalaus Oy</h1>
                 </div>
                 
-                <div style="white-space: pre-line;">
+                <!-- Body -->
+                <div style="padding: 30px;">
+                    <div style="white-space: pre-line; font-size: 15px; color: #333;">
 {request.body_text}
+                    </div>
                 </div>
                 
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
-                    <p><strong>J&B Tasoitus ja Maalaus Oy</strong></p>
-                    <p>Puh: 040 848 8885</p>
-                    <p>Y-tunnus: 3464050-2</p>
+                <!-- Footer -->
+                <div style="background-color: #f8f9fa; padding: 20px; border-top: 1px solid #e9ecef;">
+                    <div style="font-size: 13px; color: #666;">
+                        {sender_signature}
+                        <p style="margin: 5px 0 0 0;"><strong>J&B Tasoitus ja Maalaus Oy</strong></p>
+                        <p style="margin: 3px 0;">Puh: 040 848 8885</p>
+                        <p style="margin: 3px 0;">Y-tunnus: 3464050-2</p>
+                        <p style="margin: 3px 0;">info@jbtasoitusmaalaus.fi</p>
+                    </div>
                 </div>
+                
             </div>
         </body>
         </html>

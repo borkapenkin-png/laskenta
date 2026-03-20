@@ -218,7 +218,8 @@ Puh: 040 848 8885`;
           subject: `Tarjous: ${formData.kohde}`,
           body_text: bodyText,
           pdf_base64: result.pdfBase64,
-          pdf_filename: result.fileName
+          pdf_filename: result.fileName,
+          sender_name: formData.yhteyshenkilo || ''
         })
       });
       
