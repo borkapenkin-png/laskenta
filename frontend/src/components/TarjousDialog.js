@@ -195,18 +195,14 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
         return;
       }
       
-      // Build email content
+      // Build email content (without signature - it's in the HTML template)
       const bodyText = `Hei,
 
 Tarjoamme kohteeseen ${formData.kohde}.
 
 Tarjous on liitetty PDF-tiedostona.
 
-Vastaamme mielellämme mahdollisiin kysymyksiin.
-
-Ystävällisin terveisin,
-J&B Tasoitus ja Maalaus Oy
-Puh: 040 848 8885`;
+Vastaamme mielellämme mahdollisiin kysymyksiin.`;
       
       // Send via backend
       const API_URL = process.env.REACT_APP_BACKEND_URL || '';

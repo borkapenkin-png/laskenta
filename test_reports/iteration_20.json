@@ -1,0 +1,127 @@
+{
+  "summary": "TarjousDialog email integration fully tested and working. All features verified: manual mode, price rows, kokonaishinta mode, and email sending via Resend API.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "TarjousDialog",
+        "issues": [
+          "Console warnings about HTML nesting (<tr> inside <span>, <span> inside <tbody>) - React hydration warning from dynamic table rows. Non-blocking but should be fixed for cleaner code.",
+          "Console warnings about missing DialogTitle/Description accessibility attributes (Radix UI warning)"
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_tarjous_email.py",
+    "/app/test_reports/pytest/tarjous_email_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: Fix HTML nesting warning in TarjousDialog.js - the table rows are wrapped in <span> elements which causes React hydration warnings"
+  ],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_tarjous_email.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": "None required - Resend API key already configured in backend/.env",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "TarjousDialog email integration is fully working. Resend API is configured and sending emails successfully.",
+  "verified_features": {
+    "TarjousDialog_manual_mode": {
+      "status": "WORKING",
+      "tests": [
+        "Dialog opens from Tarjous dropdown menu",
+        "Käsin (manual) mode can be selected",
+        "Customer info fields work (asiakas, kohde, email, yhteyshenkilö, puhelin)",
+        "Urakan sisältö textarea accepts multi-line text",
+        "Price rows table with auto-calculation (määrä × yksikköhinta = yhteensä)",
+        "Kokonaishinta toggle switches to single price input",
+        "Lähetä tarjous button enabled when email is filled"
+      ]
+    },
+    "email_sending": {
+      "status": "WORKING",
+      "tests": [
+        "Email sent successfully with price rows (1,500 €)",
+        "Email sent successfully with kokonaishinta (2,500 €)",
+        "Toast message shows success: 'Tarjous lähetetty: {email}'",
+        "Dialog closes after successful send"
+      ]
+    },
+    "backend_api": {
+      "status": "WORKING",
+      "endpoint": "/api/send-tarjous-email",
+      "tests": [
+        "POST with valid data returns 200 and email_id",
+        "Invalid email format returns 422",
+        "Missing required fields returns 422",
+        "Finnish characters (ä, ö, å) handled correctly",
+        "Long body text handled correctly"
+      ]
+    }
+  },
+  "tests_executed": {
+    "backend": [
+      {"test": "test_api_health", "status": "PASSED"},
+      {"test": "test_send_email_success", "status": "PASSED"},
+      {"test": "test_send_email_without_sender_name", "status": "PASSED"},
+      {"test": "test_send_email_invalid_email_format", "status": "PASSED"},
+      {"test": "test_send_email_missing_required_fields", "status": "PASSED"},
+      {"test": "test_send_email_with_finnish_characters", "status": "PASSED"},
+      {"test": "test_send_email_with_long_body", "status": "PASSED"},
+      {"test": "test_get_offer_terms", "status": "PASSED"},
+      {"test": "test_offer_terms_content", "status": "PASSED"},
+      {"test": "test_get_tool_presets", "status": "PASSED"},
+      {"test": "test_tool_presets_structure", "status": "PASSED"}
+    ],
+    "frontend": [
+      {"test": "TarjousDialog opens from Tarjous menu", "status": "PASSED"},
+      {"test": "Käsin mode selection", "status": "PASSED"},
+      {"test": "Customer info form filling", "status": "PASSED"},
+      {"test": "Urakan sisältö textarea", "status": "PASSED"},
+      {"test": "Price rows with auto-calculation", "status": "PASSED"},
+      {"test": "Kokonaishinta toggle and input", "status": "PASSED"},
+      {"test": "Lähetä tarjous button enabled with email", "status": "PASSED"},
+      {"test": "Email send with price rows - success toast", "status": "PASSED"},
+      {"test": "Email send with kokonaishinta - success toast", "status": "PASSED"}
+    ]
+  },
+  "verified_apis": {
+    "POST /api/send-tarjous-email": {
+      "status": "WORKING",
+      "request_body": {
+        "recipient_email": "EmailStr (required)",
+        "subject": "str (required)",
+        "body_text": "str (required)",
+        "pdf_base64": "str (required)",
+        "pdf_filename": "str (required)",
+        "sender_name": "str (optional)"
+      },
+      "response": {
+        "status": "success",
+        "message": "Sähköposti lähetetty: {email}",
+        "email_id": "UUID from Resend"
+      }
+    },
+    "GET /api/presets/offer-terms": {
+      "status": "WORKING",
+      "response": "Returns array of 11 Finnish offer terms"
+    },
+    "GET /api/presets/tools": {
+      "status": "WORKING",
+      "response": "Returns tool presets for line, wall, rectangle, polygon, count"
+    }
+  },
+  "rca_of_issue": "No issues found - all features working correctly"
+}

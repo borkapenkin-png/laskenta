@@ -412,41 +412,74 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
         pdf_content = base64.b64decode(request.pdf_base64)
         
         # Sender name for signature
-        sender_signature = f"<p style='margin: 0;'>{request.sender_name}</p>" if request.sender_name else ""
+        sender_signature = f"<p style='margin: 0 0 5px 0; font-weight: 500;'>{request.sender_name}</p>" if request.sender_name else ""
         
-        # Build HTML email content with logo
+        # Logo URLs
+        jb_logo_url = "https://pdf-takeoff-pro.preview.emergentagent.com/jb-logo.png"
+        vahvimmat_logo_url = "https://customer-assets.emergentagent.com/job_d4d42b98-71ea-4ee8-a9f7-d96c0c29d9b2/artifacts/515j5e72_TEXTRIGHT_BLACK_1080x265.png"
+        
+        # Build professional HTML email
         html_content = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                
-                <!-- Header with logo -->
-                <div style="background-color: #4A9BAD; padding: 20px; text-align: center;">
-                    <img src="https://i.imgur.com/JBLogoPlaceholder.png" alt="J&B" style="height: 40px; display: none;">
-                    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">J&B Tasoitus ja Maalaus Oy</h1>
-                </div>
-                
-                <!-- Body -->
-                <div style="padding: 30px;">
-                    <div style="white-space: pre-line; font-size: 15px; color: #333;">
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #2d3748; background-color: #f7fafc; margin: 0; padding: 0;">
+    <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff;">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #4A9BAD 0%, #3d8494 100%); padding: 25px 30px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td style="vertical-align: middle;">
+                        <img src="{jb_logo_url}" alt="J&B Tasoitus ja Maalaus" style="height: 45px; display: block;" />
+                    </td>
+                    <td style="vertical-align: middle; text-align: right;">
+                        <img src="{vahvimmat_logo_url}" alt="Suomen Vahvimmat" style="height: 35px; display: block;" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Body Content -->
+        <div style="padding: 35px 30px;">
+            <div style="font-size: 15px; color: #4a5568; white-space: pre-line;">
 {request.body_text}
-                    </div>
-                </div>
-                
-                <!-- Footer -->
-                <div style="background-color: #f8f9fa; padding: 20px; border-top: 1px solid #e9ecef;">
-                    <div style="font-size: 13px; color: #666;">
-                        {sender_signature}
-                        <p style="margin: 5px 0 0 0;"><strong>J&B Tasoitus ja Maalaus Oy</strong></p>
-                        <p style="margin: 3px 0;">Puh: 040 848 8885</p>
-                        <p style="margin: 3px 0;">Y-tunnus: 3464050-2</p>
-                        <p style="margin: 3px 0;">info@jbtasoitusmaalaus.fi</p>
-                    </div>
-                </div>
-                
             </div>
-        </body>
-        </html>
+        </div>
+        
+        <!-- Signature -->
+        <div style="padding: 0 30px 30px 30px;">
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                <p style="margin: 0 0 3px 0; color: #718096; font-size: 13px;">Ystävällisin terveisin,</p>
+                {sender_signature}
+                <p style="margin: 0; color: #4A9BAD; font-weight: 600; font-size: 14px;">J&B Tasoitus ja Maalaus Oy</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8fafc; padding: 20px 30px; border-top: 1px solid #e2e8f0;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td style="font-size: 12px; color: #718096;">
+                        <p style="margin: 0 0 3px 0;"><strong>J&B Tasoitus ja Maalaus Oy</strong></p>
+                        <p style="margin: 0 0 3px 0;">Sienitie 25, Helsinki</p>
+                        <p style="margin: 0 0 3px 0;">Y-tunnus: 2869245-9</p>
+                        <p style="margin: 0 0 3px 0;">Puh: 040 848 8885</p>
+                        <p style="margin: 0;"><a href="mailto:info@jbtasoitusmaalaus.fi" style="color: #4A9BAD; text-decoration: none;">info@jbtasoitusmaalaus.fi</a></p>
+                    </td>
+                    <td style="text-align: right; vertical-align: bottom;">
+                        <img src="{vahvimmat_logo_url}" alt="Suomen Vahvimmat" style="height: 28px; opacity: 0.7;" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+    </div>
+</body>
+</html>
         """
         
         params = {
