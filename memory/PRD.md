@@ -207,6 +207,7 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
   - Dynamic sender signature from yhteyshenkilö field
   - Company contact info footer (Y-tunnus, address, email)
   - Website link in footer
+  - **NEW (2025-03-20):** Polite request for feedback: "Olisimme kiitollisia, jos voisitte ilmoittaa meille, vaikka ette valitsisikaan meitä – se auttaa resurssien suunnittelussa."
 - ✅ TarjousDialog: "Lähetä tarjous" button sends generated PDF directly to customer email
 - ✅ KoontitarjousDialog: Same email functionality synchronized, filename now "Tarjous_" (not "Koontitarjous_")
 - ✅ Email requires: recipient_email, subject, body_text, pdf_base64, pdf_filename
@@ -237,6 +238,17 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
   - Työnjohtaja (supervisor) name
 - ✅ PDF attachment: Työmääräerittely with work phases, quantities, TES hours
 - ✅ exportWorkSchedulePDF updated to support returnBase64 parameter
+
+### Shared Assignment Confirmation System - 2025-03-20
+- ✅ **Database storage:** Assignments stored in MongoDB `urakkatyomaarays` collection
+- ✅ **Multi-worker tracking:** System tracks `recipient_names[]` and `confirmed_workers[]`
+- ✅ **Confirmation page:** `/api/urakka-kuittaus?id={urakka_id}` serves HTML page for worker sign-off
+- ✅ **Confirmation API:** POST `/api/confirm-urakkatyomaarays` handles worker confirmations
+- ✅ **Staged notifications:** 
+  - Partial confirmation: Orange email showing "✓ Kuitannut: [names]" and "⏳ Odottaa: [names]"
+  - Full confirmation: Green email with PDF attachment
+- ✅ **Email recipients:** Company (info@jbtasoitusmaalaus.fi) + Secretary (jokojogi.jb@gmail.com)
+- ✅ **Bug fix (2025-03-20):** Fixed database connection issue - `await get_database()` now used consistently
 
 ## PDF Table Layout Improvements - 2025-03-20
 - ✅ All 8 autoTable instances updated with:

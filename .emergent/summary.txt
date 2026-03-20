@@ -1,80 +1,81 @@
 <analysis>**original_problem_statement:**
-The user wants to build a modern, 100% client-side, browser-based PDF takeoff and cost estimation application for a Finnish painting, plastering, and facade company. The project has evolved to include a FastAPI/MongoDB backend for data persistence and advanced features.
+The user wants to build a modern, browser-based PDF takeoff and cost estimation application. The project has evolved from a client-side-only tool to a full-stack application with a React frontend and a FastAPI/MongoDB backend.
 
 **PRODUCT REQUIREMENTS:**
-- **Architecture:** A React frontend with a FastAPI/MongoDB backend.
+- **Architecture:** React frontend, FastAPI backend, MongoDB database.
 - **Core Functionality:**
-    - Open/view PDFs, calibrate scale, and use measurement tools (length, area, count).
-    - Manage presets for work items (tools) and TES unit prices via a database.
-    - Calculate costs, including a configurable VAT.
+    - Open/view PDFs, calibrate scale, use measurement tools (length, area, count).
+    - Manage presets for work items and TES unit prices.
+    - Calculate costs, including configurable VAT.
     - Generate professional PDF offers (), quantity takeoffs, and summary versions ().
-- **Work Schedule Feature:** A feature to estimate project duration based on TES unit prices and a target hourly wage. This has been refactored to produce a formal Work Specification PDF () for employees.
-- **Editable Offer Terms:** A system to allow the user to add, edit, delete, and reorder the terms and conditions () for offers, storing them in the database.
-- **Direct Emailing of Offers:** A feature to send generated  and  PDFs directly from the application via email, using the Resend API.
+- **Work Schedule Feature:** A feature to estimate project duration and generate a formal Work Specification PDF () for employees.
+- **Direct Emailing:**
+    - Send offer PDFs () directly from the application via the Resend API.
+    - **Urakkamääräys (Work Assignment) System:** A new, legally-sound system to email work assignments to employees based on the work schedule feature. This system must:
+        - Support sending to multiple workers.
+        - Include text about shared responsibility.
+        - Have a digital acknowledgment mechanism where workers confirm receipt.
+        - Track confirmations and send different notifications for partial and full acknowledgment.
+        - Send a copy of the final confirmation to a secretary's email.
 
 **User's preferred language**: The user communicates in a mix of **Finnish** and **Estonian**. The next agent MUST respond in these languages.
 
 **what currently exists?**
-A mature full-stack application with a React frontend and a FastAPI/MongoDB backend. All core features for PDF measurement, cost calculation, and preset management are implemented. Recent work has focused on enhancing the offer generation and delivery process.
+A full-stack application with a React frontend and FastAPI backend. Core PDF takeoff and offer generation features are complete. A sophisticated Urakkatyömääräys (Work Assignment) feature has just been implemented across all three work schedule dialogs (, , ).
 
-Key recent additions include:
-1.  A full CRUD interface for managing offer terms (), which are stored in MongoDB.
-2.  A direct email integration using the Resend API, allowing users to send offer PDFs from within the  and .
-3.  The email template was upgraded to a professional HTML format, including company logos and contact information.
-4.  The  and  have been synchronized to offer identical functionality.
-5.  A previously reported bug with the  (Summary Work Schedule) has been diagnosed and fixed.
+This new system allows sending a formal work assignment email to employees. The email contains a unique link for each assignment, leading to a confirmation page. When an employee confirms, a notification email is sent to the company and a secretary. The system is designed to handle multiple workers on a single assignment, tracking who has confirmed and sending a final work agreed notification only when all parties have acknowledged. The original assignment PDF is attached to the final confirmation email.
 
 **Last working item**:
-- **Last item agent was working:** The agent was finalizing and testing the Resend email integration. After implementing the backend API and frontend logic, the user requested a more professional email format. The agent created an HTML template, added company logos, and configured the backend to send these enhanced emails. The user confirmed a test email was received, but the attached PDF was intentionally empty for the test. The user then asked for a final end-to-end test with a real, populated offer PDF.
-- **Status:** USER VERIFICATION PENDING
-- **Agent Testing Done:** Y
-- **Which testing method agent to use?** Frontend testing agent. The agent must perform a complete end-to-end test:
-    1. Open the .
-    2. Fill it out with sample data (customer, project name, manual line items).
-    3. Click the Lähetä tarjous button.
-    4. Instruct the user to check their email for an offer with a correctly generated, non-empty PDF attachment.
-- **User Testing Done:** N (User has only verified a test email with an empty PDF).
+- **Last item agent was working:** The user reported a bug in the confirmation email for a shared  (work assignment). The email correctly states that it's waiting for other signatures but fails to list the names of the workers who have already signed and those who are still pending.
+- **Status:** NOT STARTED
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** backend testing agent. The test should cover the multi-worker confirmation flow:
+    1. Send a shared  to two test emails.
+    2. Simulate the first worker confirming via the confirmation page.
+    3. Verify the first notification email correctly shows the status (e.g., Kuitannut: Worker A, Odottaa: Worker B).
+    4. Simulate the second worker confirming.
+    5. Verify the final notification email shows the all confirmed status and includes the PDF attachment.
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-There are no known pending issues. The critical koonti aikataulu bug was resolved in this session.
+  - **Issue 1: (P0) Confirmation email for shared assignments doesn't list the status of each worker.**
+
+  **Issues Detail:**
+  - **Issue 1:**
+     - **Attempted fixes:** None. The issue was just reported.
+     - **Next debug checklist:**
+        - Review the  POST endpoint in .
+        - The logic that generates the  HTML for the confirmation email is faulty. It needs to correctly iterate through the list of assigned workers () and the list of those who have already confirmed () stored in the MongoDB document for that assignment ().
+        - The code needs to build an HTML list showing a checkmark (✓) for confirmed workers and a pending icon (⏳) for those who haven't.
+     - **Why fix this issue and what will be achieved with the fix?** This is critical for the usability of the shared assignment feature. Without this, the company cannot track who has acknowledged the assignment, making the system ineffective.
+     - **Status:** NOT STARTED
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** backend
+     - **Blocked on other issue:** None.
 
 **In progress Task List**:
-  - **Task 1: Final End-to-End Test of Resend Email Feature (P0)**
-     - **Where to resume:** The user has requested a test of the full flow. The next action is to simulate creating a real offer and sending it to the user's email to confirm the attached PDF is correctly populated.
-     - **What will be achieved with this?** This will complete the final user verification for the new Resend email integration, confirming it's ready for production use.
-     - **Status:** USER VERIFICATION PENDING
-     - **Should Test frontend/backend/both after fix?** frontend
-     - **Blocked on something:** None.
+  - None.
 
 **Upcoming and Future Tasks**
 
 **Upcoming Tasks:**
-- **Enable  Loading (P1):** The app saves its state to , but this state is not loaded on startup. Implementing this would restore the user's last session, improving usability. The logic needs to be added to the main  hook in .
+- **Enable  Loading (P1):** The app saves its state to , but this state is not loaded on startup. This would restore the user's last session, improving usability.
 
 **Future Tasks:**
-- ** Refactoring:** The user has explicitly de-prioritized refactoring the  component. It should only be addressed if it becomes a blocker for future development.
-- **Cloud Sync & Team Collaboration:** Potential future features for multi-user environments.
+- ** Refactoring:** Low priority, only if it becomes a blocker.
 - **Invoice Generation:** A logical extension of the offer-making functionality.
+- **Cloud Sync & Team Collaboration:** Potential future features for multi-user environments.
 
 **Completed work in this session**
-- **Resend Email Integration:**
-  - Implemented a backend API () to send emails with PDF attachments via Resend.
-  - Created a professional HTML email template with company logos and contact details.
-  - Updated  and  to call the new API, sending the generated PDF as a base64 string.
-- ** /  Unification:**
-  - Synchronized the UI and functionality of  and  to be 1:1 identical.
-- **Editable Offer Terms ():**
-  - Created a full CRUD feature for managing offer terms, including a new backend API (), a new  component, and integration into the PDF export flow.
-- ** Bug Fix:**
-  - Diagnosed and fixed a critical bug where summary schedules failed to load due to an outdated project JSON format. The component now supports both old (/) and new (/) formats.
-- **Work Specification PDF ():**
-  - Refactored all three work schedule PDF exports into a single, unified function that generates a formal document for employees, removing the Gantt chart and adding regulatory text.
-- **Full Application Calculation Test:**
-  - Used the testing agent to perform a comprehensive verification of all core formulas (productivity, hours, days) and APIs, ensuring the application was reliable for the user.
-- **Automatic Custom TES Price Creation:**
-  - Implemented functionality so that creating a custom Muu work item automatically adds it to the TES price list with a default price of 0.
-- **Dependency & Layout Cleanup:**
-  - Removed the unused  dependency and fixed various PDF layout issues, such as table column widths.
+- **Urakkatyömääräys (Work Assignment) Feature:**
+  - Implemented a complete, database-backed system for sending and acknowledging work assignments.
+  - **Backend:** Created  and  endpoints in . Logic stores assignments, PDFs, and confirmation status in MongoDB.
+  - **Email Content:** Crafted detailed, legally-vetted email templates (in Finnish) with clauses for shared responsibility, safety regulations (AVI), and references to Finnish labor laws.
+  - **Confirmation Flow:** Built a system that sends different email notifications depending on whether an assignment is partially or fully confirmed by all workers. The final confirmation email includes the original assignment PDF as an attachment.
+  - **Frontend:** Added the Lähetä urakkamääräys feature to all three work schedule dialogs (, , ), including a modal to input worker names and emails.
+- **PDF Text Wrapping:** Fixed text overflow issues in all 8 PDF export types by adding  and  to all  instances and implementing robust text splitting for manual text placement.
+- ** Renaming:** Renamed Koontitarjous to Tarjous across the app (email subjects, filenames) to improve clarity.
+- **Email Template Iteration:** Refined the offer email template multiple times based on user feedback, including layout, content, and styling.
 
 **Earlier issues found/mentioned but not fixed**
 - None.
@@ -83,81 +84,75 @@ There are no known pending issues. The critical koonti aikataulu bug was resolve
 - None.
 
 **Code Architecture**
-
+urakkatyomaarays
 
 **Key Technical Concepts**
 - **Frameworks:** React.js, FastAPI
-- **Database:** MongoDB
+- **Database:** MongoDB is now used to persist state for the work assignment confirmation flow.
 - **Email API:** Resend
-- **PDF Generation:**  and . Now generating PDF output as a base64 string in the frontend to be sent to the backend.
-- **State Management:** ,  in .
+- **Digital Acknowledgment Flow:** A custom system using unique URLs, a FastAPI-served confirmation page, and database state tracking to manage multi-party acknowledgments.
 
 **key DB schema**
-- ** (New):** Stores an array of offer term strings.
+- ** (New):**
   - 
-- **:** Stores TES unit prices and the target hourly wage.
-- **:** Stores user-defined work items.
 
 **changes in tech stack**
-- Added  to .
+- No new packages, but a significant new application of MongoDB for state persistence in a core business workflow.
 
 **All files of reference**
-- : Heavily modified to add APIs for offer terms and sending emails via Resend.
-- : Modified to add Resend email sending functionality.
-- : UI synchronized with  and email functionality added.
-- : Fixed to support new and old project file formats.
-- : New file for managing offer terms.
-- : Updated with state and handlers for the new features.
-- : Refactored to have PDF functions return PDF data as a base64 string instead of triggering a direct download.
-- : Added  and .
+- : Contains all logic for the new work assignment feature. The bug is here.
+- : Contains all PDF generation logic.
+- 
+- 
+- 
 
 **Areas that need refactoring**:
--  remains a large component, but the user has explicitly stated not to refactor it unless it becomes necessary.
+- The three work schedule dialogs now share a significant amount of duplicated code for the send assignment modal. This could be extracted into a reusable component or hook to improve maintainability.
 
 **key api endpoints**
--  (POST): New endpoint to send an email with a PDF attachment via Resend.
--  (GET/PUT): New endpoints for managing offer terms.
--  (POST): New endpoint to automatically add custom work items to the TES price list.
+-  (POST): Sends the assignment email, creates a record in MongoDB, and returns the unique .
+-  (GET): Serves the HTML page for the worker to confirm.
+-  (POST): Handles the confirmation submission, updates the DB record, and sends the appropriate notification email (partial or full confirmation).
 
 **Critical Info for New Agent**
-- The offer emailing flow is fully integrated. The frontend generates the PDF as a base64 string and sends it to the backend  endpoint, which then uses Resend. The old  approach has been completely replaced.
-- The user's highest priority is verifying that this new email feature works with a real, populated offer PDF.
+- **The immediate task is to fix the bug in the shared work assignment confirmation email.** The logic for displaying which workers have signed is broken. The fix is in .
+- The secretary's email  is hardcoded in  as a recipient for all confirmation emails.
+- The work assignment feature has been implemented across all three work schedule dialogs. The user previously had to point out that it was missing from two of them, so be aware that changes may need to be applied in multiple places.
 
 **documents and test reports created in this job**
-- 
-- 
+-  (updated with work assignment feature)
+-  (from a previous task in the session)
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** Asks for AI suggestions for the offer creation process.
-9. **User:** Clarifies the email feature should open the user's default mail client ().
-8. **User:** Corrects the plan, asking for direct email sending via Resend instead.
-7. **User:** Provides the Resend API key and sender email address when prompted.
-6. **User:** Confirms the test email was received but notes the PDF attachment was empty (as intended by the agent for the initial test).
-5. **User:** Requests changes to the email body and footer to make it more professional, including adding a contact person's name, Y-tunnus, and a second logo. Provides the logo file.
-4. **User:** Confirms the logo in the app is the correct one to use in the email.
-3. **User:** Asks the agent to check the PDF layout for text wrapping issues.
-2. **User:** Confirms the layout fix is okay.
-1. **User:** Asks the agent to perform a full, thorough test of all calculations to ensure no errors for an important upcoming job.
+- **(Pending/BUG):** User reports that the confirmation email for a shared assignment does not show which worker has signed, and asks to fix it. (Message 501)
+- User asks why the send assignment button is missing from the other work schedule dialogs. (Message 439)
+- User confirms the final logic for the shared assignment confirmation flow is good. (Message 419)
+- User specifies that for a shared assignment, the confirmation should be staged, indicating when only one party has signed. (Message 419)
+- User provides detailed requirements for the shared assignment feature, including adding worker names and a joint responsibility clause. (Message 379)
+- User asks to test the multi-worker scenario. (Message 375)
+- User requests that the original PDF be attached to the final confirmation email. (Message 341)
+- User clarifies the signing process: worker enters their name, and the confirmation is sent automatically to the company and secretary. (Message 309)
+- User provides feedback on the legal text in the assignment email, requesting changes to wording and removal of working time clauses. (Message 289)
+- User approves the plan to implement the work assignment feature. (Message 208)
 
 **Project Health Check:**
-- **Broken:** None.
+- **Broken:** The status reporting within the Urakkatyömääräys confirmation email.
 - **Mocked:** None.
 
 **3rd Party Integrations**
-- **Resend:** For sending emails directly from the backend. Requires a User API Key ( in ).
-- **:** For rendering PDF files client-side.
-- ** / :** For generating PDF documents client-side.
-- **MongoDB:** Database for storing presets.
+- **Resend:** Used for all outgoing emails.
+- **MongoDB:** Used for storing presets and the state of work assignments.
+- ** / :** Used for all client-side PDF generation.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES. It was used to verify all core application calculations.
-- **Troubleshoot agent used after agent stuck in loop:** NO.
+- **Testing agent used after significant changes:** No, the latest feature was tested manually with  and screenshots.
+- **Troubleshoot agent used after agent stuck in loop:** No.
 - **Test files created:** None.
 - **Known regressions:** None.
 
 **Credentials to test flow:**
-- Resend API key is stored in  under .
-- The sender email is , stored under .
+- Resend API key is in .
+- The secretary's email for CC is hardcoded in : .
 
 **What agent forgot to execute**
-- The agent was in the process of fulfilling the user's final request: to perform an end-to-end test of the new email feature by generating a real, populated offer PDF and sending it. This is the immediate next step.</analysis>
+- The agent initially forgot to add the send work assignment feature to all three work schedule dialogs, but this was corrected after the user pointed it out. The current focus is entirely on the bug reported by the user in their last message.</analysis>

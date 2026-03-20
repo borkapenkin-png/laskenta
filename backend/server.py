@@ -452,8 +452,13 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
         
         <!-- Body Content -->
         <div style="padding: 32px;">
-            <div style="font-size: 15px; color: #333; white-space: pre-line; margin-bottom: 32px;">
+            <div style="font-size: 15px; color: #333; white-space: pre-line; margin-bottom: 24px;">
 {request.body_text}
+            </div>
+            
+            <!-- Polite request for feedback -->
+            <div style="font-size: 14px; color: #555; margin-bottom: 32px; padding: 16px; background-color: #f8f9fa; border-radius: 6px; border-left: 3px solid #4A9BAD;">
+                Olisimme kiitollisia, jos voisitte ilmoittaa meille, vaikka ette valitsisikaan meitä – se auttaa resurssien suunnittelussa.
             </div>
             
             <!-- Signature -->
@@ -526,6 +531,11 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         all_names = ", ".join(request.recipient_names) if request.recipient_names else all_recipients
         
         # Store urakkamääräys in database for later retrieval during confirmation
+        database = await get_database()
+        if database is None:
+            logger.error("Database not available for urakkatyomaarays")
+            raise HTTPException(status_code=503, detail="Database not available")
+        
         urakka_id = str(uuid.uuid4())
         urakka_doc = {
             "_id": urakka_id,
@@ -539,10 +549,12 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
             "recipient_names": request.recipient_names,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
-        await db.urakkatyomaarays.insert_one(urakka_doc)
+        logger.info(f"Storing urakkamääräys {urakka_id} in database...")
+        await database.urakkatyomaarays.insert_one(urakka_doc)
+        logger.info(f"Urakkamääräys {urakka_id} stored successfully")
         
         # Create kuittaus page link with urakka_id
-        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pdf-takeoff-pro.preview.emergentagent.com')
+        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://tarjous-build.preview.emergentagent.com')
         kuittaus_url = f"{base_url}/api/urakka-kuittaus?id={urakka_id}"
         
         # Build joint work section if multiple workers
@@ -753,8 +765,13 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
         raise HTTPException(status_code=503, detail="Email service not configured.")
     
     try:
+        # Get database connection
+        database = await get_database()
+        if database is None:
+            raise HTTPException(status_code=503, detail="Database not available")
+        
         # Fetch the stored urakkamääräys from database
-        urakka_doc = await db.urakkatyomaarays.find_one({"_id": request.urakka_id})
+        urakka_doc = await database.urakkatyomaarays.find_one({"_id": request.urakka_id})
         if not urakka_doc:
             raise HTTPException(status_code=404, detail="Urakkamääräystä ei löydy")
         
@@ -772,7 +789,7 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
         # Add this worker to confirmed list if not already
         if request.worker_name not in confirmed_workers:
             confirmed_workers.append(request.worker_name)
-            await db.urakkatyomaarays.update_one(
+            await database.urakkatyomaarays.update_one(
                 {"_id": request.urakka_id},
                 {"$set": {"confirmed_workers": confirmed_workers}}
             )
@@ -944,10 +961,11 @@ async def urakka_kuittaus_page(id: str = ""):
     """Serve a simple HTML page for workers to confirm urakkamääräys"""
     
     # Fetch urakkamääräys from database
+    database = await get_database()
     kohde = ""
     osoite = ""
-    if id:
-        urakka_doc = await db.urakkatyomaarays.find_one({"_id": id})
+    if id and database:
+        urakka_doc = await database.urakkatyomaarays.find_one({"_id": id})
         if urakka_doc:
             kohde = urakka_doc.get("kohde_nimi", "")
             osoite = urakka_doc.get("kohde_osoite", "")
