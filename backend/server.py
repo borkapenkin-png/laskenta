@@ -404,6 +404,7 @@ class EmailWithAttachmentRequest(BaseModel):
 
 class UrakkatyomaaraysRequest(BaseModel):
     recipient_emails: List[EmailStr]  # Multiple workers
+    recipient_names: List[str]  # Worker names corresponding to emails
     kohde_nimi: str
     kohde_osoite: str
     tyonjohtaja: str
@@ -522,6 +523,7 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         
         # Format the list of all recipients for visibility
         all_recipients = ", ".join(request.recipient_emails)
+        all_names = ", ".join(request.recipient_names) if request.recipient_names else all_recipients
         
         # Store urakkamääräys in database for later retrieval during confirmation
         urakka_id = str(uuid.uuid4())
@@ -534,6 +536,7 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
             "pdf_base64": request.pdf_base64,
             "pdf_filename": request.pdf_filename,
             "recipients": request.recipient_emails,
+            "recipient_names": request.recipient_names,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.urakkatyomaarays.insert_one(urakka_doc)
@@ -541,6 +544,30 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         # Create kuittaus page link with urakka_id
         base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pdf-takeoff-pro.preview.emergentagent.com')
         kuittaus_url = f"{base_url}/api/urakka-kuittaus?id={urakka_id}"
+        
+        # Build joint work section if multiple workers
+        joint_work_section = ""
+        if len(request.recipient_names) > 1:
+            joint_work_section = f"""
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">YHTEINEN URAKKA:</h3>
+            <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 16px; margin-bottom: 16px;">
+                <p style="margin: 0 0 12px 0; color: #856404; font-size: 14px; font-weight: 600;">
+                    Tämä urakkamääräys on jaettu seuraavien työntekijöiden kesken:
+                </p>
+                <p style="margin: 0 0 12px 0; color: #333; font-size: 15px; font-weight: 600;">
+                    {all_names}
+                </p>
+                <p style="margin: 0; color: #555; font-size: 13px; line-height: 1.6;">
+                    Työntekijät suorittavat urakan yhdessä ja vastaavat yhteisvastuullisesti työn laadusta ja aikataulusta.
+                </p>
+            </div>
+            <ol start="15" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+                <li>Urakka suoritetaan yhteistyössä yllä mainittujen työntekijöiden kanssa.</li>
+                <li>Työntekijät vastaavat yhteisvastuullisesti (solidaarisesti) urakan suorittamisesta, laadusta ja sovitun aikataulun noudattamisesta.</li>
+                <li>Kukin työntekijä vastaa omalta osaltaan työturvallisuusmääräysten noudattamisesta ja on velvollinen puuttumaan havaitsemiinsa turvallisuuspuutteisiin.</li>
+                <li>Mahdolliset työnjako- ja aikataulumuutokset on sovittava yhdessä työnjohtajan kanssa.</li>
+            </ol>
+            """
         
         # Build the formal HTML email
         html_content = f"""
@@ -646,6 +673,8 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
             <ol start="12" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
                 <li>Työntekijä sitoutuu pitämään salassa työnantajan ja asiakkaiden luottamukselliset tiedot.</li>
             </ol>
+            
+            {joint_work_section}
         </div>
         
         <!-- Legal Note -->

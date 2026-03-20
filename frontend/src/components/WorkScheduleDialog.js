@@ -133,7 +133,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
   
   // Email modal state
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [emailRecipients, setEmailRecipients] = useState(['']);
+  const [emailRecipients, setEmailRecipients] = useState([{ name: '', email: '' }]);
   const [kohdeOsoite, setKohdeOsoite] = useState(projectAddress);
   const [tyonjohtaja, setTyonjohtaja] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -289,7 +289,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
   
   // Add email recipient
   const handleAddRecipient = () => {
-    setEmailRecipients([...emailRecipients, '']);
+    setEmailRecipients([...emailRecipients, { name: '', email: '' }]);
   };
   
   // Remove email recipient
@@ -300,18 +300,18 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
   };
   
   // Update email recipient
-  const handleRecipientChange = (index, value) => {
+  const handleRecipientChange = (index, field, value) => {
     const newRecipients = [...emailRecipients];
-    newRecipients[index] = value;
+    newRecipients[index] = { ...newRecipients[index], [field]: value };
     setEmailRecipients(newRecipients);
   };
   
   // Send urakkamääräys email
   const handleSendUrakkatyomaarays = async () => {
     // Validate inputs
-    const validEmails = emailRecipients.filter(e => e.trim() && e.includes('@'));
-    if (validEmails.length === 0) {
-      toast.error('Lisää vähintään yksi sähköpostiosoite');
+    const validRecipients = emailRecipients.filter(r => r.email.trim() && r.email.includes('@') && r.name.trim());
+    if (validRecipients.length === 0) {
+      toast.error('Lisää vähintään yksi työntekijä (nimi ja sähköposti)');
       return;
     }
     if (!kohdeOsoite.trim()) {
@@ -340,12 +340,17 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
         throw new Error('PDF generation failed');
       }
       
+      // Extract emails and names from valid recipients
+      const validEmails = validRecipients.map(r => r.email);
+      const validNames = validRecipients.map(r => r.name);
+      
       // Send via API
       const response = await fetch(`${API_URL}/api/send-urakkatyomaarays`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipient_emails: validEmails,
+          recipient_names: validNames,
           kohde_nimi: projectName || 'Projekti',
           kohde_osoite: kohdeOsoite,
           tyonjohtaja: tyonjohtaja,
@@ -357,10 +362,10 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
       
       if (response.ok) {
         const data = await response.json();
-        toast.success(`Urakkamääräys lähetetty: ${validEmails.join(', ')}`);
+        toast.success(`Urakkamääräys lähetetty: ${validNames.join(', ')}`);
         setShowEmailModal(false);
         // Reset form
-        setEmailRecipients(['']);
+        setEmailRecipients([{ name: '', email: '' }]);
       } else {
         const error = await response.json();
         toast.error(error.detail || 'Lähetys epäonnistui');
@@ -638,25 +643,35 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
             </div>
             
             {/* Recipients */}
-            <div className="space-y-2">
-              <Label>Työntekijöiden sähköpostit *</Label>
-              {emailRecipients.map((email, index) => (
-                <div key={index} className="flex gap-2">
+            <div className="space-y-3">
+              <Label>Työntekijät *</Label>
+              {emailRecipients.map((recipient, index) => (
+                <div key={index} className="p-3 border rounded-lg bg-gray-50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Työntekijä {index + 1}</span>
+                    {emailRecipients.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveRecipient(index)}
+                        className="h-6 px-2 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <Input
+                    type="text"
+                    value={recipient.name}
+                    onChange={(e) => handleRecipientChange(index, 'name', e.target.value)}
+                    placeholder="Nimi (esim. Matti Meikäläinen)"
+                  />
                   <Input
                     type="email"
-                    value={email}
-                    onChange={(e) => handleRecipientChange(index, e.target.value)}
-                    placeholder="työntekijä@email.fi"
+                    value={recipient.email}
+                    onChange={(e) => handleRecipientChange(index, 'email', e.target.value)}
+                    placeholder="Sähköposti (esim. matti@email.fi)"
                   />
-                  {emailRecipients.length > 1 && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleRemoveRecipient(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
               ))}
               <Button
@@ -666,13 +681,15 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
                 className="w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Lisää vastaanottaja
+                Lisää työntekijä
               </Button>
             </div>
             
             <p className="text-xs text-gray-500">
-              Kaikki vastaanottajat näkevät toisensa sähköpostissa. 
-              Sähköposti sisältää virallisen urakkamääräyksen ehtoineen ja työmääräerittelyn PDF-liitteenä.
+              {emailRecipients.length > 1 
+                ? 'Kaikki työntekijät näkevät toisensa sähköpostissa ja vastaavat yhteisvastuullisesti urakan suorittamisesta.'
+                : 'Sähköposti sisältää virallisen urakkamääräyksen ehtoineen ja työmääräerittelyn PDF-liitteenä.'
+              }
             </p>
           </div>
           
