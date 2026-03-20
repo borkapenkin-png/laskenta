@@ -25,7 +25,11 @@ import {
   FileDown,
   Upload,
   Trash2,
-  FileText
+  FileText,
+  Send,
+  X,
+  Plus,
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportKoontiWorkSchedulePDF } from '@/utils/export';
@@ -128,6 +132,13 @@ export const KoontiWorkScheduleDialog = ({ open, onClose }) => {
   const [hoursPerDay, setHoursPerDay] = useState(8);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailRecipients, setEmailRecipients] = useState([{ name: '', email: '' }]);
+  const [kohdeOsoite, setKohdeOsoite] = useState('');
+  const [tyonjohtaja, setTyonjohtaja] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   
   // Load productivity rates
   useEffect(() => {
@@ -235,6 +246,94 @@ export const KoontiWorkScheduleDialog = ({ open, onClose }) => {
     } catch (e) {
       console.error('PDF export failed:', e);
       toast.error('PDF:n luominen epäonnistui');
+    }
+  };
+  
+  // Email helpers
+  const handleAddRecipient = () => {
+    setEmailRecipients([...emailRecipients, { name: '', email: '' }]);
+  };
+  
+  const handleRemoveRecipient = (index) => {
+    if (emailRecipients.length > 1) {
+      setEmailRecipients(emailRecipients.filter((_, i) => i !== index));
+    }
+  };
+  
+  const handleRecipientChange = (index, field, value) => {
+    const newRecipients = [...emailRecipients];
+    newRecipients[index] = { ...newRecipients[index], [field]: value };
+    setEmailRecipients(newRecipients);
+  };
+  
+  // Send urakkamääräys email
+  const handleSendUrakkatyomaarays = async () => {
+    if (processedProjects.length === 0) {
+      toast.error('Lataa vähintään yksi projekti');
+      return;
+    }
+    
+    const validRecipients = emailRecipients.filter(r => r.email.trim() && r.email.includes('@') && r.name.trim());
+    if (validRecipients.length === 0) {
+      toast.error('Lisää vähintään yksi työntekijä (nimi ja sähköposti)');
+      return;
+    }
+    if (!kohdeOsoite.trim()) {
+      toast.error('Kohteen osoite on pakollinen');
+      return;
+    }
+    if (!tyonjohtaja.trim()) {
+      toast.error('Työnjohtajan nimi on pakollinen');
+      return;
+    }
+    
+    setIsSendingEmail(true);
+    
+    try {
+      const projectNames = processedProjects.map(p => p.name).join(', ');
+      
+      const result = exportKoontiWorkSchedulePDF({
+        projects: processedProjects,
+        totals: grandTotals,
+        workerCount,
+        hoursPerDay
+      }, true);
+      
+      if (!result || !result.pdfBase64) {
+        throw new Error('PDF generation failed');
+      }
+      
+      const validEmails = validRecipients.map(r => r.email);
+      const validNames = validRecipients.map(r => r.name);
+      
+      const response = await fetch(`${API_URL}/api/send-urakkatyomaarays`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_emails: validEmails,
+          recipient_names: validNames,
+          kohde_nimi: projectNames || 'Koonti projekti',
+          kohde_osoite: kohdeOsoite,
+          tyonjohtaja: tyonjohtaja,
+          tyonjohtaja_puh: '+358 40 054 7270',
+          pdf_base64: result.pdfBase64,
+          pdf_filename: result.fileName || 'Tyomaaraerittely_koonti.pdf'
+        })
+      });
+      
+      if (response.ok) {
+        toast.success(`Urakkamääräys lähetetty: ${validNames.join(', ')}`);
+        setShowEmailModal(false);
+        setEmailRecipients([{ name: '', email: '' }]);
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Lähetys epäonnistui');
+      }
+    } catch (e) {
+      console.error('Send failed:', e);
+      toast.error('Lähetys epäonnistui: ' + e.message);
+    } finally {
+      setIsSendingEmail(false);
     }
   };
   
@@ -415,8 +514,126 @@ export const KoontiWorkScheduleDialog = ({ open, onClose }) => {
             <FileDown className="h-4 w-4 mr-2" />
             Lataa PDF
           </Button>
+          <Button 
+            onClick={() => setShowEmailModal(true)}
+            disabled={processedProjects.length === 0}
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="send-koonti-urakkatyomaarays-btn"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Lähetä urakkamääräys
+          </Button>
         </div>
       </DialogContent>
+      
+      {/* Email Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              Lähetä urakkamääräys
+            </DialogTitle>
+            <DialogDescription>
+              Lähetä koonti työmääräerittely työntekijöille
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="kohde-osoite">Kohteen osoite *</Label>
+              <Input
+                id="kohde-osoite"
+                value={kohdeOsoite}
+                onChange={(e) => setKohdeOsoite(e.target.value)}
+                placeholder="Esim. Mannerheimintie 1, Helsinki"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tyonjohtaja">Työnjohtaja *</Label>
+              <Input
+                id="tyonjohtaja"
+                value={tyonjohtaja}
+                onChange={(e) => setTyonjohtaja(e.target.value)}
+                placeholder="Esim. Matti Meikäläinen"
+              />
+            </div>
+            
+            <div className="space-y-3">
+              <Label>Työntekijät *</Label>
+              {emailRecipients.map((recipient, index) => (
+                <div key={index} className="p-3 border rounded-lg bg-gray-50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-600">Työntekijä {index + 1}</span>
+                    {emailRecipients.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveRecipient(index)}
+                        className="h-6 px-2 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <Input
+                    type="text"
+                    value={recipient.name}
+                    onChange={(e) => handleRecipientChange(index, 'name', e.target.value)}
+                    placeholder="Nimi (esim. Matti Meikäläinen)"
+                  />
+                  <Input
+                    type="email"
+                    value={recipient.email}
+                    onChange={(e) => handleRecipientChange(index, 'email', e.target.value)}
+                    placeholder="Sähköposti (esim. matti@email.fi)"
+                  />
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddRecipient}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Lisää työntekijä
+              </Button>
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              {emailRecipients.length > 1 
+                ? 'Kaikki työntekijät näkevät toisensa ja vastaavat yhteisvastuullisesti urakan suorittamisesta.'
+                : 'Sähköposti sisältää virallisen urakkamääräyksen ehtoineen ja työmääräerittelyn PDF-liitteenä.'
+              }
+            </p>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowEmailModal(false)}>
+              Peruuta
+            </Button>
+            <Button
+              onClick={handleSendUrakkatyomaarays}
+              disabled={isSendingEmail}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSendingEmail ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                  Lähetetään...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Lähetä
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };

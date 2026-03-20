@@ -1767,7 +1767,7 @@ export const exportWorkSchedulePDF = (data, returnBase64 = false) => {
 
 // ==================== KOONTI WORK SCHEDULE PDF ====================
 // Combines multiple projects into one work schedule - Official Document Format
-export const exportKoontiWorkSchedulePDF = (data) => {
+export const exportKoontiWorkSchedulePDF = (data, returnBase64 = false) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -1973,12 +1973,18 @@ export const exportKoontiWorkSchedulePDF = (data) => {
   
   // Save
   const fileName = `Koonti_tyomaaraerittely_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`;
+  
+  if (returnBase64) {
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    return { pdfBase64, fileName };
+  }
+  
   doc.save(fileName);
 };
 
 // ==================== CUSTOM WORK SCHEDULE PDF ====================
 // Work schedule with user-entered quantities using productivity rates - Official Document Format
-export const exportCustomWorkSchedulePDF = (data) => {
+export const exportCustomWorkSchedulePDF = (data, returnBase64 = false) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -2186,5 +2192,11 @@ export const exportCustomWorkSchedulePDF = (data) => {
   
   // Save
   const fileName = `Tyomaaraerittely_${projectName?.replace(/\s+/g, '_') || 'oma'}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`;
+  
+  if (returnBase64) {
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    return { pdfBase64, fileName };
+  }
+  
   doc.save(fileName);
 };
