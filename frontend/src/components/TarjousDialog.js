@@ -152,6 +152,53 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     }
   };
 
+  // Handle send email - generates PDF and opens email client
+  const handleSendEmail = async () => {
+    if (!formData.email) {
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      // First generate the PDF
+      await onGenerate({
+        ...formData,
+        isPreview: false,
+        sisallaAlv: formData.vatMode === 'incl',
+        manualTotal: formData.useKokonaishinta 
+          ? parseFloat(formData.kokonaishinta) || 0 
+          : manualTotal,
+      });
+      
+      // Build email content
+      const subject = encodeURIComponent(`Tarjous: ${formData.kohde}`);
+      const body = encodeURIComponent(
+`Hei,
+
+Tarjoamme kohteeseen ${formData.kohde}.
+
+Tarjous on liitetty PDF-tiedostona.
+
+Vastaamme mielellämme mahdollisiin kysymyksiin.
+
+Ystävällisin terveisin,
+J&B Tasoitus ja Maalaus Oy
+Puh: 040 848 8885
+`
+      );
+      
+      // Open email client
+      window.open(`mailto:${formData.email}?subject=${subject}&body=${body}`, '_blank');
+      
+      // Show toast reminder
+      const { toast } = await import('sonner');
+      toast.info('PDF ladattu. Liitä PDF sähköpostiin manuaalisesti.', { duration: 5000 });
+      
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   // Validation
   const isManualValid = formData.sourceMode === 'manual' 
     ? (formData.urakanSisalto.trim() && (formData.useKokonaishinta ? formData.kokonaishinta : manualTotal > 0))
@@ -695,6 +742,19 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
                   Luo tarjous PDF
                 </>
               )}
+            </Button>
+            <Button
+              onClick={() => handleSendEmail()}
+              disabled={!isValid || isGenerating || !formData.email}
+              variant="outline"
+              className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD] hover:text-white"
+              data-testid="tarjous-send-email-btn"
+              title={!formData.email ? "Täytä asiakkaan sähköposti ensin" : "Lähetä tarjous sähköpostilla"}
+            >
+              <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Lähetä tarjous
             </Button>
           </div>
         </DialogFooter>

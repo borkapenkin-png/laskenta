@@ -276,6 +276,50 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
     onClose();
   };
 
+  // Handle send email - generates PDF and opens email client
+  const handleSendEmail = async () => {
+    if (successfulProjects.length === 0 || !formData.asiakas.trim() || !formData.email) return;
+    
+    // First generate the PDF
+    onGenerate({
+      ...formData,
+      loadedProjects: successfulProjects.map(p => ({
+        title: p.editableTitle,
+        totalCost: p.totalCost
+      })),
+      mergedOperations,
+      totalCostAlv0,
+      vatAmount,
+      totalWithVat,
+      sisallaAlv: formData.vatMode === 'incl'
+    });
+    
+    // Build email content
+    const projectNames = successfulProjects.map(p => p.editableTitle).join(', ');
+    const subject = encodeURIComponent(`Koontitarjous: ${formData.kohde || projectNames}`);
+    const body = encodeURIComponent(
+`Hei,
+
+Tarjoamme kohteeseen ${formData.kohde || projectNames}.
+
+Tarjous on liitetty PDF-tiedostona.
+
+Vastaamme mielellämme mahdollisiin kysymyksiin.
+
+Ystävällisin terveisin,
+J&B Tasoitus ja Maalaus Oy
+Puh: 040 848 8885
+`
+    );
+    
+    // Open email client
+    window.open(`mailto:${formData.email}?subject=${subject}&body=${body}`, '_blank');
+    
+    // Show toast reminder
+    const { toast } = await import('sonner');
+    toast.info('PDF ladattu. Liitä PDF sähköpostiin manuaalisesti.', { duration: 5000 });
+  };
+
   const isValid = formData.asiakas.trim() && successfulProjects.length > 0;
 
   return (
@@ -733,6 +777,19 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
             className="bg-[#4A9BAD] hover:bg-[#3d8494]"
           >
             Luo koontitarjous ({successfulProjects.length})
+          </Button>
+          <Button
+            onClick={handleSendEmail}
+            disabled={!isValid || !formData.email}
+            variant="outline"
+            className="border-[#4A9BAD] text-[#4A9BAD] hover:bg-[#4A9BAD] hover:text-white"
+            data-testid="koontitarjous-send-email-btn"
+            title={!formData.email ? "Täytä asiakkaan sähköposti ensin" : "Lähetä tarjous sähköpostilla"}
+          >
+            <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Lähetä tarjous
           </Button>
         </DialogFooter>
       </DialogContent>
