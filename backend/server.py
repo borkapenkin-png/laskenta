@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -12,6 +13,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 import resend
+from urllib.parse import quote
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -410,6 +412,12 @@ class UrakkatyomaaraysRequest(BaseModel):
     pdf_filename: str
 
 
+class UrakkaConfirmRequest(BaseModel):
+    worker_name: str
+    kohde_nimi: str
+    kohde_osoite: str
+
+
 @api_router.post("/send-tarjous-email")
 async def send_tarjous_email(request: EmailWithAttachmentRequest):
     """Send tarjous email with PDF attachment via Resend"""
@@ -516,21 +524,9 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         # Format the list of all recipients for visibility
         all_recipients = ", ".join(request.recipient_emails)
         
-        # Create mailto link for confirmation
-        confirm_subject = f"Urakkamääräys vastaanotettu: {request.kohde_nimi}"
-        confirm_body = f"""Urakkamääräys vastaanotettu
-
-Kohde: {request.kohde_nimi}
-Osoite: {request.kohde_osoite}
-
-Vahvistan vastaanottaneeni urakkamääräyksen ja siihen liittyvän työmääräerittelyn.
-
-Sitoudun suorittamaan työn urakkamääräyksen ehtojen, työturvallisuusmääräysten ja hyvän rakennustavan mukaisesti.
-
-Allekirjoitus: ____________________
-Päivämäärä: ____________________"""
-        
-        mailto_link = f"mailto:info@jbtasoitusmaalaus.fi?subject={confirm_subject.replace(' ', '%20')}&body={confirm_body.replace(chr(10), '%0A').replace(' ', '%20')}"
+        # Create kuittaus page link (use the preview URL from environment or default)
+        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pdf-takeoff-pro.preview.emergentagent.com')
+        kuittaus_url = f"{base_url}/api/urakka-kuittaus?kohde={quote(request.kohde_nimi)}&osoite={quote(request.kohde_osoite)}"
         
         # Build the formal HTML email
         html_content = f"""
@@ -658,8 +654,8 @@ Päivämäärä: ____________________"""
             <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 14px;">
                 Klikkaamalla vahvistat saaneesi urakkamääräyksen ja sitoutuvasi noudattamaan yllä mainittuja ehtoja.
             </p>
-            <a href="{mailto_link}" style="display: inline-block; background-color: #27ae60; color: #ffffff; padding: 14px 32px; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 4px;">
-                KUITTAA VASTAANOTETUKSI
+            <a href="{kuittaus_url}" style="display: inline-block; background-color: #27ae60; color: #ffffff; padding: 14px 32px; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 4px;">
+                KUITTAA URAKKATYÖMÄÄRÄYS
             </a>
         </div>
         
@@ -704,6 +700,315 @@ Päivämäärä: ____________________"""
     except Exception as e:
         logger.error(f"Failed to send urakkamääräys: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Urakkamääräyksen lähetys epäonnistui: {str(e)}")
+
+
+@api_router.post("/confirm-urakkatyomaarays")
+async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
+    """Worker confirms receipt of urakkamääräys - sends notification to company and secretary"""
+    
+    if not resend.api_key:
+        raise HTTPException(status_code=503, detail="Email service not configured.")
+    
+    try:
+        now = datetime.now()
+        date_str = now.strftime("%d.%m.%Y")
+        time_str = now.strftime("%H:%M")
+        
+        # Build confirmation email
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+        
+        <!-- Header -->
+        <div style="background-color: #27ae60; padding: 20px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 18px;">
+                ✓ URAKKATYÖ SOVITTU
+            </h1>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 24px;">
+            <p style="margin: 0 0 16px 0; font-size: 15px;">
+                Urakkatyömääräys on kuitattu vastaanotetuksi seuraavan henkilön kanssa:
+            </p>
+            
+            <div style="background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 6px 0; color: #666; width: 120px;">Työntekijä:</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #2c3e50;">{request.worker_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #666;">Kohde:</td>
+                        <td style="padding: 6px 0; color: #333;">{request.kohde_nimi}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #666;">Osoite:</td>
+                        <td style="padding: 6px 0; color: #333;">{request.kohde_osoite}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #666;">Päivämäärä:</td>
+                        <td style="padding: 6px 0; color: #333;">{date_str}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px 0; color: #666;">Kellonaika:</td>
+                        <td style="padding: 6px 0; color: #333;">{time_str}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <p style="margin: 0; font-size: 13px; color: #666; font-style: italic;">
+                Työntekijä on sitoutunut suorittamaan työn urakkamääräyksen ehtojen mukaisesti.
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8f9fa; padding: 12px 24px; border-top: 1px solid #e0e0e0;">
+            <p style="margin: 0; font-size: 11px; color: #888; text-align: center;">
+                Automaattinen viesti - J&B Tasoitus ja Maalaus Oy
+            </p>
+        </div>
+        
+    </div>
+</body>
+</html>
+        """
+        
+        # Send to company AND secretary
+        params = {
+            "from": SENDER_EMAIL,
+            "to": ["info@jbtasoitusmaalaus.fi", "jokojogi.jb@gmail.com"],
+            "subject": f"Urakkatyö sovittu: {request.worker_name} - {request.kohde_nimi}",
+            "html": html_content
+        }
+        
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        
+        logger.info(f"Urakka confirmation sent for {request.worker_name}, ID: {email_result.get('id')}")
+        
+        return {
+            "status": "success",
+            "message": f"Kuittaus lähetetty: {request.worker_name}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to send confirmation: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Kuittauksen lähetys epäonnistui: {str(e)}")
+
+
+@api_router.get("/urakka-kuittaus")
+async def urakka_kuittaus_page(kohde: str = "", osoite: str = ""):
+    """Serve a simple HTML page for workers to confirm urakkamääräys"""
+    
+    html = f"""
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuittaa urakkatyömääräys</title>
+    <style>
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{ 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }}
+        .container {{
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+        }}
+        .header {{
+            background: #2c3e50;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }}
+        .header h1 {{
+            font-size: 20px;
+            margin-bottom: 8px;
+        }}
+        .header p {{
+            font-size: 13px;
+            opacity: 0.8;
+        }}
+        .content {{
+            padding: 24px;
+        }}
+        .info-box {{
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }}
+        .info-row {{
+            display: flex;
+            padding: 6px 0;
+        }}
+        .info-label {{
+            color: #666;
+            width: 80px;
+            flex-shrink: 0;
+        }}
+        .info-value {{
+            color: #2c3e50;
+            font-weight: 500;
+        }}
+        .form-group {{
+            margin-bottom: 16px;
+        }}
+        label {{
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+        }}
+        input {{
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }}
+        input:focus {{
+            outline: none;
+            border-color: #667eea;
+        }}
+        button {{
+            width: 100%;
+            padding: 14px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }}
+        button:hover {{
+            background: #219a52;
+        }}
+        button:disabled {{
+            background: #ccc;
+            cursor: not-allowed;
+        }}
+        .success {{
+            text-align: center;
+            padding: 40px 24px;
+        }}
+        .success-icon {{
+            font-size: 60px;
+            margin-bottom: 16px;
+        }}
+        .success h2 {{
+            color: #27ae60;
+            margin-bottom: 8px;
+        }}
+        .hidden {{ display: none; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>J&B Tasoitus ja Maalaus Oy</h1>
+            <p>Kuittaa urakkatyömääräys</p>
+        </div>
+        
+        <div id="form-section" class="content">
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Kohde:</span>
+                    <span class="info-value" id="kohde-display">{kohde}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Osoite:</span>
+                    <span class="info-value" id="osoite-display">{osoite}</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="worker-name">Nimesi *</label>
+                <input type="text" id="worker-name" placeholder="Kirjoita nimesi tähän" required>
+            </div>
+            
+            <button type="button" onclick="submitConfirmation()">
+                Kuittaa urakkatyömääräys
+            </button>
+        </div>
+        
+        <div id="success-section" class="success hidden">
+            <div class="success-icon">✓</div>
+            <h2>Kiitos!</h2>
+            <p>Urakkatyömääräys on kuitattu.</p>
+            <p style="margin-top: 12px; color: #666; font-size: 14px;">Voit sulkea tämän sivun.</p>
+        </div>
+    </div>
+    
+    <script>
+        const kohde = "{kohde}";
+        const osoite = "{osoite}";
+        
+        async function submitConfirmation() {{
+            const nameInput = document.getElementById('worker-name');
+            const name = nameInput.value.trim();
+            
+            if (!name) {{
+                alert('Kirjoita nimesi');
+                nameInput.focus();
+                return;
+            }}
+            
+            const btn = document.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Lähetetään...';
+            
+            try {{
+                const response = await fetch('/api/confirm-urakkatyomaarays', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{
+                        worker_name: name,
+                        kohde_nimi: kohde,
+                        kohde_osoite: osoite
+                    }})
+                }});
+                
+                if (response.ok) {{
+                    document.getElementById('form-section').classList.add('hidden');
+                    document.getElementById('success-section').classList.remove('hidden');
+                }} else {{
+                    const error = await response.json();
+                    alert('Virhe: ' + (error.detail || 'Lähetys epäonnistui'));
+                    btn.disabled = false;
+                    btn.textContent = 'Kuittaa urakkatyömääräys';
+                }}
+            }} catch (e) {{
+                alert('Verkkovirhe. Yritä uudelleen.');
+                btn.disabled = false;
+                btn.textContent = 'Kuittaa urakkatyömääräys';
+            }}
+        }}
+    </script>
+</body>
+</html>
+    """
+    
+    return HTMLResponse(content=html)
 
 
 # ==================== OFFER TERMS ENDPOINTS ====================
