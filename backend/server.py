@@ -413,9 +413,8 @@ class UrakkatyomaaraysRequest(BaseModel):
 
 
 class UrakkaConfirmRequest(BaseModel):
+    urakka_id: str  # ID to fetch the stored urakkamääräys
     worker_name: str
-    kohde_nimi: str
-    kohde_osoite: str
 
 
 @api_router.post("/send-tarjous-email")
@@ -524,9 +523,24 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         # Format the list of all recipients for visibility
         all_recipients = ", ".join(request.recipient_emails)
         
-        # Create kuittaus page link (use the preview URL from environment or default)
+        # Store urakkamääräys in database for later retrieval during confirmation
+        urakka_id = str(uuid.uuid4())
+        urakka_doc = {
+            "_id": urakka_id,
+            "kohde_nimi": request.kohde_nimi,
+            "kohde_osoite": request.kohde_osoite,
+            "tyonjohtaja": request.tyonjohtaja,
+            "tyonjohtaja_puh": request.tyonjohtaja_puh,
+            "pdf_base64": request.pdf_base64,
+            "pdf_filename": request.pdf_filename,
+            "recipients": request.recipient_emails,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.urakkatyomaarays.insert_one(urakka_doc)
+        
+        # Create kuittaus page link with urakka_id
         base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pdf-takeoff-pro.preview.emergentagent.com')
-        kuittaus_url = f"{base_url}/api/urakka-kuittaus?kohde={quote(request.kohde_nimi)}&osoite={quote(request.kohde_osoite)}"
+        kuittaus_url = f"{base_url}/api/urakka-kuittaus?id={urakka_id}"
         
         # Build the formal HTML email
         html_content = f"""
@@ -704,12 +718,22 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
 
 @api_router.post("/confirm-urakkatyomaarays")
 async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
-    """Worker confirms receipt of urakkamääräys - sends notification to company and secretary"""
+    """Worker confirms receipt of urakkamääräys - sends notification to company and secretary with PDF"""
     
     if not resend.api_key:
         raise HTTPException(status_code=503, detail="Email service not configured.")
     
     try:
+        # Fetch the stored urakkamääräys from database
+        urakka_doc = await db.urakkatyomaarays.find_one({"_id": request.urakka_id})
+        if not urakka_doc:
+            raise HTTPException(status_code=404, detail="Urakkamääräystä ei löydy")
+        
+        kohde_nimi = urakka_doc.get("kohde_nimi", "")
+        kohde_osoite = urakka_doc.get("kohde_osoite", "")
+        pdf_base64 = urakka_doc.get("pdf_base64", "")
+        pdf_filename = urakka_doc.get("pdf_filename", "Tyomaaraerittely.pdf")
+        
         now = datetime.now()
         date_str = now.strftime("%d.%m.%Y")
         time_str = now.strftime("%H:%M")
@@ -745,11 +769,11 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
                     </tr>
                     <tr>
                         <td style="padding: 6px 0; color: #666;">Kohde:</td>
-                        <td style="padding: 6px 0; color: #333;">{request.kohde_nimi}</td>
+                        <td style="padding: 6px 0; color: #333;">{kohde_nimi}</td>
                     </tr>
                     <tr>
                         <td style="padding: 6px 0; color: #666;">Osoite:</td>
-                        <td style="padding: 6px 0; color: #333;">{request.kohde_osoite}</td>
+                        <td style="padding: 6px 0; color: #333;">{kohde_osoite}</td>
                     </tr>
                     <tr>
                         <td style="padding: 6px 0; color: #666;">Päivämäärä:</td>
@@ -765,6 +789,10 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
             <p style="margin: 0; font-size: 13px; color: #666; font-style: italic;">
                 Työntekijä on sitoutunut suorittamaan työn urakkamääräyksen ehtojen mukaisesti.
             </p>
+            
+            <p style="margin: 16px 0 0 0; font-size: 13px; color: #555;">
+                📎 <strong>Liite:</strong> Kuitattu työmääräerittely (PDF)
+            </p>
         </div>
         
         <!-- Footer -->
@@ -779,13 +807,25 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
 </html>
         """
         
-        # Send to company AND secretary
+        # Decode PDF for attachment
+        pdf_content = base64.b64decode(pdf_base64) if pdf_base64 else None
+        
+        # Send to company AND secretary with PDF attachment
         params = {
             "from": SENDER_EMAIL,
             "to": ["info@jbtasoitusmaalaus.fi", "jokojogi.jb@gmail.com"],
-            "subject": f"Urakkatyö sovittu: {request.worker_name} - {request.kohde_nimi}",
+            "subject": f"Urakkatyö sovittu: {request.worker_name} - {kohde_nimi}",
             "html": html_content
         }
+        
+        # Add PDF attachment if available
+        if pdf_content:
+            params["attachments"] = [
+                {
+                    "filename": pdf_filename,
+                    "content": list(pdf_content)
+                }
+            ]
         
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         
@@ -796,14 +836,25 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
             "message": f"Kuittaus lähetetty: {request.worker_name}"
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to send confirmation: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Kuittauksen lähetys epäonnistui: {str(e)}")
 
 
 @api_router.get("/urakka-kuittaus")
-async def urakka_kuittaus_page(kohde: str = "", osoite: str = ""):
+async def urakka_kuittaus_page(id: str = ""):
     """Serve a simple HTML page for workers to confirm urakkamääräys"""
+    
+    # Fetch urakkamääräys from database
+    kohde = ""
+    osoite = ""
+    if id:
+        urakka_doc = await db.urakkatyomaarays.find_one({"_id": id})
+        if urakka_doc:
+            kohde = urakka_doc.get("kohde_nimi", "")
+            osoite = urakka_doc.get("kohde_osoite", "")
     
     html = f"""
 <!DOCTYPE html>
@@ -919,6 +970,14 @@ async def urakka_kuittaus_page(kohde: str = "", osoite: str = ""):
             color: #27ae60;
             margin-bottom: 8px;
         }}
+        .error {{
+            text-align: center;
+            padding: 40px 24px;
+        }}
+        .error-icon {{
+            font-size: 60px;
+            margin-bottom: 16px;
+        }}
         .hidden {{ display: none; }}
     </style>
 </head>
@@ -929,15 +988,24 @@ async def urakka_kuittaus_page(kohde: str = "", osoite: str = ""):
             <p>Kuittaa urakkatyömääräys</p>
         </div>
         
+        {"" if id and kohde else '''
+        <div class="error">
+            <div class="error-icon">⚠️</div>
+            <h2 style="color: #e74c3c;">Virhe</h2>
+            <p>Urakkamääräystä ei löydy tai linkki on vanhentunut.</p>
+        </div>
+        '''}
+        
+        {"" if not id or not kohde else f'''
         <div id="form-section" class="content">
             <div class="info-box">
                 <div class="info-row">
                     <span class="info-label">Kohde:</span>
-                    <span class="info-value" id="kohde-display">{kohde}</span>
+                    <span class="info-value">{kohde}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Osoite:</span>
-                    <span class="info-value" id="osoite-display">{osoite}</span>
+                    <span class="info-value">{osoite}</span>
                 </div>
             </div>
             
@@ -957,11 +1025,11 @@ async def urakka_kuittaus_page(kohde: str = "", osoite: str = ""):
             <p>Urakkatyömääräys on kuitattu.</p>
             <p style="margin-top: 12px; color: #666; font-size: 14px;">Voit sulkea tämän sivun.</p>
         </div>
+        '''}
     </div>
     
     <script>
-        const kohde = "{kohde}";
-        const osoite = "{osoite}";
+        const urakkaId = "{id}";
         
         async function submitConfirmation() {{
             const nameInput = document.getElementById('worker-name');
@@ -982,9 +1050,8 @@ async def urakka_kuittaus_page(kohde: str = "", osoite: str = ""):
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
                     body: JSON.stringify({{
-                        worker_name: name,
-                        kohde_nimi: kohde,
-                        kohde_osoite: osoite
+                        urakka_id: urakkaId,
+                        worker_name: name
                     }})
                 }});
                 
