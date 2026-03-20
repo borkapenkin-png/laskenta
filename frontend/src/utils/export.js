@@ -167,6 +167,8 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
     startY: 55,
     head: tableHeaders,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { 
       fontSize: 9,
       cellPadding: 3
@@ -189,7 +191,8 @@ const exportPDFWithOptions = (project, measurements, settings, includePrices) =>
       0: { cellWidth: 100 },
       1: { halign: 'right', cellWidth: 40 },
       2: { cellWidth: 30 }
-    }
+    },
+    margin: { top: 55, bottom: 30 }
   });
 
   // Price summary ONLY for price export (no YHTEENVETO section)
@@ -650,6 +653,8 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
       startY: yPos,
       head: tableHead,
       body: tableData,
+      pageBreak: 'auto',
+      showHead: 'everyPage',
       styles: { 
         fontSize: 9,
         cellPadding: 4,
@@ -667,7 +672,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
         fillColor: [250, 251, 252]
       },
       columnStyles: columnStyles,
-      margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
+      margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT, top: MARGIN_TOP + 10, bottom: MARGIN_BOTTOM },
       didDrawPage: () => {
         pageNumber++;
       }
@@ -1143,6 +1148,8 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     startY: yPos,
     head: tableHead,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { 
       fontSize: 9,
       cellPadding: 4,
@@ -1160,7 +1167,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
       fillColor: [250, 251, 252]
     },
     columnStyles: columnStyles,
-    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT },
+    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT, top: MARGIN_TOP + 10, bottom: MARGIN_BOTTOM },
     didDrawPage: () => {
       pageNumber++;
     }
@@ -1369,6 +1376,8 @@ export const exportFloorPDF = (project, measurements, floor, settings) => {
     startY: 60,
     head: tableHeaders,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { 
       fontSize: 9,
       cellPadding: 3
@@ -1387,7 +1396,8 @@ export const exportFloorPDF = (project, measurements, floor, settings) => {
       2: { cellWidth: 20 },
       3: { halign: 'right', cellWidth: 30 },
       4: { halign: 'right', cellWidth: 35 }
-    }
+    },
+    margin: { top: 60, bottom: 30 }
   });
 
   // Summary section - NO unit aggregation
@@ -1457,6 +1467,8 @@ export const exportKoontiMaaralaskentaPDF = (data) => {
     startY: 55,
     head: tableHeaders,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { fontSize: 9, cellPadding: 3 },
     headStyles: { fillColor: [0, 82, 204], textColor: 255, fontStyle: 'bold' },
     alternateRowStyles: { fillColor: [245, 247, 250] },
@@ -1470,7 +1482,8 @@ export const exportKoontiMaaralaskentaPDF = (data) => {
       0: { cellWidth: 100 },
       1: { halign: 'right', cellWidth: 40 },
       2: { cellWidth: 30 }
-    }
+    },
+    margin: { top: 55, bottom: 30 }
   });
 
   // Totals (only with prices)
@@ -1625,6 +1638,8 @@ export const exportWorkSchedulePDF = (data) => {
     startY: yPos,
     head: tableHead,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { 
       fontSize: 9,
       cellPadding: 4,
@@ -1649,7 +1664,7 @@ export const exportWorkSchedulePDF = (data) => {
       3: { halign: 'right', cellWidth: 32 },
       4: { halign: 'right', cellWidth: 20 }
     },
-    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
+    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT, top: MARGIN_TOP + 10, bottom: MARGIN_BOTTOM }
   });
   
   yPos = doc.lastAutoTable.finalY + 12;
@@ -1839,6 +1854,8 @@ export const exportKoontiWorkSchedulePDF = (data) => {
     startY: yPos,
     head: tableHead,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { 
       fontSize: 9,
       cellPadding: 4,
@@ -1860,7 +1877,7 @@ export const exportKoontiWorkSchedulePDF = (data) => {
       1: { halign: 'right', cellWidth: 35 },
       2: { halign: 'right', cellWidth: 35 }
     },
-    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
+    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT, top: MARGIN_TOP + 10, bottom: MARGIN_BOTTOM }
   });
   
   yPos = doc.lastAutoTable.finalY + 12;
@@ -2047,6 +2064,8 @@ export const exportCustomWorkSchedulePDF = (data) => {
     startY: yPos,
     head: tableHead,
     body: tableData,
+    pageBreak: 'auto',
+    showHead: 'everyPage',
     styles: { 
       fontSize: 9,
       cellPadding: 4,
@@ -2071,7 +2090,7 @@ export const exportCustomWorkSchedulePDF = (data) => {
       3: { halign: 'right', cellWidth: 32 },
       4: { halign: 'right', cellWidth: 20 }
     },
-    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT }
+    margin: { left: MARGIN_LEFT, right: MARGIN_RIGHT, top: MARGIN_TOP + 10, bottom: MARGIN_BOTTOM }
   });
   
   yPos = doc.lastAutoTable.finalY + 12;
