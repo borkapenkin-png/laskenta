@@ -400,6 +400,16 @@ class EmailWithAttachmentRequest(BaseModel):
     sender_name: Optional[str] = None  # Yhteyshenkilö name
 
 
+class UrakkatyomaaraysRequest(BaseModel):
+    recipient_emails: List[EmailStr]  # Multiple workers
+    kohde_nimi: str
+    kohde_osoite: str
+    tyonjohtaja: str
+    tyonjohtaja_puh: str = "+358 40 054 7270"
+    pdf_base64: str
+    pdf_filename: str
+
+
 @api_router.post("/send-tarjous-email")
 async def send_tarjous_email(request: EmailWithAttachmentRequest):
     """Send tarjous email with PDF attachment via Resend"""
@@ -490,6 +500,212 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
     except Exception as e:
         logger.error(f"Failed to send email: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Sähköpostin lähetys epäonnistui: {str(e)}")
+
+
+@api_router.post("/send-urakkatyomaarays")
+async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
+    """Send urakkatyömääräys email to workers with PDF attachment via Resend"""
+    
+    if not resend.api_key:
+        raise HTTPException(status_code=503, detail="Email service not configured. Please set RESEND_API_KEY.")
+    
+    try:
+        # Decode base64 PDF
+        pdf_content = base64.b64decode(request.pdf_base64)
+        
+        # Format the list of all recipients for visibility
+        all_recipients = ", ".join(request.recipient_emails)
+        
+        # Create mailto link for confirmation
+        confirm_subject = f"Työmääräys vastaanotettu: {request.kohde_nimi}"
+        confirm_body = f"""Työmääräys vastaanotettu
+
+Kohde: {request.kohde_nimi}
+Osoite: {request.kohde_osoite}
+
+Vahvistan vastaanottaneeni työmääräyksen ja siihen liittyvän työmääräerittelyn.
+
+Sitoudun suorittamaan työn työmääräyksen ehtojen, työturvallisuusmääräysten ja hyvän rakennustavan mukaisesti.
+
+Allekirjoitus: ____________________
+Päivämäärä: ____________________"""
+        
+        mailto_link = f"mailto:info@jbtasoitusmaalaus.fi?subject={confirm_subject.replace(' ', '%20')}&body={confirm_body.replace(chr(10), '%0A').replace(' ', '%20')}"
+        
+        # Build the formal HTML email
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;">
+    <div style="max-width: 700px; margin: 0 auto; background-color: #ffffff;">
+        
+        <!-- Header -->
+        <div style="background-color: #2c3e50; padding: 24px 32px; text-align: center;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600; letter-spacing: 1px;">
+                URAKKATYÖMÄÄRÄYS
+            </h1>
+            <p style="margin: 8px 0 0 0; color: #bdc3c7; font-size: 13px;">
+                Liite työsopimukseen
+            </p>
+        </div>
+        
+        <!-- Employer Info -->
+        <div style="padding: 24px 32px; background-color: #ecf0f1;">
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #2c3e50;">TYÖNANTAJA:</p>
+            <p style="margin: 0; color: #555;">J&B Tasoitus ja Maalaus Oy</p>
+            <p style="margin: 0; color: #555;">Sienitie 25, 00760 Helsinki</p>
+            <p style="margin: 0; color: #555;">Y-tunnus: 2869245-9</p>
+        </div>
+        
+        <!-- Work Site Info -->
+        <div style="padding: 24px 32px; border-bottom: 1px solid #e0e0e0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; vertical-align: top; width: 140px; color: #888; font-size: 13px;">TYÖKOHDE:</td>
+                    <td style="padding: 8px 0; font-weight: 600; color: #2c3e50;">{request.kohde_nimi}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; vertical-align: top; color: #888; font-size: 13px;">OSOITE:</td>
+                    <td style="padding: 8px 0; color: #333;">{request.kohde_osoite}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; vertical-align: top; color: #888; font-size: 13px;">TYÖNJOHTAJA:</td>
+                    <td style="padding: 8px 0; color: #333;">{request.tyonjohtaja}<br><span style="color: #666;">Puh: {request.tyonjohtaja_puh}</span></td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; vertical-align: top; color: #888; font-size: 13px;">LÄHETETTY:</td>
+                    <td style="padding: 8px 0; color: #666; font-size: 13px;">{all_recipients}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Assignment Description -->
+        <div style="padding: 24px 32px;">
+            <h2 style="margin: 0 0 16px 0; color: #2c3e50; font-size: 16px; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
+                TYÖMÄÄRÄYS
+            </h2>
+            <p style="margin: 0 0 16px 0; color: #333; line-height: 1.7;">
+                Tällä työmääräyksellä osoitetaan työntekijälle suoritettavaksi liitteenä olevassa työmääräerittelyssä kuvatut työt.
+            </p>
+            <p style="margin: 0 0 8px 0; color: #555; font-weight: 600;">Työmääräerittely sisältää:</p>
+            <ul style="margin: 0 0 16px 0; padding-left: 24px; color: #555;">
+                <li>Suoritettavat työvaiheet</li>
+                <li>Määrät ja yksiköt</li>
+                <li>TES:n mukaiset tuntiarviot</li>
+            </ul>
+        </div>
+        
+        <!-- Terms Section -->
+        <div style="padding: 24px 32px; background-color: #fafafa;">
+            <h2 style="margin: 0 0 16px 0; color: #2c3e50; font-size: 16px; border-bottom: 2px solid #e74c3c; padding-bottom: 8px;">
+                EHDOT
+            </h2>
+            
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">PALKKAUS JA TYÖAIKA:</h3>
+            <ol style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+                <li>Työ suoritetaan urakkapalkalla rakennusalan työehtosopimuksen (TES) mukaisesti.</li>
+                <li>Urakkahinnoittelu perustuu TES:n mukaisiin yksikköhintoihin ja työmääräerittelyssä esitettyihin määriin.</li>
+                <li>Työaika noudattaa työaikalakia (872/2019) ja TES:n määräyksiä. Säännöllinen työaika on enintään 8 tuntia vuorokaudessa ja 40 tuntia viikossa.</li>
+                <li>Ylityöstä sovitaan erikseen ja se korvataan TES:n ja työaikalain mukaisesti.</li>
+            </ol>
+            
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">TYÖTURVALLISUUS:</h3>
+            <ol start="5" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+                <li>Työntekijä sitoutuu noudattamaan työturvallisuuslakia (738/2002) ja työnantajan antamia turvallisuusohjeita.</li>
+                <li>Työnantaja vastaa työturvallisuuslain mukaisista velvoitteista ja tarjoaa tarvittavat henkilönsuojaimet.</li>
+                <li>Työntekijä on velvollinen käyttämään annettuja suojavarusteita ja ilmoittamaan havaitsemistaan vaaroista välittömästi.</li>
+                <li>Työntekijällä on oikeus keskeyttää työ, jos siitä aiheutuu välitön ja vakava vaara hengelle tai terveydelle.</li>
+            </ol>
+            
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">TYÖN SUORITUS:</h3>
+            <ol start="9" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+                <li>Työ suoritetaan ammattitaitoisesti, hyvää rakennustapaa ja MaalausRYL 2012 -ohjeistusta noudattaen.</li>
+                <li>Mahdollisista lisätöistä ja muutoksista sovitaan kirjallisesti ennen niiden suorittamista.</li>
+                <li>Työntekijä ilmoittaa työnjohtajalle välittömästi mahdollisista esteistä, viivästyksistä tai laatupoikkeamista.</li>
+            </ol>
+            
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">VAKUUTUKSET JA VASTUU:</h3>
+            <ol start="12" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+                <li>Työnantaja vastaa lakisääteisistä vakuutuksista (tapaturmavakuutus, työeläkevakuutus, työttömyysvakuutus).</li>
+                <li>Työntekijä vastaa tahallisesti tai törkeällä huolimattomuudella aiheuttamistaan vahingoista työsopimuslain (55/2001) mukaisesti.</li>
+            </ol>
+            
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">TIETOSUOJA JA SALASSAPITO:</h3>
+            <ol start="14" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+                <li>Työntekijä sitoutuu pitämään salassa työnantajan ja asiakkaiden luottamukselliset tiedot.</li>
+            </ol>
+        </div>
+        
+        <!-- Legal Note -->
+        <div style="padding: 16px 32px; border-top: 1px solid #e0e0e0;">
+            <p style="margin: 0; color: #666; font-size: 13px; font-style: italic;">
+                Tämä työmääräys on osa voimassa olevaa työsopimusta.<br>
+                Sovellettava työehtosopimus: Rakennusalan TES
+            </p>
+        </div>
+        
+        <!-- Attachment Note -->
+        <div style="padding: 16px 32px; background-color: #e8f4f8;">
+            <p style="margin: 0; color: #2c3e50; font-weight: 600;">
+                📎 Liite: Työmääräerittely (PDF)
+            </p>
+        </div>
+        
+        <!-- Confirmation Button -->
+        <div style="padding: 32px; text-align: center; background-color: #2c3e50;">
+            <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 14px;">
+                Klikkaamalla vahvistat saaneesi työmääräyksen ja sitoutuvasi noudattamaan yllä mainittuja ehtoja.
+            </p>
+            <a href="{mailto_link}" style="display: inline-block; background-color: #27ae60; color: #ffffff; padding: 14px 32px; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 4px;">
+                KUITTAA VASTAANOTETUKSI
+            </a>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 16px 32px; background-color: #1a252f; text-align: center;">
+            <p style="margin: 0; color: #888; font-size: 12px;">
+                J&B Tasoitus ja Maalaus Oy | <a href="https://www.jbtasoitusmaalaus.fi" style="color: #3498db; text-decoration: none;">www.jbtasoitusmaalaus.fi</a>
+            </p>
+        </div>
+        
+    </div>
+</body>
+</html>
+        """
+        
+        # Send to all recipients (they can see each other via 'to' list)
+        params = {
+            "from": SENDER_EMAIL,
+            "to": request.recipient_emails,  # All recipients visible to each other
+            "subject": f"Urakkatyömääräys: {request.kohde_nimi}",
+            "html": html_content,
+            "attachments": [
+                {
+                    "filename": request.pdf_filename,
+                    "content": list(pdf_content)
+                }
+            ]
+        }
+        
+        # Run sync SDK in thread to keep FastAPI non-blocking
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        
+        logger.info(f"Urakkatyömääräys sent to {all_recipients}, ID: {email_result.get('id')}")
+        
+        return {
+            "status": "success",
+            "message": f"Urakkatyömääräys lähetetty: {all_recipients}",
+            "email_id": email_result.get("id"),
+            "recipients": request.recipient_emails
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to send urakkatyömääräys: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Urakkatyömääräyksen lähetys epäonnistui: {str(e)}")
 
 
 # ==================== OFFER TERMS ENDPOINTS ====================

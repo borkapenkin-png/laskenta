@@ -26,7 +26,10 @@ import {
   Settings2,
   AlertCircle,
   Euro,
-  Plus
+  Plus,
+  Send,
+  X,
+  Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportWorkSchedulePDF } from '@/utils/export';
@@ -120,13 +123,20 @@ const groupMeasurements = (measurements) => {
   return Object.values(groups).sort((a, b) => b.totalQuantity - a.totalQuantity);
 };
 
-export const WorkScheduleDialog = ({ open, onClose, measurements, projectName }) => {
+export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, projectAddress = '' }) => {
   const [tesPrices, setTesPrices] = useState([]);
   const [hourlyTarget, setHourlyTarget] = useState(20);
   const [workerCount, setWorkerCount] = useState(2);
   const [hoursPerDay, setHoursPerDay] = useState(8);
   const [isLoading, setIsLoading] = useState(false);
   const [showRatesEditor, setShowRatesEditor] = useState(false);
+  
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailRecipients, setEmailRecipients] = useState(['']);
+  const [kohdeOsoite, setKohdeOsoite] = useState(projectAddress);
+  const [tyonjohtaja, setTyonjohtaja] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   
   // Load TES prices from API
   useEffect(() => {
@@ -274,6 +284,92 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
     } catch (e) {
       console.error('PDF export failed:', e);
       toast.error('PDF:n luominen epäonnistui');
+    }
+  };
+  
+  // Add email recipient
+  const handleAddRecipient = () => {
+    setEmailRecipients([...emailRecipients, '']);
+  };
+  
+  // Remove email recipient
+  const handleRemoveRecipient = (index) => {
+    if (emailRecipients.length > 1) {
+      setEmailRecipients(emailRecipients.filter((_, i) => i !== index));
+    }
+  };
+  
+  // Update email recipient
+  const handleRecipientChange = (index, value) => {
+    const newRecipients = [...emailRecipients];
+    newRecipients[index] = value;
+    setEmailRecipients(newRecipients);
+  };
+  
+  // Send urakkatyömääräys email
+  const handleSendUrakkatyomaarays = async () => {
+    // Validate inputs
+    const validEmails = emailRecipients.filter(e => e.trim() && e.includes('@'));
+    if (validEmails.length === 0) {
+      toast.error('Lisää vähintään yksi sähköpostiosoite');
+      return;
+    }
+    if (!kohdeOsoite.trim()) {
+      toast.error('Kohteen osoite on pakollinen');
+      return;
+    }
+    if (!tyonjohtaja.trim()) {
+      toast.error('Työnjohtajan nimi on pakollinen');
+      return;
+    }
+    
+    setIsSendingEmail(true);
+    
+    try {
+      // Generate PDF as base64
+      const result = exportWorkSchedulePDF({
+        projectName: projectName || 'Projekti',
+        scheduleRows,
+        totals,
+        workerCount,
+        hoursPerDay,
+        hourlyTarget
+      }, true); // Return base64 instead of downloading
+      
+      if (!result || !result.pdfBase64) {
+        throw new Error('PDF generation failed');
+      }
+      
+      // Send via API
+      const response = await fetch(`${API_URL}/api/send-urakkatyomaarays`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_emails: validEmails,
+          kohde_nimi: projectName || 'Projekti',
+          kohde_osoite: kohdeOsoite,
+          tyonjohtaja: tyonjohtaja,
+          tyonjohtaja_puh: '+358 40 054 7270',
+          pdf_base64: result.pdfBase64,
+          pdf_filename: result.fileName || `Tyomaaraerittely_${projectName || 'projekti'}.pdf`
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        toast.success(`Urakkatyömääräys lähetetty: ${validEmails.join(', ')}`);
+        setShowEmailModal(false);
+        // Reset form
+        setEmailRecipients(['']);
+      } else {
+        const error = await response.json();
+        toast.error(error.detail || 'Lähetys epäonnistui');
+      }
+    } catch (e) {
+      console.error('Send failed:', e);
+      toast.error('Lähetys epäonnistui: ' + e.message);
+    } finally {
+      setIsSendingEmail(false);
     }
   };
   
@@ -493,10 +589,117 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName })
                 <FileDown className="h-4 w-4 mr-2" />
                 Lataa PDF
               </Button>
+              <Button 
+                onClick={() => setShowEmailModal(true)}
+                className="bg-blue-600 hover:bg-blue-700"
+                data-testid="send-urakkatyomaarays-btn"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Lähetä työmääräys
+              </Button>
             </div>
           </>
         )}
       </DialogContent>
+      
+      {/* Email Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              Lähetä urakkatyömääräys
+            </DialogTitle>
+            <DialogDescription>
+              Lähetä työmääräerittely työntekijöille sähköpostilla
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {/* Kohde info */}
+            <div className="space-y-2">
+              <Label htmlFor="kohde-osoite">Kohteen osoite *</Label>
+              <Input
+                id="kohde-osoite"
+                value={kohdeOsoite}
+                onChange={(e) => setKohdeOsoite(e.target.value)}
+                placeholder="Esim. Mannerheimintie 1, Helsinki"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="tyonjohtaja">Työnjohtaja *</Label>
+              <Input
+                id="tyonjohtaja"
+                value={tyonjohtaja}
+                onChange={(e) => setTyonjohtaja(e.target.value)}
+                placeholder="Esim. Matti Meikäläinen"
+              />
+            </div>
+            
+            {/* Recipients */}
+            <div className="space-y-2">
+              <Label>Työntekijöiden sähköpostit *</Label>
+              {emailRecipients.map((email, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => handleRecipientChange(index, e.target.value)}
+                    placeholder="työntekijä@email.fi"
+                  />
+                  {emailRecipients.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => handleRemoveRecipient(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddRecipient}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Lisää vastaanottaja
+              </Button>
+            </div>
+            
+            <p className="text-xs text-gray-500">
+              Kaikki vastaanottajat näkevät toisensa sähköpostissa. 
+              Sähköposti sisältää virallisen urakkatyömääräyksen ehtoineen ja PDF-liitteen.
+            </p>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowEmailModal(false)}>
+              Peruuta
+            </Button>
+            <Button
+              onClick={handleSendUrakkatyomaarays}
+              disabled={isSendingEmail}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSendingEmail ? (
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                  Lähetetään...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Lähetä
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };

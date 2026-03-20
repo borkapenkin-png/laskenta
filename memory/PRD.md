@@ -202,17 +202,47 @@ Build a modern, 100% client-side, browser-based PDF takeoff and cost estimation 
 ## Resend Email Integration (Tarjous sähköpostilla) - 2025-12-20
 - ✅ Backend API: POST /api/send-tarjous-email - sends emails with PDF attachment via Resend
 - ✅ Professional HTML email template with:
-  - Company logos (J&B logo + Suomen Vahvimmat)
-  - Gradient header
+  - Teal header with company name
+  - "Ystävällisin terveisin" signature
   - Dynamic sender signature from yhteyshenkilö field
-  - Company contact info footer (Y-tunnus, address, phone, email)
+  - Company contact info footer (Y-tunnus, address, email)
+  - Website link in footer
 - ✅ TarjousDialog: "Lähetä tarjous" button sends generated PDF directly to customer email
-- ✅ KoontitarjousDialog: Same email functionality synchronized
+- ✅ KoontitarjousDialog: Same email functionality synchronized, filename now "Tarjous_" (not "Koontitarjous_")
 - ✅ Email requires: recipient_email, subject, body_text, pdf_base64, pdf_filename
 - ✅ Optional sender_name for personalized signature
 - ✅ Frontend generates PDF as base64 → sends to backend → backend calls Resend API
 - ✅ Toast notifications for success/failure
-- ✅ All 11 backend tests + all frontend tests passed (iteration_20)
+- ✅ PDF layout fix: email field wraps correctly within info box
+
+## Urakkatyömääräys (Work Assignment Email) - 2025-03-20
+- ✅ Backend API: POST /api/send-urakkatyomaarays - sends formal work assignment to employees
+- ✅ Professional HTML email template includes:
+  - Dark header with "URAKKATYÖMÄÄRÄYS - Liite työsopimukseen"
+  - Employer info (J&B Tasoitus ja Maalaus Oy, Y-tunnus)
+  - Work site details (kohde, osoite, työnjohtaja)
+  - All recipients visible to each other
+  - Full legal terms with Finnish law references:
+    - Työaikalaki (872/2019) - Working hours law
+    - Työturvallisuuslaki (738/2002) - Occupational safety law
+    - Työsopimuslaki (55/2001) - Employment contracts law
+    - Rakennusalan TES - Construction sector collective agreement
+    - MaalausRYL 2012 - Painting quality guidelines
+  - 14 formal conditions covering payment, safety, work performance, insurance, confidentiality
+  - "KUITTAA VASTAANOTETUKSI" button (mailto: link for confirmation)
+- ✅ WorkScheduleDialog: "Lähetä työmääräys" button opens email modal
+- ✅ Email modal supports:
+  - Multiple worker email recipients
+  - Kohde address input
+  - Työnjohtaja (supervisor) name
+- ✅ PDF attachment: Työmääräerittely with work phases, quantities, TES hours
+- ✅ exportWorkSchedulePDF updated to support returnBase64 parameter
+
+## PDF Table Layout Improvements - 2025-03-20
+- ✅ All 8 autoTable instances updated with:
+  - `pageBreak: 'auto'` - automatic page breaks
+  - `showHead: 'everyPage'` - table header on every page
+  - `margin: { top, bottom }` - proper margins for page breaks
 
 ## Notes for Development
 - All changes are client-side only

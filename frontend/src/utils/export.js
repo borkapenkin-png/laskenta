@@ -1546,7 +1546,7 @@ export const exportKoontiMaaralaskentaPDF = (data) => {
 
 // ==================== WORK SCHEDULE PDF ====================
 // Generates a work schedule estimate based on measurements and productivity rates
-export const exportWorkSchedulePDF = (data) => {
+export const exportWorkSchedulePDF = (data, returnBase64 = false) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -1754,6 +1754,12 @@ export const exportWorkSchedulePDF = (data) => {
   
   // Save
   const fileName = `Tyomaaraerittely_${projectName?.replace(/\s+/g, '_') || 'projekti'}_${new Date().toLocaleDateString('fi-FI').replace(/\./g, '-')}.pdf`;
+  
+  if (returnBase64) {
+    const pdfBase64 = doc.output('datauristring').split(',')[1];
+    return { pdfBase64, fileName };
+  }
+  
   doc.save(fileName);
 };
 
