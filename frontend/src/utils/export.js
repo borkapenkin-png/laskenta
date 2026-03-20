@@ -1321,8 +1321,8 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     doc.text(`Sivu ${i} / ${totalPages}`, pageWidth - MARGIN_RIGHT, footerY + 10, { align: 'right' });
   }
   
-  // Generate filename
-  const fileName = `Koontitarjous_${koontitarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${offerDate.replace(/\./g, '-')}.pdf`;
+  // Generate filename (use "Tarjous" instead of "Koontitarjous")
+  const fileName = `Tarjous_${koontitarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${offerDate.replace(/\./g, '-')}.pdf`;
   
   // Get PDF as base64 for email sending
   const pdfBase64 = doc.output('datauristring').split(',')[1];

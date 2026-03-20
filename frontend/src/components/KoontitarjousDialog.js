@@ -325,7 +325,7 @@ Puh: 040 848 8885`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipient_email: formData.email,
-          subject: `Koontitarjous: ${formData.kohde || projectNames}`,
+          subject: `Tarjous: ${formData.kohde || projectNames}`,
           body_text: bodyText,
           pdf_base64: result.pdfBase64,
           pdf_filename: result.fileName,
@@ -334,7 +334,7 @@ Puh: 040 848 8885`;
       });
       
       if (emailRes.ok) {
-        toast.success(`Koontitarjous lähetetty: ${formData.email}`);
+        toast.success(`Tarjous lähetetty: ${formData.email}`);
         onClose();
       } else {
         const errData = await emailRes.json();
