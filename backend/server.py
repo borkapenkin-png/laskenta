@@ -412,9 +412,9 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
         pdf_content = base64.b64decode(request.pdf_base64)
         
         # Sender name for signature
-        sender_signature = f"{request.sender_name}<br>" if request.sender_name else ""
+        sender_signature = f"<strong>{request.sender_name}</strong><br>" if request.sender_name else ""
         
-        # Build simple text-only HTML email
+        # Build premium HTML email (similar to PDF export style)
         html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -422,21 +422,40 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #2d3748; margin: 0; padding: 20px;">
-    <div style="max-width: 600px;">
+<body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.7; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
         
-        <!-- Body Content -->
-        <div style="font-size: 15px; color: #333; white-space: pre-line; margin-bottom: 30px;">
-{request.body_text}
+        <!-- Header with teal accent -->
+        <div style="background-color: #4A9BAD; padding: 24px 32px;">
+            <h1 style="margin: 0; color: #ffffff; font-size: 20px; font-weight: 600; letter-spacing: 0.5px;">
+                J&B Tasoitus ja Maalaus Oy
+            </h1>
         </div>
         
-        <!-- Signature -->
-        <div style="font-size: 14px; color: #555;">
-            {sender_signature}
-            J&B Tasoitus ja Maalaus Oy<br>
-            Sienitie 25, Helsinki<br>
-            Y-tunnus: 2869245-9<br>
-            info@jbtasoitusmaalaus.fi
+        <!-- Body Content -->
+        <div style="padding: 32px;">
+            <div style="font-size: 15px; color: #333; white-space: pre-line; margin-bottom: 32px;">
+{request.body_text}
+            </div>
+            
+            <!-- Signature -->
+            <div style="border-top: 1px solid #e0e0e0; padding-top: 24px; margin-top: 24px;">
+                <p style="margin: 0 0 16px 0; color: #666; font-size: 14px;">Ystävällisin terveisin,</p>
+                <div style="font-size: 14px; color: #333;">
+                    {sender_signature}
+                    <span style="color: #4A9BAD; font-weight: 600;">J&B Tasoitus ja Maalaus Oy</span><br>
+                    <span style="color: #666;">Sienitie 25, Helsinki</span><br>
+                    <span style="color: #666;">Y-tunnus: 2869245-9</span><br>
+                    <a href="mailto:info@jbtasoitusmaalaus.fi" style="color: #4A9BAD; text-decoration: none;">info@jbtasoitusmaalaus.fi</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f8f9fa; padding: 16px 32px; border-top: 1px solid #e0e0e0;">
+            <p style="margin: 0; font-size: 12px; color: #888; text-align: center;">
+                Ammattitaitoista maalaus- ja tasoitustyötä vuodesta 2014
+            </p>
         </div>
         
     </div>
