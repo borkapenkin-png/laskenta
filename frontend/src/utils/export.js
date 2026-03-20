@@ -840,11 +840,16 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     doc.text(`Sivu ${i} / ${totalPages}`, pageWidth - MARGIN_RIGHT, footerY + 10, { align: 'right' });
   }
   
-  // Save
+  // Generate filename
   const fileName = `Tarjous_${tarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${offerDate.replace(/\./g, '-')}.pdf`;
+  
+  // Get PDF as base64 for email sending
+  const pdfBase64 = doc.output('datauristring').split(',')[1];
+  
+  // Save file
   doc.save(fileName);
   
-  // Return data for snapshot
+  // Return data for snapshot and email
   let operations;
   if (isManualMode) {
     if (tarjousData.useKokonaishinta) {
@@ -877,7 +882,9 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
       vatPercentage: showWithVat ? vatPercentage : 0,
       vatAmount: showWithVat ? vatAmount : 0,
       totalWithVat: showWithVat ? totalWithVat : totalCost,
-    }
+    },
+    pdfBase64,
+    fileName
   };
 };
 
@@ -1314,9 +1321,20 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     doc.text(`Sivu ${i} / ${totalPages}`, pageWidth - MARGIN_RIGHT, footerY + 10, { align: 'right' });
   }
   
-  // Save
+  // Generate filename
   const fileName = `Koontitarjous_${koontitarjousData.asiakas?.replace(/\s+/g, '_') || 'asiakas'}_${offerDate.replace(/\./g, '-')}.pdf`;
+  
+  // Get PDF as base64 for email sending
+  const pdfBase64 = doc.output('datauristring').split(',')[1];
+  
+  // Save file
   doc.save(fileName);
+  
+  // Return data for email
+  return {
+    pdfBase64,
+    fileName
+  };
 };
 
 // Export PDF per floor

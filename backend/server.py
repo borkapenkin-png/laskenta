@@ -4,13 +4,21 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import asyncio
+import base64
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
+import resend
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Configure Resend
+resend.api_key = os.environ.get('RESEND_API_KEY', '')
+SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
 
 # Configure logging first
 logging.basicConfig(
@@ -379,6 +387,79 @@ async def save_productivity_rates(body: dict):
     except Exception as e:
         logger.error(f"Failed to save productivity rates: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== EMAIL ENDPOINTS ====================
+
+class EmailWithAttachmentRequest(BaseModel):
+    recipient_email: EmailStr
+    subject: str
+    body_text: str
+    pdf_base64: str
+    pdf_filename: str
+
+
+@api_router.post("/send-tarjous-email")
+async def send_tarjous_email(request: EmailWithAttachmentRequest):
+    """Send tarjous email with PDF attachment via Resend"""
+    
+    if not resend.api_key:
+        raise HTTPException(status_code=503, detail="Email service not configured. Please set RESEND_API_KEY.")
+    
+    try:
+        # Decode base64 PDF
+        pdf_content = base64.b64decode(request.pdf_base64)
+        
+        # Build HTML email content
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="border-bottom: 2px solid #4A9BAD; padding-bottom: 10px; margin-bottom: 20px;">
+                    <h2 style="color: #4A9BAD; margin: 0;">J&B Tasoitus ja Maalaus Oy</h2>
+                </div>
+                
+                <div style="white-space: pre-line;">
+{request.body_text}
+                </div>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #666;">
+                    <p><strong>J&B Tasoitus ja Maalaus Oy</strong></p>
+                    <p>Puh: 040 848 8885</p>
+                    <p>Y-tunnus: 3464050-2</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        params = {
+            "from": SENDER_EMAIL,
+            "to": [request.recipient_email],
+            "subject": request.subject,
+            "html": html_content,
+            "attachments": [
+                {
+                    "filename": request.pdf_filename,
+                    "content": list(pdf_content)  # Resend expects list of bytes
+                }
+            ]
+        }
+        
+        # Run sync SDK in thread to keep FastAPI non-blocking
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        
+        logger.info(f"Email sent successfully to {request.recipient_email}, ID: {email_result.get('id')}")
+        
+        return {
+            "status": "success",
+            "message": f"Sähköposti lähetetty: {request.recipient_email}",
+            "email_id": email_result.get("id")
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to send email: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Sähköpostin lähetys epäonnistui: {str(e)}")
 
 
 # ==================== OFFER TERMS ENDPOINTS ====================

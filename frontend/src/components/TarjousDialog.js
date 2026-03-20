@@ -152,7 +152,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     }
   };
 
-  // Handle send email - generates PDF and opens email client
+  // Handle send email - generates PDF and sends via Resend
   const handleSendEmail = async () => {
     if (!formData.email) {
       return;
@@ -160,20 +160,43 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     
     setIsGenerating(true);
     try {
-      // First generate the PDF
-      await onGenerate({
+      const { toast } = await import('sonner');
+      const { exportTarjousPDF } = await import('@/utils/export');
+      
+      // Load custom offer terms
+      let customTerms = null;
+      try {
+        const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+        const res = await fetch(`${API_URL}/api/presets/offer-terms`);
+        if (res.ok) {
+          const data = await res.json();
+          customTerms = data.terms;
+        }
+      } catch (e) {
+        console.warn('Failed to load custom offer terms:', e);
+      }
+      
+      // Generate the PDF and get base64
+      const tarjousData = {
         ...formData,
         isPreview: false,
         sisallaAlv: formData.vatMode === 'incl',
         manualTotal: formData.useKokonaishinta 
           ? parseFloat(formData.kokonaishinta) || 0 
           : manualTotal,
-      });
+      };
+      
+      // We need project and measurements from parent - but we don't have them here
+      // So we call onGenerate to generate the PDF and then get the result
+      const result = await onGenerate(tarjousData, true); // Pass true to indicate we need the result
+      
+      if (!result || !result.pdfBase64) {
+        toast.error('PDF luominen epäonnistui');
+        return;
+      }
       
       // Build email content
-      const subject = encodeURIComponent(`Tarjous: ${formData.kohde}`);
-      const body = encodeURIComponent(
-`Hei,
+      const bodyText = `Hei,
 
 Tarjoamme kohteeseen ${formData.kohde}.
 
@@ -183,17 +206,34 @@ Vastaamme mielellämme mahdollisiin kysymyksiin.
 
 Ystävällisin terveisin,
 J&B Tasoitus ja Maalaus Oy
-Puh: 040 848 8885
-`
-      );
+Puh: 040 848 8885`;
       
-      // Open email client
-      window.open(`mailto:${formData.email}?subject=${subject}&body=${body}`, '_blank');
+      // Send via backend
+      const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const emailRes = await fetch(`${API_URL}/api/send-tarjous-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_email: formData.email,
+          subject: `Tarjous: ${formData.kohde}`,
+          body_text: bodyText,
+          pdf_base64: result.pdfBase64,
+          pdf_filename: result.fileName
+        })
+      });
       
-      // Show toast reminder
+      if (emailRes.ok) {
+        toast.success(`Tarjous lähetetty: ${formData.email}`);
+        onClose();
+      } else {
+        const errData = await emailRes.json();
+        toast.error(errData.detail || 'Sähköpostin lähetys epäonnistui');
+      }
+      
+    } catch (err) {
+      console.error('Email send error:', err);
       const { toast } = await import('sonner');
-      toast.info('PDF ladattu. Liitä PDF sähköpostiin manuaalisesti.', { duration: 5000 });
-      
+      toast.error('Sähköpostin lähetys epäonnistui');
     } finally {
       setIsGenerating(false);
     }

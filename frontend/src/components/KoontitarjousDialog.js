@@ -280,25 +280,33 @@ export const KoontitarjousDialog = ({ open, onClose, onGenerate, vatPercentage =
   const handleSendEmail = async () => {
     if (successfulProjects.length === 0 || !formData.asiakas.trim() || !formData.email) return;
     
-    // First generate the PDF
-    onGenerate({
-      ...formData,
-      loadedProjects: successfulProjects.map(p => ({
-        title: p.editableTitle,
-        totalCost: p.totalCost
-      })),
-      mergedOperations,
-      totalCostAlv0,
-      vatAmount,
-      totalWithVat,
-      sisallaAlv: formData.vatMode === 'incl'
-    });
+    const { toast } = await import('sonner');
     
-    // Build email content
-    const projectNames = successfulProjects.map(p => p.editableTitle).join(', ');
-    const subject = encodeURIComponent(`Koontitarjous: ${formData.kohde || projectNames}`);
-    const body = encodeURIComponent(
-`Hei,
+    try {
+      // Generate the PDF and get the result with base64
+      const koontitarjousData = {
+        ...formData,
+        loadedProjects: successfulProjects.map(p => ({
+          title: p.editableTitle,
+          totalCost: p.totalCost
+        })),
+        mergedOperations,
+        totalCostAlv0,
+        vatAmount,
+        totalWithVat,
+        sisallaAlv: formData.vatMode === 'incl'
+      };
+      
+      const result = await onGenerate(koontitarjousData, true); // Pass true to get result
+      
+      if (!result || !result.pdfBase64) {
+        toast.error('PDF luominen epäonnistui');
+        return;
+      }
+      
+      // Build email content
+      const projectNames = successfulProjects.map(p => p.editableTitle).join(', ');
+      const bodyText = `Hei,
 
 Tarjoamme kohteeseen ${formData.kohde || projectNames}.
 
@@ -308,16 +316,34 @@ Vastaamme mielellämme mahdollisiin kysymyksiin.
 
 Ystävällisin terveisin,
 J&B Tasoitus ja Maalaus Oy
-Puh: 040 848 8885
-`
-    );
-    
-    // Open email client
-    window.open(`mailto:${formData.email}?subject=${subject}&body=${body}`, '_blank');
-    
-    // Show toast reminder
-    const { toast } = await import('sonner');
-    toast.info('PDF ladattu. Liitä PDF sähköpostiin manuaalisesti.', { duration: 5000 });
+Puh: 040 848 8885`;
+      
+      // Send via backend
+      const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const emailRes = await fetch(`${API_URL}/api/send-tarjous-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_email: formData.email,
+          subject: `Koontitarjous: ${formData.kohde || projectNames}`,
+          body_text: bodyText,
+          pdf_base64: result.pdfBase64,
+          pdf_filename: result.fileName
+        })
+      });
+      
+      if (emailRes.ok) {
+        toast.success(`Koontitarjous lähetetty: ${formData.email}`);
+        onClose();
+      } else {
+        const errData = await emailRes.json();
+        toast.error(errData.detail || 'Sähköpostin lähetys epäonnistui');
+      }
+      
+    } catch (err) {
+      console.error('Email send error:', err);
+      toast.error('Sähköpostin lähetys epäonnistui');
+    }
   };
 
   const isValid = formData.asiakas.trim() && successfulProjects.length > 0;

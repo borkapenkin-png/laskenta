@@ -580,7 +580,7 @@ function App() {
     setTarjousDialogOpen(true);
   };
 
-  const handleGenerateTarjous = async (tarjousData) => {
+  const handleGenerateTarjous = async (tarjousData, returnResult = false) => {
     try {
       // Dismiss any existing tarjous toast
       toast.dismiss('tarjous-export');
@@ -613,6 +613,11 @@ function App() {
         });
       }
       
+      // If returnResult is true (for email sending), return the result instead of showing toast
+      if (returnResult) {
+        return tarjousResult;
+      }
+      
       toast.success('Tarjous PDF luotu ja tallennettu!', { 
         id: 'tarjous-export',
         duration: 3000 
@@ -620,10 +625,11 @@ function App() {
     } catch (error) {
       console.error('Tarjous generation error:', error);
       toast.error('Tarjouksen luominen epäonnistui', { duration: 8000 });
+      return null;
     }
   };
 
-  const handleGenerateKoontitarjous = async (koontitarjousData) => {
+  const handleGenerateKoontitarjous = async (koontitarjousData, returnResult = false) => {
     try {
       toast.dismiss('koontitarjous-export');
       
@@ -640,7 +646,13 @@ function App() {
         console.warn('Failed to load custom offer terms, using defaults:', e);
       }
       
-      exportKoontitarjousPDF(koontitarjousData, customTerms);
+      const result = exportKoontitarjousPDF(koontitarjousData, customTerms);
+      
+      // If returnResult is true (for email sending), return the result
+      if (returnResult) {
+        return result;
+      }
+      
       toast.success('Koontitarjous PDF luotu!', { 
         id: 'koontitarjous-export',
         duration: 3000 
@@ -648,6 +660,7 @@ function App() {
     } catch (error) {
       console.error('Koontitarjous generation error:', error);
       toast.error('Koontitarjouksen luominen epäonnistui', { duration: 8000 });
+      return null;
     }
   };
 
