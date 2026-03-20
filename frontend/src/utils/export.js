@@ -484,7 +484,12 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
       doc.text('Sähköposti:', rightLabelX, infoY);
       doc.setTextColor(...BRAND_DARK);
       doc.setFont('helvetica', 'bold');
-      doc.text(tarjousData.email, rightValueX, infoY);
+      // Limit email width to fit within the box
+      const maxEmailWidth = pageWidth - MARGIN_RIGHT - rightValueX - 2;
+      doc.setFontSize(8); // Smaller font for long emails
+      const emailWrapped = doc.splitTextToSize(tarjousData.email, maxEmailWidth);
+      doc.text(emailWrapped[0], rightValueX, infoY); // Only first line
+      doc.setFontSize(9); // Reset font size
     }
     
     infoY += lineHeight + rowGap;
@@ -1054,7 +1059,12 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
       doc.setFont('helvetica', 'normal');
       doc.text('Sähköposti:', col3X, infoY);
       doc.setTextColor(...BRAND_DARK);
-      doc.text(koontitarjousData.email, col4X, infoY);
+      // Limit email width to fit within the box
+      const maxEmailWidth = pageWidth - MARGIN_RIGHT - col4X - 2;
+      doc.setFontSize(8); // Smaller font for long emails
+      const emailWrapped = doc.splitTextToSize(koontitarjousData.email, maxEmailWidth);
+      doc.text(emailWrapped[0], col4X, infoY); // Only first line
+      doc.setFontSize(9); // Reset font size
     }
     
     infoY += lineHeight + rowGap;
