@@ -454,7 +454,7 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
         <!-- Footer -->
         <div style="background-color: #f8f9fa; padding: 16px 32px; border-top: 1px solid #e0e0e0;">
             <p style="margin: 0; font-size: 12px; color: #888; text-align: center;">
-                Ammattitaitoista maalaus- ja tasoitustyötä vuodesta 2014
+                <a href="https://www.jbtasoitusmaalaus.fi" style="color: #4A9BAD; text-decoration: none;">www.jbtasoitusmaalaus.fi</a>
             </p>
         </div>
         
