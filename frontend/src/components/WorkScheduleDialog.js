@@ -306,7 +306,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
     setEmailRecipients(newRecipients);
   };
   
-  // Send urakkatyömääräys email
+  // Send urakkamääräys email
   const handleSendUrakkatyomaarays = async () => {
     // Validate inputs
     const validEmails = emailRecipients.filter(e => e.trim() && e.includes('@'));
@@ -357,7 +357,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
       
       if (response.ok) {
         const data = await response.json();
-        toast.success(`Urakkatyömääräys lähetetty: ${validEmails.join(', ')}`);
+        toast.success(`Urakkamääräys lähetetty: ${validEmails.join(', ')}`);
         setShowEmailModal(false);
         // Reset form
         setEmailRecipients(['']);
@@ -595,7 +595,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
                 data-testid="send-urakkatyomaarays-btn"
               >
                 <Send className="h-4 w-4 mr-2" />
-                Lähetä työmääräys
+                Lähetä urakkamääräys
               </Button>
             </div>
           </>
@@ -608,7 +608,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5 text-blue-600" />
-              Lähetä urakkatyömääräys
+              Lähetä urakkamääräys
             </DialogTitle>
             <DialogDescription>
               Lähetä työmääräerittely työntekijöille sähköpostilla
@@ -672,7 +672,7 @@ export const WorkScheduleDialog = ({ open, onClose, measurements, projectName, p
             
             <p className="text-xs text-gray-500">
               Kaikki vastaanottajat näkevät toisensa sähköpostissa. 
-              Sähköposti sisältää virallisen urakkatyömääräyksen ehtoineen ja PDF-liitteen.
+              Sähköposti sisältää virallisen urakkamääräyksen ehtoineen ja työmääräerittelyn PDF-liitteenä.
             </p>
           </div>
           

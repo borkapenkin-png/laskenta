@@ -504,7 +504,7 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
 
 @api_router.post("/send-urakkatyomaarays")
 async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
-    """Send urakkatyömääräys email to workers with PDF attachment via Resend"""
+    """Send urakkamääräys email to workers with PDF attachment via Resend"""
     
     if not resend.api_key:
         raise HTTPException(status_code=503, detail="Email service not configured. Please set RESEND_API_KEY.")
@@ -517,15 +517,15 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         all_recipients = ", ".join(request.recipient_emails)
         
         # Create mailto link for confirmation
-        confirm_subject = f"Työmääräys vastaanotettu: {request.kohde_nimi}"
-        confirm_body = f"""Työmääräys vastaanotettu
+        confirm_subject = f"Urakkamääräys vastaanotettu: {request.kohde_nimi}"
+        confirm_body = f"""Urakkamääräys vastaanotettu
 
 Kohde: {request.kohde_nimi}
 Osoite: {request.kohde_osoite}
 
-Vahvistan vastaanottaneeni työmääräyksen ja siihen liittyvän työmääräerittelyn.
+Vahvistan vastaanottaneeni urakkamääräyksen ja siihen liittyvän työmääräerittelyn.
 
-Sitoudun suorittamaan työn työmääräyksen ehtojen, työturvallisuusmääräysten ja hyvän rakennustavan mukaisesti.
+Sitoudun suorittamaan työn urakkamääräyksen ehtojen, työturvallisuusmääräysten ja hyvän rakennustavan mukaisesti.
 
 Allekirjoitus: ____________________
 Päivämäärä: ____________________"""
@@ -546,7 +546,7 @@ Päivämäärä: ____________________"""
         <!-- Header -->
         <div style="background-color: #2c3e50; padding: 24px 32px; text-align: center;">
             <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600; letter-spacing: 1px;">
-                URAKKATYÖMÄÄRÄYS
+                URAKKAMÄÄRÄYS
             </h1>
             <p style="margin: 8px 0 0 0; color: #bdc3c7; font-size: 13px;">
                 Liite työsopimukseen
@@ -586,16 +586,16 @@ Päivämäärä: ____________________"""
         <!-- Assignment Description -->
         <div style="padding: 24px 32px;">
             <h2 style="margin: 0 0 16px 0; color: #2c3e50; font-size: 16px; border-bottom: 2px solid #3498db; padding-bottom: 8px;">
-                TYÖMÄÄRÄYS
+                URAKKAMÄÄRÄYS
             </h2>
             <p style="margin: 0 0 16px 0; color: #333; line-height: 1.7;">
-                Tällä työmääräyksellä osoitetaan työntekijälle suoritettavaksi liitteenä olevassa työmääräerittelyssä kuvatut työt.
+                Tällä urakkamääräyksellä osoitetaan työntekijälle suoritettavaksi liitteenä olevassa työmääräerittelyssä kuvatut työt.
             </p>
             <p style="margin: 0 0 8px 0; color: #555; font-weight: 600;">Työmääräerittely sisältää:</p>
             <ul style="margin: 0 0 16px 0; padding-left: 24px; color: #555;">
                 <li>Suoritettavat työvaiheet</li>
-                <li>Määrät ja yksiköt</li>
-                <li>TES:n mukaiset tuntiarviot</li>
+                <li>Työmäärät ja yksiköt</li>
+                <li>Maalausalan TES:n mukaiset tuntiarviot</li>
             </ul>
         </div>
         
@@ -605,16 +605,14 @@ Päivämäärä: ____________________"""
                 EHDOT
             </h2>
             
-            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">PALKKAUS JA TYÖAIKA:</h3>
+            <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">URAKKAPALKKAUS:</h3>
             <ol style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
-                <li>Työ suoritetaan urakkapalkalla rakennusalan työehtosopimuksen (TES) mukaisesti.</li>
-                <li>Urakkahinnoittelu perustuu TES:n mukaisiin yksikköhintoihin ja työmääräerittelyssä esitettyihin määriin.</li>
-                <li>Työaika noudattaa työaikalakia (872/2019) ja TES:n määräyksiä. Säännöllinen työaika on enintään 8 tuntia vuorokaudessa ja 40 tuntia viikossa.</li>
-                <li>Ylityöstä sovitaan erikseen ja se korvataan TES:n ja työaikalain mukaisesti.</li>
+                <li>Työ suoritetaan urakkapalkalla maalausalan työehtosopimuksen (TES) mukaisesti.</li>
+                <li>Urakkahinnoittelu perustuu TES:n mukaisiin yksikköhintoihin ja työmääräerittelyssä esitettyihin työmääriin.</li>
             </ol>
             
             <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">TYÖTURVALLISUUS:</h3>
-            <ol start="5" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+            <ol start="3" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
                 <li>Työntekijä sitoutuu noudattamaan työturvallisuuslakia (738/2002) ja työnantajan antamia turvallisuusohjeita.</li>
                 <li>Työnantaja vastaa työturvallisuuslain mukaisista velvoitteista ja tarjoaa tarvittavat henkilönsuojaimet.</li>
                 <li>Työntekijä on velvollinen käyttämään annettuja suojavarusteita ja ilmoittamaan havaitsemistaan vaaroista välittömästi.</li>
@@ -622,20 +620,20 @@ Päivämäärä: ____________________"""
             </ol>
             
             <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">TYÖN SUORITUS:</h3>
-            <ol start="9" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+            <ol start="7" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
                 <li>Työ suoritetaan ammattitaitoisesti, hyvää rakennustapaa ja MaalausRYL 2012 -ohjeistusta noudattaen.</li>
                 <li>Mahdollisista lisätöistä ja muutoksista sovitaan kirjallisesti ennen niiden suorittamista.</li>
                 <li>Työntekijä ilmoittaa työnjohtajalle välittömästi mahdollisista esteistä, viivästyksistä tai laatupoikkeamista.</li>
             </ol>
             
             <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">VAKUUTUKSET JA VASTUU:</h3>
-            <ol start="12" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+            <ol start="10" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
                 <li>Työnantaja vastaa lakisääteisistä vakuutuksista (tapaturmavakuutus, työeläkevakuutus, työttömyysvakuutus).</li>
                 <li>Työntekijä vastaa tahallisesti tai törkeällä huolimattomuudella aiheuttamistaan vahingoista työsopimuslain (55/2001) mukaisesti.</li>
             </ol>
             
             <h3 style="margin: 16px 0 8px 0; color: #2c3e50; font-size: 14px;">TIETOSUOJA JA SALASSAPITO:</h3>
-            <ol start="14" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
+            <ol start="12" style="margin: 0 0 16px 0; padding-left: 24px; color: #555; font-size: 14px; line-height: 1.8;">
                 <li>Työntekijä sitoutuu pitämään salassa työnantajan ja asiakkaiden luottamukselliset tiedot.</li>
             </ol>
         </div>
@@ -643,8 +641,8 @@ Päivämäärä: ____________________"""
         <!-- Legal Note -->
         <div style="padding: 16px 32px; border-top: 1px solid #e0e0e0;">
             <p style="margin: 0; color: #666; font-size: 13px; font-style: italic;">
-                Tämä työmääräys on osa voimassa olevaa työsopimusta.<br>
-                Sovellettava työehtosopimus: Rakennusalan TES
+                Tämä urakkamääräys on osa voimassa olevaa työsopimusta.<br>
+                Sovellettava työehtosopimus: Maalausalan TES
             </p>
         </div>
         
@@ -658,7 +656,7 @@ Päivämäärä: ____________________"""
         <!-- Confirmation Button -->
         <div style="padding: 32px; text-align: center; background-color: #2c3e50;">
             <p style="margin: 0 0 16px 0; color: #ffffff; font-size: 14px;">
-                Klikkaamalla vahvistat saaneesi työmääräyksen ja sitoutuvasi noudattamaan yllä mainittuja ehtoja.
+                Klikkaamalla vahvistat saaneesi urakkamääräyksen ja sitoutuvasi noudattamaan yllä mainittuja ehtoja.
             </p>
             <a href="{mailto_link}" style="display: inline-block; background-color: #27ae60; color: #ffffff; padding: 14px 32px; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 4px;">
                 KUITTAA VASTAANOTETUKSI
@@ -681,7 +679,7 @@ Päivämäärä: ____________________"""
         params = {
             "from": SENDER_EMAIL,
             "to": request.recipient_emails,  # All recipients visible to each other
-            "subject": f"Urakkatyömääräys: {request.kohde_nimi}",
+            "subject": f"Urakkamääräys: {request.kohde_nimi}",
             "html": html_content,
             "attachments": [
                 {
@@ -694,18 +692,18 @@ Päivämäärä: ____________________"""
         # Run sync SDK in thread to keep FastAPI non-blocking
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         
-        logger.info(f"Urakkatyömääräys sent to {all_recipients}, ID: {email_result.get('id')}")
+        logger.info(f"Urakkamääräys sent to {all_recipients}, ID: {email_result.get('id')}")
         
         return {
             "status": "success",
-            "message": f"Urakkatyömääräys lähetetty: {all_recipients}",
+            "message": f"Urakkamääräys lähetetty: {all_recipients}",
             "email_id": email_result.get("id"),
             "recipients": request.recipient_emails
         }
         
     except Exception as e:
-        logger.error(f"Failed to send urakkatyömääräys: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Urakkatyömääräyksen lähetys epäonnistui: {str(e)}")
+        logger.error(f"Failed to send urakkamääräys: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Urakkamääräyksen lähetys epäonnistui: {str(e)}")
 
 
 # ==================== OFFER TERMS ENDPOINTS ====================
