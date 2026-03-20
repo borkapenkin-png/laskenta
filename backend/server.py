@@ -747,7 +747,7 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
 
 @api_router.post("/confirm-urakkatyomaarays")
 async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
-    """Worker confirms receipt of urakkamääräys - sends notification to company and secretary with PDF"""
+    """Worker confirms receipt of urakkamääräys - tracks confirmations and sends appropriate notification"""
     
     if not resend.api_key:
         raise HTTPException(status_code=503, detail="Email service not configured.")
@@ -762,10 +762,72 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
         kohde_osoite = urakka_doc.get("kohde_osoite", "")
         pdf_base64 = urakka_doc.get("pdf_base64", "")
         pdf_filename = urakka_doc.get("pdf_filename", "Tyomaaraerittely.pdf")
+        recipient_names = urakka_doc.get("recipient_names", [])
+        confirmed_workers = urakka_doc.get("confirmed_workers", [])
         
         now = datetime.now()
         date_str = now.strftime("%d.%m.%Y")
         time_str = now.strftime("%H:%M")
+        
+        # Add this worker to confirmed list if not already
+        if request.worker_name not in confirmed_workers:
+            confirmed_workers.append(request.worker_name)
+            await db.urakkatyomaarays.update_one(
+                {"_id": request.urakka_id},
+                {"$set": {"confirmed_workers": confirmed_workers}}
+            )
+        
+        # Check if this is a joint urakka (multiple workers)
+        total_workers = len(recipient_names)
+        confirmed_count = len(confirmed_workers)
+        is_joint_urakka = total_workers > 1
+        all_confirmed = confirmed_count >= total_workers
+        
+        # Determine which workers are still pending
+        pending_workers = [name for name in recipient_names if name not in confirmed_workers]
+        
+        if is_joint_urakka and not all_confirmed:
+            # PARTIAL CONFIRMATION - not all workers have signed yet
+            header_color = "#f39c12"  # Orange/yellow
+            header_text = "⏳ ODOTTAA MUITA ALLEKIRJOITUKSIA"
+            main_text = "Urakkamääräys on kuitattu osittain. Yksi osapuoli on allekirjoittanut:"
+            
+            status_section = f"""
+            <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 16px; margin: 16px 0;">
+                <p style="margin: 0 0 8px 0; color: #856404; font-weight: 600;">Allekirjoitusten tilanne:</p>
+                <p style="margin: 0 0 4px 0; color: #155724;">✓ Kuitannut: {', '.join(confirmed_workers)}</p>
+                <p style="margin: 0; color: #856404;">⏳ Odottaa: {', '.join(pending_workers)}</p>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: #666; font-style: italic;">
+                Urakkatyö astuu voimaan vasta kun kaikki osapuolet ovat kuitanneet urakkamääräyksen.
+            </p>
+            """
+            include_pdf = False  # Don't include PDF until all have signed
+            
+        else:
+            # ALL CONFIRMED (or single worker)
+            header_color = "#27ae60"  # Green
+            header_text = "✓ URAKKATYÖ SOVITTU"
+            
+            if is_joint_urakka:
+                main_text = "Kaikki osapuolet ovat kuitanneet urakkamääräyksen:"
+                status_section = f"""
+                <div style="background-color: #d4edda; border: 1px solid #28a745; border-radius: 6px; padding: 16px; margin: 16px 0;">
+                    <p style="margin: 0 0 8px 0; color: #155724; font-weight: 600;">Kaikki allekirjoitukset vastaanotettu!</p>
+                    <p style="margin: 0; color: #155724;">✓ {', '.join(confirmed_workers)}</p>
+                </div>
+                <p style="margin: 0; font-size: 13px; color: #666; font-style: italic;">
+                    Työntekijät ovat sitoutuneet suorittamaan urakan yhteisvastuullisesti urakkamääräyksen ehtojen mukaisesti.
+                </p>
+                """
+            else:
+                main_text = "Urakkatyömääräys on kuitattu vastaanotetuksi seuraavan henkilön kanssa:"
+                status_section = """
+                <p style="margin: 0; font-size: 13px; color: #666; font-style: italic;">
+                    Työntekijä on sitoutunut suorittamaan työn urakkamääräyksen ehtojen mukaisesti.
+                </p>
+                """
+            include_pdf = True
         
         # Build confirmation email
         html_content = f"""
@@ -778,22 +840,22 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
         
         <!-- Header -->
-        <div style="background-color: #27ae60; padding: 20px; text-align: center;">
+        <div style="background-color: {header_color}; padding: 20px; text-align: center;">
             <h1 style="margin: 0; color: #ffffff; font-size: 18px;">
-                ✓ URAKKATYÖ SOVITTU
+                {header_text}
             </h1>
         </div>
         
         <!-- Content -->
         <div style="padding: 24px;">
             <p style="margin: 0 0 16px 0; font-size: 15px;">
-                Urakkatyömääräys on kuitattu vastaanotetuksi seuraavan henkilön kanssa:
+                {main_text}
             </p>
             
             <div style="background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin-bottom: 16px;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="padding: 6px 0; color: #666; width: 120px;">Työntekijä:</td>
+                        <td style="padding: 6px 0; color: #666; width: 120px;">Viimeisin kuittaus:</td>
                         <td style="padding: 6px 0; font-weight: 600; color: #2c3e50;">{request.worker_name}</td>
                     </tr>
                     <tr>
@@ -815,13 +877,9 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
                 </table>
             </div>
             
-            <p style="margin: 0; font-size: 13px; color: #666; font-style: italic;">
-                Työntekijä on sitoutunut suorittamaan työn urakkamääräyksen ehtojen mukaisesti.
-            </p>
+            {status_section}
             
-            <p style="margin: 16px 0 0 0; font-size: 13px; color: #555;">
-                📎 <strong>Liite:</strong> Kuitattu työmääräerittely (PDF)
-            </p>
+            {"<p style='margin: 16px 0 0 0; font-size: 13px; color: #555;'>📎 <strong>Liite:</strong> Kuitattu työmääräerittely (PDF)</p>" if include_pdf else ""}
         </div>
         
         <!-- Footer -->
@@ -836,18 +894,24 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
 </html>
         """
         
-        # Decode PDF for attachment
-        pdf_content = base64.b64decode(pdf_base64) if pdf_base64 else None
+        # Decode PDF for attachment (only if all confirmed)
+        pdf_content = base64.b64decode(pdf_base64) if pdf_base64 and include_pdf else None
         
-        # Send to company AND secretary with PDF attachment
+        # Build email subject
+        if is_joint_urakka and not all_confirmed:
+            subject = f"Osittainen kuittaus: {request.worker_name} - {kohde_nimi} ({confirmed_count}/{total_workers})"
+        else:
+            subject = f"Urakkatyö sovittu: {request.worker_name} - {kohde_nimi}"
+        
+        # Send to company AND secretary
         params = {
             "from": SENDER_EMAIL,
             "to": ["info@jbtasoitusmaalaus.fi", "jokojogi.jb@gmail.com"],
-            "subject": f"Urakkatyö sovittu: {request.worker_name} - {kohde_nimi}",
+            "subject": subject,
             "html": html_content
         }
         
-        # Add PDF attachment if available
+        # Add PDF attachment only when all have confirmed
         if pdf_content:
             params["attachments"] = [
                 {
@@ -858,11 +922,14 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
         
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         
-        logger.info(f"Urakka confirmation sent for {request.worker_name}, ID: {email_result.get('id')}")
+        logger.info(f"Urakka confirmation sent for {request.worker_name} ({confirmed_count}/{total_workers}), ID: {email_result.get('id')}")
         
         return {
             "status": "success",
-            "message": f"Kuittaus lähetetty: {request.worker_name}"
+            "message": f"Kuittaus lähetetty: {request.worker_name}",
+            "all_confirmed": all_confirmed,
+            "confirmed_count": confirmed_count,
+            "total_workers": total_workers
         }
         
     except HTTPException:
