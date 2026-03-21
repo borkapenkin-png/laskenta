@@ -215,7 +215,7 @@ Vastaamme mielellämme mahdollisiin kysymyksiin.`;
           body_text: bodyText,
           pdf_base64: result.pdfBase64,
           pdf_filename: result.fileName,
-          sender_name: formData.yhteyshenkilo || ''
+          sender_name: formData.tarjouksenLaatija || ''
         })
       });
       
