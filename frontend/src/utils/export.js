@@ -337,7 +337,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
   doc.setLineWidth(0.8);
   doc.line(MARGIN_LEFT, yPos, pageWidth - MARGIN_RIGHT, yPos);
   
-  yPos += 12;
+  yPos += 10;
   
   // ==================== TITLE SECTION ====================
   doc.setFontSize(24);
@@ -350,7 +350,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
   doc.setFont('helvetica', 'normal');
   doc.text(`Päivämäärä: ${offerDate}`, pageWidth - MARGIN_RIGHT, yPos - 5, { align: 'right' });
   
-  yPos += 12;
+  yPos += 10;
   
   // ==================== ASIAKASTIEDOT BLOCK ====================
   // Helper function to render key-value row with text wrapping
@@ -516,7 +516,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     infoY += lineHeight + rowGap;
   }
   
-  yPos += blockHeight + 8;
+  yPos += blockHeight + 5;
   
   // ==================== URAKAN SISÄLTÖ (Manual mode text) ====================
   if (isManualMode && tarjousData.urakanSisalto) {
@@ -525,7 +525,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     doc.setTextColor(...BRAND_TEAL);
     doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
     
-    yPos += 7;
+    yPos += 5;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...BRAND_DARK);
@@ -538,7 +538,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
       yPos += 5;
     });
     
-    yPos += 8;
+    yPos += 5;
   }
   
   // ==================== CONTENT TABLE / HINTA ====================
@@ -547,16 +547,16 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
   doc.setTextColor(...BRAND_TEAL);
   doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
   
-  yPos += 5;
+  yPos += 4;
   
   // Add materials info if enabled
   if (tarjousData.sisaltaaMateriaalit) {
-    yPos += 3;
+    yPos += 2;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...BRAND_DARK);
     doc.text('Materiaalit: Fescon tasoitteet ja Teknos maalijärjestelmät', MARGIN_LEFT, yPos);
-    yPos += 5;
+    yPos += 4;
   }
   
   // Add hour work info if enabled
@@ -565,10 +565,10 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     doc.setFontSize(9);
     doc.setTextColor(...BRAND_DARK);
     doc.text(`Urakka sisältää myös tuntityöt: ${tarjousData.tuntityotMaara} h`, MARGIN_LEFT, yPos);
-    yPos += 5;
+    yPos += 4;
   }
   
-  yPos += 3;
+  yPos += 2;
   
   // Determine detail level:
   // 'minimal' - only task name
@@ -672,7 +672,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
       showHead: 'everyPage',
       styles: { 
         fontSize: 9,
-        cellPadding: 4,
+        cellPadding: 3,
         textColor: BRAND_DARK,
         lineColor: [220, 220, 220],
         lineWidth: 0.1
@@ -692,10 +692,10 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
         pageNumber++;
       }
     });
-    yPos = doc.lastAutoTable.finalY + 10;
+    yPos = doc.lastAutoTable.finalY + 8;
   } else {
     // No table (kokonaishinta mode)
-    yPos += 5;
+    yPos += 3;
   }
   
   // ==================== TOTALS SECTION ====================
@@ -728,7 +728,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     doc.setFontSize(14);
     doc.text(formatCurrency(totalWithVat), pageWidth - MARGIN_RIGHT - 10, totY, { align: 'right' });
     
-    yPos += totalsBoxHeight + 12;
+    yPos += totalsBoxHeight + 8;
   } else {
     // ALV 0% only - single line
     doc.setFontSize(12);
@@ -737,7 +737,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     doc.setFontSize(14);
     doc.text(formatCurrency(totalCost), pageWidth - MARGIN_RIGHT - 10, yPos + 14, { align: 'right' });
     
-    yPos += totalsBoxHeight + 12;
+    yPos += totalsBoxHeight + 8;
   }
   
   // ==================== LISÄ- JA MUUTOSTYÖT SECTION ====================
@@ -748,7 +748,7 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
   doc.setTextColor(...BRAND_TEAL);
   doc.text('Lisä- ja muutostyöt', MARGIN_LEFT, yPos);
   
-  yPos += 7;
+  yPos += 5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...BRAND_DARK);
@@ -759,15 +759,15 @@ export const exportTarjousPDF = (project, measurements, settings, tarjousData, c
     : `Työ: ${lisatyoHinta} €/h (ALV 0%)`;
   doc.text(hourlyRateText, MARGIN_LEFT, yPos);
   
-  yPos += 5;
+  yPos += 4;
   doc.text(`Materiaalit: hankintahinta + ${materialHandlingPercent} % (materiaalihankinta ja yleiskulu)`, MARGIN_LEFT, yPos);
   
-  yPos += 6;
+  yPos += 5;
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   doc.text('Lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan toteutuneen mukaan.', MARGIN_LEFT, yPos);
   
-  yPos += 12;
+  yPos += 8;
   
   // ==================== TARJOUKSEN EHDOT ====================
   if (tarjousData.kaytaVakioehtoja !== false) {
@@ -968,7 +968,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   doc.setLineWidth(0.8);
   doc.line(MARGIN_LEFT, yPos, pageWidth - MARGIN_RIGHT, yPos);
   
-  yPos += 12;
+  yPos += 10;
   
   // ==================== TITLE SECTION ====================
   doc.setFontSize(24);
@@ -981,7 +981,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   doc.setFont('helvetica', 'normal');
   doc.text(`Päivämäärä: ${offerDate}`, pageWidth - MARGIN_RIGHT, yPos - 5, { align: 'right' });
   
-  yPos += 12;
+  yPos += 10;
   
   // ==================== ASIAKASTIEDOT BLOCK ====================
   // Optimized layout: labels closer to values, right column adjusted for email
@@ -1100,7 +1100,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     doc.text(koontitarjousData.puhelin, col2X, infoY);
   }
   
-  yPos += blockHeight + 8;
+  yPos += blockHeight + 5;
   
   // ==================== CONTENT TABLE ====================
   doc.setFont('helvetica', 'bold');
@@ -1108,16 +1108,16 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   doc.setTextColor(...BRAND_TEAL);
   doc.text('Urakan sisältö', MARGIN_LEFT, yPos);
   
-  yPos += 5;
+  yPos += 4;
   
   // Add materials info if enabled
   if (koontitarjousData.sisaltaaMateriaalit) {
-    yPos += 3;
+    yPos += 2;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...BRAND_DARK);
     doc.text('Materiaalit: Fescon tasoitteet ja Teknos maalijärjestelmät', MARGIN_LEFT, yPos);
-    yPos += 5;
+    yPos += 4;
   }
   
   // Add hour work info if enabled
@@ -1126,10 +1126,10 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     doc.setFontSize(9);
     doc.setTextColor(...BRAND_DARK);
     doc.text(`Urakka sisältää myös tuntityöt: ${koontitarjousData.tuntityotMaara} h`, MARGIN_LEFT, yPos);
-    yPos += 5;
+    yPos += 4;
   }
   
-  yPos += 3;
+  yPos += 2;
   
   // Determine detail level for table
   const detailLevel = koontitarjousData.detailLevel || 'summary';
@@ -1183,7 +1183,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     showHead: 'everyPage',
     styles: { 
       fontSize: 9,
-      cellPadding: 4,
+      cellPadding: 3,
       textColor: BRAND_DARK,
       lineColor: [220, 220, 220],
       lineWidth: 0.1
@@ -1204,7 +1204,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     }
   });
 
-  yPos = doc.lastAutoTable.finalY + 10;
+  yPos = doc.lastAutoTable.finalY + 8;
   
   // ==================== TOTALS SECTION ====================
   yPos = checkPageBreak(doc, yPos, 50, pageHeight);
@@ -1235,7 +1235,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     doc.setFontSize(14);
     doc.text(formatCurrency(totalWithVat), pageWidth - MARGIN_RIGHT - 10, totY, { align: 'right' });
     
-    yPos += totalsBoxHeight + 12;
+    yPos += totalsBoxHeight + 8;
   } else {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -1243,7 +1243,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     doc.setFontSize(14);
     doc.text(formatCurrency(totalCost), pageWidth - MARGIN_RIGHT - 10, yPos + 14, { align: 'right' });
     
-    yPos += totalsBoxHeight + 12;
+    yPos += totalsBoxHeight + 8;
   }
   
   // ==================== LISÄ- JA MUUTOSTYÖT SECTION ====================
@@ -1254,7 +1254,7 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
   doc.setTextColor(...BRAND_TEAL);
   doc.text('Lisä- ja muutostyöt', MARGIN_LEFT, yPos);
   
-  yPos += 7;
+  yPos += 5;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(...BRAND_DARK);
@@ -1264,15 +1264,15 @@ export const exportKoontitarjousPDF = (koontitarjousData, customTerms = null) =>
     : `Työ: ${lisatyoHinta} €/h (ALV 0%)`;
   doc.text(hourlyRateText, MARGIN_LEFT, yPos);
   
-  yPos += 5;
+  yPos += 4;
   doc.text(`Materiaalit: hankintahinta + ${materialHandlingPercent} % (materiaalihankinta ja yleiskulu)`, MARGIN_LEFT, yPos);
   
-  yPos += 6;
+  yPos += 5;
   doc.setFontSize(8);
   doc.setTextColor(100, 100, 100);
   doc.text('Lisä- ja muutostyöt toteutetaan tilaajan erillisellä hyväksynnällä ja laskutetaan toteutuneen mukaan.', MARGIN_LEFT, yPos);
   
-  yPos += 12;
+  yPos += 8;
   
   // ==================== TARJOUKSEN EHDOT ====================
   if (koontitarjousData.kaytaVakioehtoja !== false) {
