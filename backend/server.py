@@ -429,8 +429,10 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
         # Decode base64 PDF
         pdf_content = base64.b64decode(request.pdf_base64)
         
-        # Sender name for signature
+        # Sender name for signature - debug log
+        logger.info(f"Email sender_name received: '{request.sender_name}'")
         sender_signature = f"<strong>{request.sender_name}</strong><br>" if request.sender_name else ""
+        logger.info(f"Generated sender_signature: '{sender_signature}'")
         
         # Build premium HTML email (similar to PDF export style)
         html_content = f"""
