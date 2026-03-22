@@ -320,6 +320,10 @@ Puh: 040 848 8885`;
       
       // Send via backend
       const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+      // Map offerAuthor to full name
+      const authorNames = { boris: 'Boris Penkin', joosep: 'Joosep Rohusaar' };
+      const senderName = authorNames[formData.offerAuthor] || '';
+      
       const emailRes = await fetch(`${API_URL}/api/send-tarjous-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -329,7 +333,7 @@ Puh: 040 848 8885`;
           body_text: bodyText,
           pdf_base64: result.pdfBase64,
           pdf_filename: result.fileName,
-          sender_name: formData.tarjouksenLaatija || ''
+          sender_name: senderName
         })
       });
       
