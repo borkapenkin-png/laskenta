@@ -751,6 +751,7 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
             "status": "success",
             "message": f"Urakkamääräys lähetetty: {all_recipients}",
             "email_id": email_result.get("id"),
+            "urakka_id": urakka_id,
             "recipients": request.recipient_emails
         }
         
@@ -966,7 +967,7 @@ async def urakka_kuittaus_page(id: str = ""):
     database = await get_database()
     kohde = ""
     osoite = ""
-    if id and database:
+    if id and database is not None:
         urakka_doc = await database.urakkatyomaarays.find_one({"_id": id})
         if urakka_doc:
             kohde = urakka_doc.get("kohde_nimi", "")
