@@ -556,7 +556,8 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         logger.info(f"Urakkamääräys {urakka_id} stored successfully")
         
         # Create kuittaus page link with urakka_id
-        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://tarjous-build.preview.emergentagent.com')
+        # Use APP_BASE_URL for production domain, fallback to REACT_APP_BACKEND_URL for preview
+        base_url = os.environ.get('APP_BASE_URL') or os.environ.get('REACT_APP_BACKEND_URL', 'https://tarjous-build.preview.emergentagent.com')
         kuittaus_url = f"{base_url}/api/urakka-kuittaus?id={urakka_id}"
         
         # Build joint work section if multiple workers
