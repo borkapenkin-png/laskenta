@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -13,7 +13,7 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone
 import resend
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -518,7 +518,7 @@ async def send_tarjous_email(request: EmailWithAttachmentRequest):
 
 
 @api_router.post("/send-urakkatyomaarays")
-async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
+async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest, req: Request):
     """Send urakkamääräys email to workers with PDF attachment via Resend"""
     
     if not resend.api_key:
@@ -556,8 +556,20 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest):
         logger.info(f"Urakkamääräys {urakka_id} stored successfully")
         
         # Create kuittaus page link with urakka_id
-        # Use APP_BASE_URL for production domain, fallback to REACT_APP_BACKEND_URL for preview
-        base_url = os.environ.get('APP_BASE_URL') or os.environ.get('REACT_APP_BACKEND_URL', 'https://tarjous-build.preview.emergentagent.com')
+        # Get base URL from: 1) APP_BASE_URL env var, 2) Request origin header, 3) fallback
+        base_url = os.environ.get('APP_BASE_URL')
+        if not base_url:
+            # Try to get from request headers (works when called from browser)
+            origin = req.headers.get('origin') or req.headers.get('referer', '')
+            if origin:
+                # Extract base URL from origin/referer
+                parsed = urlparse(origin)
+                if parsed.scheme and parsed.netloc:
+                    base_url = f"{parsed.scheme}://{parsed.netloc}"
+        if not base_url:
+            base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://tarjous-build.preview.emergentagent.com')
+        
+        logger.info(f"Using base_url for kuittaus link: {base_url}")
         kuittaus_url = f"{base_url}/api/urakka-kuittaus?id={urakka_id}"
         
         # Build joint work section if multiple workers
