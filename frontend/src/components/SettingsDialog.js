@@ -58,11 +58,14 @@ const fetchMaksueraPresets = async () => {
 
 const saveToolPresetsAPI = async (presets) => {
   try {
-    await fetch(`${API_URL}/api/presets/tools`, {
+    const res = await fetch(`${API_URL}/api/presets/tools`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ presets }),
     });
+    if (!res.ok) {
+      throw new Error(`Tool presets save failed (${res.status})`);
+    }
   } catch (e) {
     console.error('Failed to save presets:', e);
     throw e;
@@ -71,13 +74,16 @@ const saveToolPresetsAPI = async (presets) => {
 
 const saveMaksueraPresetsAPI = async (presets) => {
   try {
-    await fetch(`${API_URL}/api/presets/maksuera`, {
+    const res = await fetch(`${API_URL}/api/presets/maksuera`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ presets }),
     });
+    if (!res.ok) {
+      throw new Error(`Maksuera presets save failed (${res.status})`);
+    }
   } catch (e) {
-    console.error('Failed to save maksuerä presets:', e);
+    console.error('Failed to save maksuer? presets:', e);
     throw e;
   }
 };

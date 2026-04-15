@@ -18,6 +18,36 @@ from urllib.parse import quote, urlparse
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+ATTACHMENTS_DIR = ROOT_DIR / 'stored_files' / 'urakkatyomaarays'
+ATTACHMENTS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def sanitize_pdf_filename(filename: str) -> str:
+    candidate = Path(filename or 'Tyomaaraerittely.pdf').name
+    safe = ''.join(ch if ch.isalnum() or ch in {'-', '_', '.'} else '_' for ch in candidate)
+    if not safe.lower().endswith('.pdf'):
+        safe += '.pdf'
+    return safe or 'Tyomaaraerittely.pdf'
+
+
+def store_urakka_pdf(urakka_id: str, filename: str, pdf_content: bytes) -> Path:
+    safe_name = sanitize_pdf_filename(filename)
+    target = ATTACHMENTS_DIR / f"{urakka_id}-{safe_name}"
+    target.write_bytes(pdf_content)
+    return target
+
+
+def load_urakka_pdf_bytes(urakka_doc: dict) -> bytes | None:
+    pdf_path = urakka_doc.get('pdf_path')
+    if pdf_path:
+        path_obj = Path(pdf_path)
+        if path_obj.exists():
+            return path_obj.read_bytes()
+    pdf_base64 = urakka_doc.get('pdf_base64', '')
+    if pdf_base64:
+        return base64.b64decode(pdf_base64)
+    return None
+
 # Configure Resend
 resend.api_key = os.environ.get('RESEND_API_KEY', '')
 SENDER_EMAIL = os.environ.get('SENDER_EMAIL', 'onboarding@resend.dev')
@@ -539,14 +569,15 @@ async def send_urakkatyomaarays(request: UrakkatyomaaraysRequest, req: Request):
             raise HTTPException(status_code=503, detail="Database not available")
         
         urakka_id = str(uuid.uuid4())
+        stored_pdf_path = store_urakka_pdf(urakka_id, request.pdf_filename, pdf_content)
         urakka_doc = {
             "_id": urakka_id,
             "kohde_nimi": request.kohde_nimi,
             "kohde_osoite": request.kohde_osoite,
             "tyonjohtaja": request.tyonjohtaja,
             "tyonjohtaja_puh": request.tyonjohtaja_puh,
-            "pdf_base64": request.pdf_base64,
-            "pdf_filename": request.pdf_filename,
+            "pdf_filename": sanitize_pdf_filename(request.pdf_filename),
+            "pdf_path": str(stored_pdf_path),
             "recipients": request.recipient_emails,
             "recipient_names": request.recipient_names,
             "created_at": datetime.now(timezone.utc).isoformat()
@@ -793,31 +824,53 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
         
         kohde_nimi = urakka_doc.get("kohde_nimi", "")
         kohde_osoite = urakka_doc.get("kohde_osoite", "")
-        pdf_base64 = urakka_doc.get("pdf_base64", "")
         pdf_filename = urakka_doc.get("pdf_filename", "Tyomaaraerittely.pdf")
         recipient_names = urakka_doc.get("recipient_names", [])
         confirmed_workers = urakka_doc.get("confirmed_workers", [])
+
+        expected_workers = []
+        seen_workers = set()
+        for name in recipient_names:
+            normalized_name = (name or "").strip()
+            if normalized_name and normalized_name not in seen_workers:
+                expected_workers.append(normalized_name)
+                seen_workers.add(normalized_name)
+
+        worker_name = request.worker_name.strip()
+        if not worker_name:
+            raise HTTPException(status_code=400, detail="Ty?ntekij?n nimi puuttuu")
+        if worker_name not in seen_workers:
+            raise HTTPException(status_code=403, detail="Vain urakkam??r?yksen nimetyt vastaanottajat voivat kuitata ty?n")
+
+        sanitized_confirmed_workers = []
+        confirmed_seen = set()
+        for name in confirmed_workers:
+            normalized_name = (name or "").strip()
+            if normalized_name in seen_workers and normalized_name not in confirmed_seen:
+                sanitized_confirmed_workers.append(normalized_name)
+                confirmed_seen.add(normalized_name)
+        confirmed_workers = sanitized_confirmed_workers
         
         now = datetime.now()
         date_str = now.strftime("%d.%m.%Y")
         time_str = now.strftime("%H:%M")
         
         # Add this worker to confirmed list if not already
-        if request.worker_name not in confirmed_workers:
-            confirmed_workers.append(request.worker_name)
+        if worker_name not in confirmed_workers:
+            confirmed_workers.append(worker_name)
             await database.urakkatyomaarays.update_one(
                 {"_id": request.urakka_id},
                 {"$set": {"confirmed_workers": confirmed_workers}}
             )
         
         # Check if this is a joint urakka (multiple workers)
-        total_workers = len(recipient_names)
+        total_workers = len(expected_workers)
         confirmed_count = len(confirmed_workers)
         is_joint_urakka = total_workers > 1
         all_confirmed = confirmed_count >= total_workers
         
         # Determine which workers are still pending
-        pending_workers = [name for name in recipient_names if name not in confirmed_workers]
+        pending_workers = [name for name in expected_workers if name not in confirmed_workers]
         
         if is_joint_urakka and not all_confirmed:
             # PARTIAL CONFIRMATION - not all workers have signed yet
@@ -889,7 +942,7 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="padding: 6px 0; color: #666; width: 120px;">Viimeisin kuittaus:</td>
-                        <td style="padding: 6px 0; font-weight: 600; color: #2c3e50;">{request.worker_name}</td>
+                        <td style="padding: 6px 0; font-weight: 600; color: #2c3e50;">{worker_name}</td>
                     </tr>
                     <tr>
                         <td style="padding: 6px 0; color: #666;">Kohde:</td>
@@ -927,14 +980,16 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
 </html>
         """
         
-        # Decode PDF for attachment (only if all confirmed)
-        pdf_content = base64.b64decode(pdf_base64) if pdf_base64 and include_pdf else None
+        # Load PDF for attachment (only if all confirmed)
+        pdf_content = load_urakka_pdf_bytes(urakka_doc) if include_pdf else None
+        if include_pdf and pdf_content is None:
+            raise HTTPException(status_code=500, detail="Urakkamaarayksen PDF-tiedostoa ei loydy")
         
         # Build email subject
         if is_joint_urakka and not all_confirmed:
-            subject = f"Osittainen kuittaus: {request.worker_name} - {kohde_nimi} ({confirmed_count}/{total_workers})"
+            subject = f"Osittainen kuittaus: {worker_name} - {kohde_nimi} ({confirmed_count}/{total_workers})"
         else:
-            subject = f"Urakkatyö sovittu: {request.worker_name} - {kohde_nimi}"
+            subject = f"Urakkatyö sovittu: {worker_name} - {kohde_nimi}"
         
         # Send to company AND secretary
         params = {
@@ -955,11 +1010,11 @@ async def confirm_urakkatyomaarays(request: UrakkaConfirmRequest):
         
         email_result = await asyncio.to_thread(resend.Emails.send, params)
         
-        logger.info(f"Urakka confirmation sent for {request.worker_name} ({confirmed_count}/{total_workers}), ID: {email_result.get('id')}")
+        logger.info(f"Urakka confirmation sent for {worker_name} ({confirmed_count}/{total_workers}), ID: {email_result.get('id')}")
         
         return {
             "status": "success",
-            "message": f"Kuittaus lähetetty: {request.worker_name}",
+            "message": f"Kuittaus lähetetty: {worker_name}",
             "all_confirmed": all_confirmed,
             "confirmed_count": confirmed_count,
             "total_workers": total_workers
