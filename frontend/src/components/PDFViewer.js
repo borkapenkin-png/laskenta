@@ -4,7 +4,7 @@ import { MeasurementOverlay } from '@/components/MeasurementOverlay';
 
 // Set worker source - use unpkg CDN for better compatibility with custom domains
 // unpkg serves all npm versions directly
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.4.624/build/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 export const PDFViewer = ({ 
   pdfFile, 
