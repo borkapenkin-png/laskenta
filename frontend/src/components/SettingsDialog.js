@@ -279,12 +279,6 @@ const UNIT_OPTIONS = [
   { value: 'kpl', label: 'kpl (kappale)' }
 ];
 
-// ==================== LOAD/SAVE (legacy - now uses API) ====================
-export const loadCustomPresets = () => getDefaultPresets();
-export const saveCustomPresets = () => {};
-export const loadMaksueraPresets = () => getDefaultMaksueraPresets();
-export const saveMaksueraPresets = () => {};
-
 // ==================== PRESET ITEM EDITOR ====================
 const PresetItemEditor = ({ item, onUpdate, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
