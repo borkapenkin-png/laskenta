@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +20,6 @@ import {
 import { 
   Plus, 
   Trash2, 
-  Save,
   RotateCcw,
   ChevronDown,
   ChevronRight,
@@ -742,43 +741,58 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
 export const SettingsDialog = ({ open, onClose, onPresetsChange }) => {
   const [toolPresets, setToolPresets] = useState(() => getDefaultPresets());
   const [maksueraPresets, setMaksueraPresets] = useState(() => getDefaultMaksueraPresets());
-  const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [saveState, setSaveState] = useState('idle');
+  const skipAutosaveRef = useRef(true);
   
   // Load from API when dialog opens
   useEffect(() => {
     if (open) {
+      skipAutosaveRef.current = true;
+      setSaveState('idle');
       setIsLoading(true);
       Promise.all([fetchToolPresets(), fetchMaksueraPresets()])
         .then(([tools, maksuera]) => {
           setToolPresets(tools);
           setMaksueraPresets(maksuera);
-          setHasChanges(false);
         })
         .finally(() => setIsLoading(false));
     }
   }, [open]);
   
-  // Track changes
+  // Track unsaved local changes
   useEffect(() => {
-    if (!isLoading) setHasChanges(true);
-  }, [toolPresets, maksueraPresets]);
-  
-  const handleSave = async () => {
-    try {
-      await Promise.all([
-        saveToolPresetsAPI(toolPresets),
-        saveMaksueraPresetsAPI(maksueraPresets),
-      ]);
-      if (onPresetsChange) {
-        onPresetsChange(toolPresets, maksueraPresets);
-      }
-      setHasChanges(false);
-      toast.success('Asetukset tallennettu');
-    } catch (e) {
-      toast.error('Virhe tallennuksessa: ' + e.message);
+    if (!open || isLoading || skipAutosaveRef.current) return;
+    setSaveState('saving');
+  }, [toolPresets, maksueraPresets, open, isLoading]);
+
+  // Autosave preset changes to API
+  useEffect(() => {
+    if (!open) return;
+    if (isLoading) return;
+    if (skipAutosaveRef.current) {
+      skipAutosaveRef.current = false;
+      return;
     }
-  };
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        await Promise.all([
+          saveToolPresetsAPI(toolPresets),
+          saveMaksueraPresetsAPI(maksueraPresets),
+        ]);
+        if (onPresetsChange) {
+          onPresetsChange(toolPresets, maksueraPresets);
+        }
+        setSaveState('saved');
+      } catch (e) {
+        setSaveState('error');
+        toast.error('Virhe tallennuksessa: ' + e.message);
+      }
+    }, 800);
+
+    return () => clearTimeout(timeoutId);
+  }, [toolPresets, maksueraPresets, open, isLoading, onPresetsChange]);
   
   const handleReset = async () => {
     if (!confirm('Haluatko varmasti palauttaa kaikki oletusasetukset? Tämä poistaa kaikki mukautetut presetit.')) return;
@@ -825,18 +839,20 @@ export const SettingsDialog = ({ open, onClose, onPresetsChange }) => {
           </div>
         </Tabs>
         
-        <div className="flex justify-between pt-4 border-t">
+        <div className="flex justify-between items-center pt-4 border-t">
           <Button variant="outline" onClick={handleReset} className="text-red-600 hover:text-red-700">
             <RotateCcw className="h-4 w-4 mr-2" />
             Palauta oletukset
           </Button>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500">
+              {saveState === 'saving' && 'Tallennetaan automaattisesti...'}
+              {saveState === 'saved' && 'Tallennettu automaattisesti'}
+              {saveState === 'error' && 'Automaattinen tallennus epaonnistui'}
+              {saveState === 'idle' && 'Muutokset tallentuvat automaattisesti'}
+            </span>
             <Button variant="outline" onClick={onClose}>
-              Peruuta
-            </Button>
-            <Button onClick={handleSave} className="bg-teal-600 hover:bg-teal-700">
-              <Save className="h-4 w-4 mr-2" />
-              Tallenna
+              Sulje
             </Button>
           </div>
         </div>

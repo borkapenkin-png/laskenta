@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,6 +58,8 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   const [tesPrices, setTesPrices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showRatesEditor, setShowRatesEditor] = useState(false);
+  const [tesSaveState, setTesSaveState] = useState('idle');
+  const skipTesAutosaveRef = useRef(true);
   const [workPhases, setWorkPhases] = useState([
     { id: 1, priceId: '', quantity: 0 }
   ]);
@@ -76,8 +78,10 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
       fetch(`${API_URL}/api/presets/tes-prices`)
         .then(res => res.json())
         .then(data => {
+          skipTesAutosaveRef.current = true;
           if (data?.prices) setTesPrices(data.prices);
           if (data?.hourlyTarget) setHourlyTarget(data.hourlyTarget);
+          setTesSaveState('idle');
         })
         .catch(err => console.error('Failed to load TES prices:', err))
         .finally(() => setIsLoading(false));
@@ -131,32 +135,45 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   };
   
   // Save TES prices to API
-  const handleSavePrices = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/presets/tes-prices`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prices: tesPrices, hourlyTarget }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Save failed:', response.status, errorData);
-        toast.error(`Virhe tallennuksessa: ${response.status}`);
-        return;
-      }
-      
-      const result = await response.json();
-      if (result.success) {
-        toast.success('TES hinnat tallennettu');
-      } else {
-        toast.error('Tallentaminen epäonnistui');
-      }
-    } catch (e) {
-      console.error('Save error:', e);
-      toast.error('Virhe tallennuksessa: ' + e.message);
+  const persistTesPrices = async (pricesToSave, hourlyTargetToSave) => {
+    const response = await fetch(`${API_URL}/api/presets/tes-prices`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prices: pricesToSave, hourlyTarget: hourlyTargetToSave }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Save failed:', response.status, errorData);
+      throw new Error(`Virhe tallennuksessa: ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (!result.success) {
+      throw new Error('Tallentaminen epaonnistui');
     }
   };
+
+  useEffect(() => {
+    if (!open || !showRatesEditor || isLoading) return;
+    if (skipTesAutosaveRef.current) {
+      skipTesAutosaveRef.current = false;
+      return;
+    }
+
+    setTesSaveState('saving');
+    const timeoutId = setTimeout(async () => {
+      try {
+        await persistTesPrices(tesPrices, hourlyTarget);
+        setTesSaveState('saved');
+      } catch (e) {
+        setTesSaveState('error');
+        toast.error(e.message);
+      }
+    }, 800);
+
+    return () => clearTimeout(timeoutId);
+  }, [tesPrices, hourlyTarget, open, showRatesEditor, isLoading]);
   
   // Calculate schedule rows with hours
   const scheduleRows = useMemo(() => {
@@ -448,9 +465,12 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
                     <Plus className="h-3 w-3 mr-1" />
                     Lisa oma
                   </Button>
-                  <Button size="sm" onClick={handleSavePrices} className="bg-teal-600 hover:bg-teal-700">
-                    Tallenna muutokset
-                  </Button>
+                  <span className="text-xs text-gray-500 self-center">
+                    {tesSaveState === 'saving' && 'Tallennetaan...'}
+                    {tesSaveState === 'saved' && 'Tallennettu'}
+                    {tesSaveState === 'error' && 'Tallennus epaonnistui'}
+                    {tesSaveState === 'idle' && 'Tallentuu automaattisesti'}
+                  </span>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2 max-h-[120px] overflow-y-auto">
