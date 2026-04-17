@@ -28,6 +28,7 @@ import {
   Calculator
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { createDefaultToolPresets, createDefaultMaksueraPresets } from '@/constants/presetDefaults';
 
 // ==================== STORAGE KEYS ====================
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
@@ -37,10 +38,10 @@ const fetchToolPresets = async () => {
   try {
     const res = await fetch(`${API_URL}/api/presets/tools`);
     const data = await res.json();
-    return data?.presets || getDefaultPresets();
+    return data?.presets || createDefaultToolPresets();
   } catch (e) {
     console.error('Failed to load presets from API:', e);
-    return getDefaultPresets();
+    return createDefaultToolPresets();
   }
 };
 
@@ -48,10 +49,10 @@ const fetchMaksueraPresets = async () => {
   try {
     const res = await fetch(`${API_URL}/api/presets/maksuera`);
     const data = await res.json();
-    return data?.presets || getDefaultMaksueraPresets();
+    return data?.presets || createDefaultMaksueraPresets();
   } catch (e) {
     console.error('Failed to load maksuerä presets from API:', e);
-    return getDefaultMaksueraPresets();
+    return createDefaultMaksueraPresets();
   }
 };
 
@@ -93,175 +94,21 @@ const resetPresetsAPI = async () => {
     return await res.json();
   } catch (e) {
     console.error('Failed to reset presets:', e);
-    return { presets_tools: getDefaultPresets(), presets_maksuera: getDefaultMaksueraPresets() };
+    return { presets_tools: createDefaultToolPresets(), presets_maksuera: createDefaultMaksueraPresets() };
   }
 };
 
 // ==================== DEFAULT CONSTRUCTION TYPES ====================
 const CONSTRUCTION_TYPES = [
-  { value: 'kipsiseina', label: 'Kipsiseinä' },
+  { value: 'kipsiseina', label: 'Kipsisein?' },
   { value: 'kipsiotsa', label: 'Kipsiotsa' },
   { value: 'kuivatilaKotelo', label: 'Kuivatila kotelo' },
   { value: 'prhKotelo', label: 'PRH Kotelo' },
   { value: 'kuivatilaAK', label: 'Kuivatila AK' },
-  { value: 'markatilaAK', label: 'Märkätila AK' },
+  { value: 'markatilaAK', label: 'M?rk?tila AK' },
   { value: 'prhAK', label: 'PRH AK' },
   { value: 'kuivatilaPystykotelo', label: 'Kuivatila pystykotelo' },
   { value: 'prhPystykotelo', label: 'PRH pystykotelo' },
-];
-
-// ==================== DEFAULT PRESETS (same structure as ToolPresetSelector) ====================
-const getDefaultPresets = () => ({
-  line: {
-    groups: [
-      {
-        name: 'Kotelot',
-        items: [
-          { id: 'line-1', name: 'Kuivatila kotelot rakennus', price: 35, unit: 'jm', constructionType: 'kuivatilaKotelo', hasOptions: true },
-          { id: 'line-2', name: 'Kuivatila kotelot tasoitus ja maalaus', price: 45, unit: 'jm' },
-          { id: 'line-3', name: 'PRH Kotelo rakennus', price: 35, unit: 'jm', constructionType: 'prhKotelo', hasOptions: true },
-        ]
-      },
-      {
-        name: 'Seinä',
-        items: [
-          { id: 'line-seina-1', name: 'Kipsiotsa rakennus', price: 20, unit: 'jm', constructionType: 'kipsiotsa', hasOptions: true },
-        ]
-      },
-    ]
-  },
-  wall: {
-    groups: [
-      {
-        name: 'Maalaus ja tasoitus',
-        items: [
-          { id: 'wall-1', name: 'Huoltomaalaus', price: 10, unit: 'm²' },
-          { id: 'wall-2', name: 'Kipsiseinä tasoitus ja maalaus', price: 20, unit: 'm²' },
-          { id: 'wall-3', name: 'Verkkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
-          { id: 'wall-4', name: 'Tapetointi', price: 20, unit: 'm²' },
-          { id: 'wall-5', name: 'Mikrotsementi', price: 85, unit: 'm²' },
-        ]
-      },
-      {
-        name: 'Seinä rakennus',
-        items: [
-          { id: 'wall-seina-1', name: 'Kipsiseinä rakennus', price: 25, unit: 'm²', constructionType: 'kipsiseina', hasOptions: true },
-        ]
-      },
-    ]
-  },
-  rectangle: {
-    groups: [
-      {
-        name: 'Katto',
-        items: [
-          { id: 'rect-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
-          { id: 'rect-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
-          { id: 'rect-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
-          { id: 'rect-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
-        ]
-      },
-      {
-        name: 'Lattia',
-        items: [
-          { id: 'rect-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
-          { id: 'rect-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
-          { id: 'rect-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
-        ]
-      },
-      {
-        name: 'Alakatto rakennus',
-        items: [
-          { id: 'rect-8', name: 'Kuivatila AK rakennus', price: 35, unit: 'm²', constructionType: 'kuivatilaAK', hasOptions: true },
-          { id: 'rect-9', name: 'Märkätila AK rakennus', price: 35, unit: 'm²', constructionType: 'markatilaAK', hasOptions: true },
-          { id: 'rect-10', name: 'PRH AK rakennus', price: 35, unit: 'm²', constructionType: 'prhAK', hasOptions: true },
-        ]
-      },
-    ]
-  },
-  polygon: {
-    groups: [
-      {
-        name: 'Katto',
-        items: [
-          { id: 'poly-1', name: 'Kipsikatto tasoitus ja maalaus', price: 20, unit: 'm²' },
-          { id: 'poly-2', name: 'MT Kipsikatto tasoitus ja maalaus', price: 40, unit: 'm²' },
-          { id: 'poly-3', name: 'AK huoltomaalaus', price: 10, unit: 'm²' },
-          { id: 'poly-4', name: 'Katto verkotus, tasoitus ja maalaus', price: 30, unit: 'm²' },
-        ]
-      },
-      {
-        name: 'Lattia',
-        items: [
-          { id: 'poly-5', name: 'Pölysidonta', price: 2.5, unit: 'm²' },
-          { id: 'poly-6', name: 'Lattiamaalaus/lakkaus', price: 14, unit: 'm²' },
-          { id: 'poly-7', name: 'Lattiapinnoitus', price: 45, unit: 'm²' },
-        ]
-      },
-      {
-        name: 'Alakatto rakennus',
-        items: [
-          { id: 'poly-8', name: 'Kuivatila AK rakennus', price: 35, unit: 'm²', constructionType: 'kuivatilaAK', hasOptions: true },
-          { id: 'poly-9', name: 'Märkätila AK rakennus', price: 35, unit: 'm²', constructionType: 'markatilaAK', hasOptions: true },
-          { id: 'poly-10', name: 'PRH AK rakennus', price: 35, unit: 'm²', constructionType: 'prhAK', hasOptions: true },
-        ]
-      },
-    ]
-  },
-  count: {
-    groups: [
-      {
-        name: 'Ovet ja ikkunat',
-        items: [
-          { id: 'count-1', name: 'Oven maalaus yheltä puolelta', price: 90, unit: 'kpl' },
-          { id: 'count-1b', name: 'Oven maalaus molemmilta puolelta', price: 180, unit: 'kpl' },
-          { id: 'count-2', name: 'Sisäikkuna sisäpuolelta', price: 70, unit: 'kpl' },
-          { id: 'count-2b', name: 'Sisäikkuna molemmilta puolelta', price: 140, unit: 'kpl' },
-          { id: 'count-2c', name: 'Sisä molemmin puolelta ja ulkoikkuna sisäpuolelta', price: 240, unit: 'kpl' },
-        ]
-      },
-      {
-        name: 'Pystykotelot rakennus',
-        items: [
-          { id: 'count-3', name: 'Kuivatila pystykotelo rakennus', price: 35, unit: 'kpl', constructionType: 'kuivatilaPystykotelo', hasOptions: true },
-          { id: 'count-4', name: 'PRH pystykotelo rakennus', price: 35, unit: 'kpl', constructionType: 'prhPystykotelo', hasOptions: true },
-          { id: 'count-5', name: 'Pystykotelot tasoitus ja maalaus', price: 45, unit: 'kpl', isPystykotelot: true },
-        ]
-      },
-    ]
-  }
-});
-
-// ==================== DEFAULT MAKSUERÄ PRESETS ====================
-const getDefaultMaksueraPresets = () => [
-  {
-    id: 'yse-6',
-    name: 'YSE-6 (balanced)',
-    isDefault: false, // Allow editing
-    rows: [
-      { selite: 'Työmaan käynnistys', percent: 10 },
-      { selite: 'Valmistelut', percent: 15 },
-      { selite: 'Pohjatyöt', percent: 20 },
-      { selite: 'Pintatyöt', percent: 25 },
-      { selite: 'Viimeistely', percent: 20 },
-      { selite: 'Luovutus / virheet korjattu', percent: 10 },
-    ]
-  },
-  {
-    id: 'yse-8',
-    name: 'YSE-8 (detailed)',
-    isDefault: false, // Allow editing
-    rows: [
-      { selite: 'Aloitus', percent: 10 },
-      { selite: 'Suojaukset', percent: 12 },
-      { selite: 'Tasoitusvaihe 1', percent: 13 },
-      { selite: 'Tasoitusvaihe 2', percent: 13 },
-      { selite: 'Pohjamaalaus', percent: 14 },
-      { selite: 'Pintamaalaus', percent: 14 },
-      { selite: 'Viimeistely', percent: 14 },
-      { selite: 'Vastaanotto', percent: 10 },
-    ]
-  }
 ];
 
 // ==================== TOOL TYPE LABELS ====================
@@ -733,8 +580,8 @@ const MaksueraPresetsTab = ({ presets, setPresets }) => {
 
 // ==================== MAIN SETTINGS DIALOG ====================
 export const SettingsDialog = ({ open, onClose, onPresetsChange }) => {
-  const [toolPresets, setToolPresets] = useState(() => getDefaultPresets());
-  const [maksueraPresets, setMaksueraPresets] = useState(() => getDefaultMaksueraPresets());
+  const [toolPresets, setToolPresets] = useState(() => createDefaultToolPresets());
+  const [maksueraPresets, setMaksueraPresets] = useState(() => createDefaultMaksueraPresets());
   const [isLoading, setIsLoading] = useState(false);
   const [saveState, setSaveState] = useState('idle');
   const skipAutosaveRef = useRef(true);
