@@ -1,0 +1,152 @@
+{
+  "toolPresets": {
+    "line": {
+      "groups": [
+        {
+          "name": "Kotelot",
+          "items": [
+            {"id": "line-1", "name": "Kuivatila kotelot rakennus", "price": 35, "unit": "jm", "constructionType": "kuivatilaKotelo", "hasOptions": true},
+            {"id": "line-2", "name": "Kuivatila kotelot tasoitus ja maalaus", "price": 45, "unit": "jm"},
+            {"id": "line-3", "name": "PRH Kotelo rakennus", "price": 35, "unit": "jm", "constructionType": "prhKotelo", "hasOptions": true}
+          ]
+        },
+        {
+          "name": "Sein\u00e4",
+          "items": [
+            {"id": "line-seina-1", "name": "Kipsiotsa rakennus", "price": 20, "unit": "jm", "constructionType": "kipsiotsa", "hasOptions": true, "isKipsiRakennus": true}
+          ]
+        }
+      ]
+    },
+    "wall": {
+      "groups": [
+        {
+          "name": "Maalaus ja tasoitus",
+          "items": [
+            {"id": "wall-1", "name": "Huoltomaalaus", "price": 10, "unit": "m\u00b2"},
+            {"id": "wall-2", "name": "Kipsisein\u00e4 tasoitus ja maalaus", "price": 20, "unit": "m\u00b2"},
+            {"id": "wall-3", "name": "Verkkotus, tasoitus ja maalaus", "price": 30, "unit": "m\u00b2"},
+            {"id": "wall-4", "name": "Tapetointi", "price": 20, "unit": "m\u00b2"},
+            {"id": "wall-5", "name": "Mikrotsementi", "price": 85, "unit": "m\u00b2"}
+          ]
+        },
+        {
+          "name": "Sein\u00e4 rakennus",
+          "items": [
+            {"id": "wall-seina-1", "name": "Kipsisein\u00e4 rakennus", "price": 25, "unit": "m\u00b2", "constructionType": "kipsiseina", "hasOptions": true, "isKipsiRakennus": true}
+          ]
+        }
+      ]
+    },
+    "rectangle": {
+      "groups": [
+        {
+          "name": "Katto",
+          "items": [
+            {"id": "rect-1", "name": "Kipsikatto tasoitus ja maalaus", "price": 20, "unit": "m\u00b2"},
+            {"id": "rect-2", "name": "MT Kipsikatto tasoitus ja maalaus", "price": 40, "unit": "m\u00b2"},
+            {"id": "rect-3", "name": "AK huoltomaalaus", "price": 10, "unit": "m\u00b2"},
+            {"id": "rect-4", "name": "Katto verkotus, tasoitus ja maalaus", "price": 30, "unit": "m\u00b2"}
+          ]
+        },
+        {
+          "name": "Lattia",
+          "items": [
+            {"id": "rect-5", "name": "P\u00f6lysidonta", "price": 2.5, "unit": "m\u00b2"},
+            {"id": "rect-6", "name": "Lattiamaalaus/lakkaus", "price": 14, "unit": "m\u00b2"},
+            {"id": "rect-7", "name": "Lattiapinnoitus", "price": 45, "unit": "m\u00b2"}
+          ]
+        },
+        {
+          "name": "Alakatto rakennus",
+          "items": [
+            {"id": "rect-8", "name": "Kuivatila AK rakennus", "price": 35, "unit": "m\u00b2", "constructionType": "kuivatilaAK", "hasOptions": true},
+            {"id": "rect-9", "name": "M\u00e4rk\u00e4tila AK rakennus", "price": 35, "unit": "m\u00b2", "constructionType": "markatilaAK", "hasOptions": true},
+            {"id": "rect-10", "name": "PRH AK rakennus", "price": 35, "unit": "m\u00b2", "constructionType": "prhAK", "hasOptions": true}
+          ]
+        }
+      ]
+    },
+    "polygon": {
+      "groups": [
+        {
+          "name": "Katto",
+          "items": [
+            {"id": "poly-1", "name": "Kipsikatto tasoitus ja maalaus", "price": 20, "unit": "m\u00b2"},
+            {"id": "poly-2", "name": "MT Kipsikatto tasoitus ja maalaus", "price": 40, "unit": "m\u00b2"},
+            {"id": "poly-3", "name": "AK huoltomaalaus", "price": 10, "unit": "m\u00b2"},
+            {"id": "poly-4", "name": "Katto verkotus, tasoitus ja maalaus", "price": 30, "unit": "m\u00b2"}
+          ]
+        },
+        {
+          "name": "Lattia",
+          "items": [
+            {"id": "poly-5", "name": "P\u00f6lysidonta", "price": 2.5, "unit": "m\u00b2"},
+            {"id": "poly-6", "name": "Lattiamaalaus/lakkaus", "price": 14, "unit": "m\u00b2"},
+            {"id": "poly-7", "name": "Lattiapinnoitus", "price": 45, "unit": "m\u00b2"}
+          ]
+        },
+        {
+          "name": "Alakatto rakennus",
+          "items": [
+            {"id": "poly-8", "name": "Kuivatila AK rakennus", "price": 35, "unit": "m\u00b2", "constructionType": "kuivatilaAK", "hasOptions": true},
+            {"id": "poly-9", "name": "M\u00e4rk\u00e4tila AK rakennus", "price": 35, "unit": "m\u00b2", "constructionType": "markatilaAK", "hasOptions": true},
+            {"id": "poly-10", "name": "PRH AK rakennus", "price": 35, "unit": "m\u00b2", "constructionType": "prhAK", "hasOptions": true}
+          ]
+        }
+      ]
+    },
+    "count": {
+      "groups": [
+        {
+          "name": "Ovet ja ikkunat",
+          "items": [
+            {"id": "count-1", "name": "Oven maalaus yhelt\u00e4 puolelta", "price": 90, "unit": "kpl"},
+            {"id": "count-1b", "name": "Oven maalaus molemmilta puolelta", "price": 180, "unit": "kpl"},
+            {"id": "count-2", "name": "Sis\u00e4ikkuna sis\u00e4puolelta", "price": 70, "unit": "kpl"},
+            {"id": "count-2b", "name": "Sis\u00e4ikkuna molemmilta puolelta", "price": 140, "unit": "kpl"},
+            {"id": "count-2c", "name": "Sis\u00e4 molemmin puolelta ja ulkoikkuna sis\u00e4puolelta", "price": 240, "unit": "kpl"}
+          ]
+        },
+        {
+          "name": "Pystykotelot rakennus",
+          "items": [
+            {"id": "count-3", "name": "Kuivatila pystykotelo rakennus", "price": 35, "unit": "kpl", "constructionType": "kuivatilaPystykotelo", "hasOptions": true},
+            {"id": "count-4", "name": "PRH pystykotelo rakennus", "price": 35, "unit": "kpl", "constructionType": "prhPystykotelo", "hasOptions": true},
+            {"id": "count-5", "name": "Pystykotelot tasoitus ja maalaus", "price": 45, "unit": "kpl", "isPystykotelot": true}
+          ]
+        }
+      ]
+    }
+  },
+  "maksueraPresets": [
+    {
+      "id": "yse-6",
+      "name": "YSE-6 (balanced)",
+      "isDefault": false,
+      "rows": [
+        {"selite": "Ty\u00f6maan k\u00e4ynnistys", "percent": 10},
+        {"selite": "Valmistelut", "percent": 15},
+        {"selite": "Pohjaty\u00f6t", "percent": 20},
+        {"selite": "Pintaty\u00f6t", "percent": 25},
+        {"selite": "Viimeistely", "percent": 20},
+        {"selite": "Luovutus / virheet korjattu", "percent": 10}
+      ]
+    },
+    {
+      "id": "yse-8",
+      "name": "YSE-8 (detailed)",
+      "isDefault": false,
+      "rows": [
+        {"selite": "Aloitus", "percent": 10},
+        {"selite": "Suojaukset", "percent": 12},
+        {"selite": "Tasoitusvaihe 1", "percent": 13},
+        {"selite": "Tasoitusvaihe 2", "percent": 13},
+        {"selite": "Pohjamaalaus", "percent": 14},
+        {"selite": "Pintamaalaus", "percent": 14},
+        {"selite": "Viimeistely", "percent": 14},
+        {"selite": "Vastaanotto", "percent": 10}
+      ]
+    }
+  ]
+}
