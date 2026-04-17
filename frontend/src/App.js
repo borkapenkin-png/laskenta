@@ -29,8 +29,6 @@ import {
   loadAutosave,
   getSettings, 
   saveSettings, 
-  getPresets, 
-  savePresets, 
   exportProjectToJSON, 
   importProjectFromJSON,
   createProjectData,
@@ -50,7 +48,6 @@ function App() {
   const [scale, setScale] = useState(null);
   const [currentTool, setCurrentTool] = useState(null);
   const [measurements, setMeasurements] = useState([]);
-  const [presets, setPresets] = useState([]);
   const [settings, setSettings] = useState({ vatPercentage: 25.5, defaultWallHeight: 2.6 });
   const [activeTab, setActiveTab] = useState('takeoff');
   const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
@@ -94,8 +91,6 @@ function App() {
   useEffect(() => {
     const loadedSettings = getSettings();
     setSettings(loadedSettings);
-    const loadedPresets = getPresets();
-    setPresets(loadedPresets);
 
     // Load tool presets from MongoDB API
     fetch(`${API_URL}/api/presets/tools`)
@@ -142,15 +137,15 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedMeasurementId]);
+  }, [selectedMeasurementId, handleDeleteMeasurement, handleRedo, handleUndo]);
 
   // Save to undo stack before making changes
-  const saveToUndoStack = () => {
+  const saveToUndoStack = useCallback(() => {
     setUndoStack(prev => [...prev, JSON.parse(JSON.stringify(measurements))]);
-    setRedoStack([]); // Clear redo stack on new action
-  };
+    setRedoStack([]);
+  }, [measurements]);
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (undoStack.length === 0) return;
     
     const previousState = undoStack[undoStack.length - 1];
@@ -158,9 +153,9 @@ function App() {
     setMeasurements(previousState);
     setUndoStack(prev => prev.slice(0, -1));
     toast.success('Peruutettu');
-  };
+  }, [undoStack, measurements]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (redoStack.length === 0) return;
     
     const nextState = redoStack[redoStack.length - 1];
@@ -168,7 +163,7 @@ function App() {
     setMeasurements(nextState);
     setRedoStack(prev => prev.slice(0, -1));
     toast.success('Tehty uudelleen');
-  };
+  }, [redoStack, measurements]);
 
   // Clear undo/redo stacks on start - no demo measurements
   useEffect(() => {
@@ -203,12 +198,6 @@ function App() {
       saveSettings(settings);
     }
   }, [settings]);
-
-  useEffect(() => {
-    if (presets.length > 0) {
-      savePresets(presets);
-    }
-  }, [presets]);
 
   const handleOpenPdf = () => {
     fileInputRef.current?.click();
@@ -307,14 +296,14 @@ function App() {
     toast.success('Mittaus päivitetty');
   };
 
-  const handleDeleteMeasurement = (id) => {
+  const handleDeleteMeasurement = useCallback((id) => {
     // Save current state to undo stack before deleting
     saveToUndoStack();
     
     setMeasurements(prev => prev.filter(m => m.id !== id));
     setSelectedMeasurementId(null);
     toast.success('Mittaus poistettu');
-  };
+  }, [saveToUndoStack]);
 
   const handleCopyMeasurement = (measurement) => {
     // Save current state to undo stack before copying
@@ -687,54 +676,6 @@ function App() {
       totalPrice: totalCost,
       totalPriceWithVat
     };
-  };
-
-  const handleSavePreset = (preset) => {
-    const existingIndex = presets.findIndex(p => p.id === preset.id);
-    if (existingIndex >= 0) {
-      const updated = [...presets];
-      updated[existingIndex] = preset;
-      setPresets(updated);
-      toast.success('Presetti päivitetty');
-    } else {
-      setPresets(prev => [...prev, preset]);
-      toast.success('Presetti lisätty');
-    }
-  };
-
-  const handleDeletePreset = (id) => {
-    setPresets(prev => prev.filter(p => p.id !== id));
-    toast.success('Presetti poistettu');
-  };
-
-  const handleApplyPreset = (preset) => {
-    // Apply preset to the most recent measurement or set as default for next
-    if (selectedMeasurementId) {
-      // Apply to selected measurement
-      setMeasurements(prev =>
-        prev.map(m => m.id === selectedMeasurementId ? { 
-          ...m, 
-          label: preset.name,
-          pricePerUnit: preset.pricePerUnit,
-          unit: preset.unit
-        } : m)
-      );
-      toast.success(`Presetti "${preset.name}" sovellettu valittuun mittaukseen`);
-    } else if (measurements.length > 0) {
-      // Apply to the last measurement
-      const lastId = measurements[measurements.length - 1].id;
-      setMeasurements(prev =>
-        prev.map(m => m.id === lastId ? { 
-          ...m, 
-          label: preset.name,
-          pricePerUnit: preset.pricePerUnit,
-          unit: preset.unit
-        } : m)
-      );
-      toast.success(`Presetti "${preset.name}" sovellettu viimeiseen mittaukseen`);
-    } else {
-      toast.info(`Valitse tai luo mittaus ensin`);
-    }
   };
 
   const toggleRightPanel = () => {

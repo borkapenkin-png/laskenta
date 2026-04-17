@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { calculateDistance, calculatePolygonArea, pixelsToMeters, snapToAngle } from '@/utils/geometry';
 import { hitTestMeasurement } from '@/utils/hitTesting';
 
@@ -31,12 +31,12 @@ export const MeasurementOverlay = ({
   };
 
   // Helper: convert normalized coordinates to screen (current zoom) coordinates
-  const toScreenCoords = (normalizedCoords) => {
+  const toScreenCoords = useCallback((normalizedCoords) => {
     return {
       x: normalizedCoords.x * currentZoom,
       y: normalizedCoords.y * currentZoom
     };
-  };
+  }, [currentZoom]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -158,9 +158,9 @@ export const MeasurementOverlay = ({
         ctx.stroke();
       });
     }
-  }, [points, mousePos, measurements, currentTool, snapEnabled, selectedMeasurementId, calibrationMode, calibrationPoints]);
+  }, [points, mousePos, measurements, currentTool, snapEnabled, selectedMeasurementId, calibrationMode, calibrationPoints, drawMeasurement, toScreenCoords]);
 
-  const drawMeasurement = (ctx, measurement, isSelected = false) => {
+  const drawMeasurement = useCallback((ctx, measurement, isSelected = false) => {
     if (!measurement.points || measurement.points.length === 0) return;
 
     // Convert normalized points to screen coordinates
@@ -241,7 +241,7 @@ export const MeasurementOverlay = ({
         ctx.fillText(label, centerX, centerY);
       }
     }
-  };
+  }, [toScreenCoords]);
 
   const getCanvasCoordinates = (event) => {
     if (!canvasRef.current) return null;

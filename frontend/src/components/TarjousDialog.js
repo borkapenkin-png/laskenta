@@ -74,7 +74,7 @@ export const TarjousDialog = ({ open, onClose, onGenerate, projectName }) => {
     if (projectName && !formData.kohde) {
       setFormData(prev => ({ ...prev, kohde: projectName }));
     }
-  }, [projectName]);
+  }, [projectName, formData.kohde]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));

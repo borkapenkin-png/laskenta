@@ -150,7 +150,7 @@ export const PDFViewer = ({
         renderTask.cancel();
       }
     };
-  }, [pdfDocument, currentPage, zoom, onRenderInfoChange]);
+  }, [pdfDocument, currentPage, zoom, onRenderInfoChange, canvasRef]);
 
   const handleMouseDown = (e) => {
     // Pan with: middle mouse, right mouse, OR left mouse when no tool is selected

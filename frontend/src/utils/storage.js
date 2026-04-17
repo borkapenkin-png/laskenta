@@ -1,5 +1,4 @@
 const STORAGE_KEY = 'rakenna_projects';
-const PRESETS_KEY = 'rakenna_presets';
 const SETTINGS_KEY = 'rakenna_settings';
 const AUTOSAVE_KEY = 'rakenna_autosave';
 
@@ -269,26 +268,6 @@ export const deleteProject = (projectId) => {
   }
 };
 
-export const savePresets = (presets) => {
-  try {
-    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-    return true;
-  } catch (error) {
-    console.error('Error saving presets:', error);
-    return false;
-  }
-};
-
-export const getPresets = () => {
-  try {
-    const data = localStorage.getItem(PRESETS_KEY);
-    return data ? JSON.parse(data) : getDefaultPresets();
-  } catch (error) {
-    console.error('Error loading presets:', error);
-    return getDefaultPresets();
-  }
-};
-
 export const saveSettings = (settings) => {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -317,73 +296,6 @@ export const getDefaultSettings = () => ({
   defaultWallHeight: 2.6
 });
 
-export const getDefaultPresets = () => [
-  {
-    id: 'preset-1',
-    name: 'Maalaus seinät 2x',
-    category: 'Maalaus',
-    subcategory: 'Seinät',
-    unit: 'm²',
-    waste: 5,
-    layers: 2,
-    productivity: 8,
-    materialCost: 2.5,
-    wallHeight: 2.6,
-    bothSides: false
-  },
-  {
-    id: 'preset-2',
-    name: 'Maalaus katot 2x',
-    category: 'Maalaus',
-    subcategory: 'Katot',
-    unit: 'm²',
-    waste: 5,
-    layers: 2,
-    productivity: 6,
-    materialCost: 3.0,
-    wallHeight: null,
-    bothSides: false
-  },
-  {
-    id: 'preset-3',
-    name: 'Ylitasoitus',
-    category: 'Tasoitus',
-    subcategory: 'Seinät',
-    unit: 'm²',
-    waste: 10,
-    layers: 1,
-    productivity: 5,
-    materialCost: 4.0,
-    wallHeight: 2.6,
-    bothSides: false
-  },
-  {
-    id: 'preset-4',
-    name: 'Nauhoitus + metallikulmat',
-    category: 'Tasoitus',
-    subcategory: 'Seinät',
-    unit: 'jm',
-    waste: 5,
-    layers: 1,
-    productivity: 10,
-    materialCost: 1.5,
-    wallHeight: null,
-    bothSides: false
-  },
-  {
-    id: 'preset-5',
-    name: 'Julkisivurappaus',
-    category: 'Rappaus',
-    subcategory: 'Julkisivu',
-    unit: 'm²',
-    waste: 15,
-    layers: 1,
-    productivity: 4,
-    materialCost: 12.0,
-    wallHeight: 3.0,
-    bothSides: false
-  }
-];
 
 /**
  * Export project to JSON file (with base64 PDF included)

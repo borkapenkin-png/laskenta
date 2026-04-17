@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -97,15 +97,15 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
   }, [open]);
   
   // Get price by ID
-  const getPriceById = (priceId) => {
+  const getPriceById = useCallback((priceId) => {
     return tesPrices.find(p => p.id === priceId);
-  };
+  }, [tesPrices]);
   
   // Calculate productivity rate from price
-  const calculateRate = (price) => {
+  const calculateRate = useCallback((price) => {
     if (!price || price <= 0) return 1;
     return hourlyTarget / price;
-  };
+  }, [hourlyTarget]);
   
   // Add new phase
   const handleAddPhase = () => {
@@ -198,7 +198,7 @@ export const CustomWorkScheduleDialog = ({ open, onClose }) => {
         };
       })
       .filter(Boolean);
-  }, [workPhases, tesPrices, hourlyTarget, workerCount, hoursPerDay]);
+  }, [workPhases, workerCount, hoursPerDay, calculateRate, getPriceById]);
   
   // Calculate totals
   const totals = useMemo(() => {

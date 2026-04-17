@@ -404,15 +404,65 @@ async def get_productivity_rates():
 
 @api_router.put("/presets/productivity")
 async def save_productivity_rates(body: dict):
-    """Save productivity rates to MongoDB"""
+    """Persist productivity edits by converting them back into TES prices."""
     database = await get_database()
     if database is None:
         raise HTTPException(status_code=503, detail="Database not available")
     try:
         rates_data = body.get("rates", [])
+        hourly_target = body.get("hourlyTarget", DEFAULT_HOURLY_TARGET)
+
+        tes_response = await get_tes_prices()
+        current_prices = tes_response.get("prices", [])
+        price_map_by_id = {item.get("id"): dict(item) for item in current_prices if item.get("id")}
+        price_map_by_name = {
+            item.get("name", "").strip().lower(): dict(item)
+            for item in current_prices
+            if item.get("name")
+        }
+
+        updated_prices = []
+        seen_ids = set()
+        for rate_item in rates_data:
+            rate_value = float(rate_item.get("rate") or 0)
+            if rate_value <= 0:
+                continue
+
+            rate_id = rate_item.get("id")
+            rate_name = (rate_item.get("name") or "").strip()
+            unit_value = rate_item.get("unit", "m?/h")
+            unit = unit_value[:-2] if unit_value.endswith('/h') else unit_value
+
+            if rate_id and rate_id in price_map_by_id:
+                base_item = price_map_by_id[rate_id]
+            elif rate_name and rate_name.lower() in price_map_by_name:
+                base_item = price_map_by_name[rate_name.lower()]
+            else:
+                base_item = {
+                    "id": rate_id or f"custom-{len(updated_prices) + 1}",
+                    "name": rate_name or "Muu ty?",
+                    "category": rate_item.get("category", "Custom"),
+                }
+
+            base_item["unit"] = unit or base_item.get("unit", "m?")
+            base_item["price"] = round(hourly_target / rate_value, 2)
+            base_item["category"] = rate_item.get("category", base_item.get("category", "Muut"))
+            updated_prices.append(base_item)
+            seen_ids.add(base_item["id"])
+
+        for existing in current_prices:
+            existing_id = existing.get("id")
+            if existing_id and existing_id not in seen_ids:
+                updated_prices.append(existing)
+
         await database.presets.update_one(
-            {"type": "productivity"},
-            {"$set": {"type": "productivity", "data": rates_data, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            {"type": "tes_prices"},
+            {"$set": {
+                "type": "tes_prices",
+                "data": updated_prices,
+                "hourlyTarget": hourly_target,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }},
             upsert=True
         )
         return {"success": True}
