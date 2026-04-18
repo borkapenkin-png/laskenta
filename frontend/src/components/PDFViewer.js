@@ -199,7 +199,7 @@ export const PDFViewer = ({
         onContextMenu={(e) => e.preventDefault()}
         style={{ cursor: isPanning ? 'grabbing' : (currentTool ? 'crosshair' : 'grab') }}
       >
-        <div className="flex items-center justify-center min-h-full p-4">
+        <div className="flex items-start sm:items-center justify-center min-h-full p-2 sm:p-4">
           {!pdfFile ? (
             <div className="text-gray-500 text-sm">Avaa PDF-tiedosto aloittaaksesi</div>
           ) : (

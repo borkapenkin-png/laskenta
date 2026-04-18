@@ -726,7 +726,7 @@ function App() {
   // Show Maksuerätaulukko page
   if (currentView === 'maksuerataulukko') {
     return (
-      <div className="flex flex-col h-screen bg-[#F9FAFB]">
+      <div className="flex flex-col h-[100dvh] bg-[#F9FAFB]">
         <MaksuerataulukkoPage onBack={() => setCurrentView('main')} />
         <Toaster 
           position="top-right" 
@@ -741,7 +741,7 @@ function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#F9FAFB]">
+    <div className="flex flex-col h-[100dvh] bg-[#F9FAFB]">
       <Toolbar
         onOpenPdf={handleOpenPdf}
         onCalibrate={() => setCalibrateDialogOpen(true)}
@@ -881,7 +881,11 @@ function App() {
             : "bg-white border-l border-gray-200 absolute top-0 right-0 z-20 h-full"}
           style={isMobile
             ? {
-                height: '60vh',
+                height: '68vh',
+                maxHeight: '68vh',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                boxShadow: '0 -18px 50px rgba(15, 23, 42, 0.22)',
                 transform: rightPanelOpen ? 'translateY(0)' : 'translateY(100%)',
                 transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)'
               }
