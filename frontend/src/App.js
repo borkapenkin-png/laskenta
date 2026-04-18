@@ -53,6 +53,7 @@ function App() {
   const [calibrateDialogOpen, setCalibrateDialogOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(true);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [selectedMeasurementId, setSelectedMeasurementId] = useState(null);
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
@@ -92,6 +93,13 @@ function App() {
     const loadedSettings = getSettings();
     setSettings(loadedSettings);
 
+    const handleViewport = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleViewport();
+    window.addEventListener('resize', handleViewport);
+
     // Load tool presets from MongoDB API
     fetch(`${API_URL}/api/presets/tools`)
       .then(res => res.json())
@@ -109,7 +117,16 @@ function App() {
     if (savedLeftSidebarState !== null) {
       setLeftSidebarOpen(savedLeftSidebarState === 'true');
     }
+
+    return () => window.removeEventListener('resize', handleViewport);
   }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setLeftSidebarOpen(false);
+      setRightPanelOpen(false);
+    }
+  }, [isMobile]);
 
   // Save to undo stack before making changes
   const saveToUndoStack = useCallback(() => {
@@ -767,15 +784,17 @@ function App() {
 
       <div className="flex flex-1 relative" style={{ overflow: 'hidden' }}>
         {/* Left Sidebar with Thumbnails */}
-        <LeftSidebar
-          pdfDocument={pdfDocument}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-          isOpen={leftSidebarOpen}
-          onToggle={toggleLeftSidebar}
-          projectName={project.name}
-          onProjectNameChange={(name) => setProject(prev => ({ ...prev, name }))}
-        />
+        {!isMobile && (
+          <LeftSidebar
+            pdfDocument={pdfDocument}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            isOpen={leftSidebarOpen}
+            onToggle={toggleLeftSidebar}
+            projectName={project.name}
+            onProjectNameChange={(name) => setProject(prev => ({ ...prev, name }))}
+          />
+        )}
 
         <div className="flex-1 relative">
           <PDFViewer
@@ -823,17 +842,31 @@ function App() {
 
         </div>
 
+        {/* Mobile backdrop */}
+        {isMobile && rightPanelOpen && (
+          <div
+            className="absolute inset-0 z-20 bg-black/35"
+            onClick={toggleRightPanel}
+          />
+        )}
+
         {/* Toggle button for right panel */}
         <Button
           data-testid="toggle-right-panel"
           onClick={toggleRightPanel}
-          className="absolute top-1/2 -translate-y-1/2 z-30 h-20 w-6 rounded-l-lg rounded-r-none bg-[#0052CC] hover:bg-[#0043A8] p-0 shadow-lg"
-          style={{ 
-            right: rightPanelOpen ? '384px' : '0px',
-            transition: 'right 300ms cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
+          className={isMobile
+            ? "absolute bottom-4 right-4 z-30 h-11 rounded-full bg-[#0052CC] hover:bg-[#0043A8] px-4 shadow-xl"
+            : "absolute top-1/2 -translate-y-1/2 z-30 h-20 w-6 rounded-l-lg rounded-r-none bg-[#0052CC] hover:bg-[#0043A8] p-0 shadow-lg"}
+          style={isMobile
+            ? { transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)' }
+            : {
+                right: rightPanelOpen ? '384px' : '0px',
+                transition: 'right 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
         >
-          {rightPanelOpen ? (
+          {isMobile ? (
+            <span className="text-xs font-medium">{rightPanelOpen ? 'Sulje' : 'Paneeli'}</span>
+          ) : rightPanelOpen ? (
             <ChevronRight className="h-4 w-4" />
           ) : (
             <ChevronLeft className="h-4 w-4" />
@@ -843,12 +876,20 @@ function App() {
         {/* Right panel - fixed position to avoid layout issues */}
         <div 
           data-testid="right-panel"
-          className="bg-white border-l border-gray-200 absolute top-0 right-0 z-20 h-full"
-          style={{
-            width: '384px',
-            transform: rightPanelOpen ? 'translateX(0)' : 'translateX(100%)',
-            transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)'
-          }}
+          className={isMobile
+            ? "bg-white border-t border-gray-200 absolute bottom-0 left-0 right-0 z-30"
+            : "bg-white border-l border-gray-200 absolute top-0 right-0 z-20 h-full"}
+          style={isMobile
+            ? {
+                height: '60vh',
+                transform: rightPanelOpen ? 'translateY(0)' : 'translateY(100%)',
+                transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+              }
+            : {
+                width: '384px',
+                transform: rightPanelOpen ? 'translateX(0)' : 'translateX(100%)',
+                transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)'
+              }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             <TabsList className="grid w-full grid-cols-2 rounded-none border-b border-gray-200">
