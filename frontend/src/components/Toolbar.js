@@ -128,7 +128,7 @@ export const Toolbar = ({
           data-testid="mobile-actions-menu"
           variant="outline"
           size="sm"
-          className="h-9 min-w-9 px-3"
+          className="h-10 w-full px-0"
         >
           <MoreHorizontal className="h-4 w-4" />
           {!isMobile && <span className="ml-1.5">Toiminnot</span>}
@@ -182,39 +182,43 @@ export const Toolbar = ({
   if (isMobile) {
     return (
       <div className="bg-white border-b border-gray-200 px-2 py-2 space-y-2" data-testid="main-toolbar">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-          <Button data-testid="open-pdf-button" variant="outline" size="sm" onClick={onOpenPdf} className="h-9 min-w-9 px-3">
+        <div className="grid grid-cols-4 gap-2">
+          <Button data-testid="open-pdf-button" variant="outline" size="sm" onClick={onOpenPdf} className="h-10 w-full px-0">
             <FileUp className="h-4 w-4" />
           </Button>
-          <Button data-testid="save-project-button" variant="outline" size="sm" onClick={onSaveProject} className="h-9 min-w-9 px-3">
+          <Button data-testid="save-project-button" variant="outline" size="sm" onClick={onSaveProject} className="h-10 w-full px-0">
             <Save className="h-4 w-4" />
           </Button>
-          <Button data-testid="load-project-button" variant="outline" size="sm" onClick={onLoadProject} className="h-9 min-w-9 px-3">
+          <Button data-testid="load-project-button" variant="outline" size="sm" onClick={onLoadProject} className="h-10 w-full px-0">
             <FolderOpen className="h-4 w-4" />
           </Button>
-          <Button data-testid="scale-button" variant="outline" size="sm" onClick={onCalibrate} className="h-9 whitespace-nowrap px-3 text-xs font-mono">
-            <Ruler className="h-4 w-4 mr-1.5" />
-            <span>{currentScaleDisplay}</span>
+          {renderActionsMenu()}
+        </div>
+
+        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center rounded-lg bg-gray-50 p-2">
+          <Button data-testid="scale-button" variant="outline" size="sm" onClick={onCalibrate} className="h-10 w-full justify-start whitespace-nowrap px-3 text-xs font-mono overflow-hidden">
+            <Ruler className="h-4 w-4 mr-1.5 shrink-0" />
+            <span className="truncate">{currentScaleDisplay}</span>
           </Button>
-          <div className="flex items-center rounded-md border border-gray-200 bg-white">
-            <Button data-testid="zoom-out-button" variant="ghost" size="sm" onClick={onZoomOut} disabled={zoom <= 0.5} className="h-9 min-w-9 px-2">
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="w-11 text-center text-xs text-gray-600 font-mono">{Math.round((zoom || 1) * 100)}%</span>
-            <Button data-testid="zoom-in-button" variant="ghost" size="sm" onClick={onZoomIn} disabled={zoom >= 3} className="h-9 min-w-9 px-2">
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-          </div>
-          <Button data-testid="undo-button" variant="ghost" size="sm" onClick={onUndo} disabled={!canUndo} className="h-9 min-w-9 px-2">
+          <Button data-testid="undo-button" variant="ghost" size="sm" onClick={onUndo} disabled={!canUndo} className="h-10 w-10 px-0">
             <Undo className="h-4 w-4" />
           </Button>
-          <Button data-testid="redo-button" variant="ghost" size="sm" onClick={onRedo} disabled={!canRedo} className="h-9 min-w-9 px-2">
+          <Button data-testid="redo-button" variant="ghost" size="sm" onClick={onRedo} disabled={!canRedo} className="h-10 w-10 px-0">
             <Redo className="h-4 w-4" />
           </Button>
-          <Button data-testid="delete-selected-button" variant="ghost" size="sm" onClick={onDeleteSelected} disabled={!selectedMeasurementId} className="h-9 min-w-9 px-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+          <Button data-testid="delete-selected-button" variant="ghost" size="sm" onClick={onDeleteSelected} disabled={!selectedMeasurementId} className="h-10 w-10 px-0 text-red-600 hover:text-red-700 hover:bg-red-50">
             <Trash2 className="h-4 w-4" />
           </Button>
-          {renderActionsMenu()}
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg bg-gray-50 p-2">
+          <Button data-testid="zoom-out-button" variant="ghost" size="sm" onClick={onZoomOut} disabled={zoom <= 0.5} className="h-10 w-10 px-0">
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <span className="min-w-12 text-center text-xs text-gray-600 font-mono">{Math.round((zoom || 1) * 100)}%</span>
+          <Button data-testid="zoom-in-button" variant="ghost" size="sm" onClick={onZoomIn} disabled={zoom >= 3} className="h-10 w-10 px-0">
+            <ZoomIn className="h-4 w-4" />
+          </Button>
         </div>
 
         <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide rounded-lg bg-gray-50 p-1">

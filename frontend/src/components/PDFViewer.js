@@ -126,7 +126,15 @@ export const PDFViewer = ({
         const mobileFitScale = isMobileViewport && availableWidth > 0
           ? Math.min(1, availableWidth / baseViewport.width)
           : 1;
-        const renderScale = zoom * mobileFitScale;
+
+        let renderScale = zoom * mobileFitScale;
+        if (isMobileViewport) {
+          const estimatedPixels = baseViewport.width * baseViewport.height * renderScale * renderScale;
+          const maxMobilePixels = 1600000;
+          if (estimatedPixels > maxMobilePixels) {
+            renderScale *= Math.sqrt(maxMobilePixels / estimatedPixels);
+          }
+        }
 
         // Use zoom for viewport scaling (NOT CSS transform)
         const viewport = page.getViewport({ scale: renderScale });
