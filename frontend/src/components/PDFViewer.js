@@ -34,14 +34,34 @@ export const PDFViewer = ({
   const [numPages, setNumPages] = useState(0);
   const [rendering, setRendering] = useState(false);
   const [canvasSize, setCanvasSize] = useState(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [loadError, setLoadError] = useState(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateWidth = () => {
+      const nextWidth = containerRef.current?.clientWidth || 0;
+      setContainerWidth(nextWidth);
+    };
+
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(() => updateWidth());
+    resizeObserver.observe(containerRef.current);
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!pdfFile) {
       setPdfDocument(null);
       setNumPages(0);
+      setLoadError(null);
       return;
     }
 
@@ -49,12 +69,20 @@ export const PDFViewer = ({
 
     const loadPdf = async () => {
       try {
+        setLoadError(null);
         const arrayBuffer = await pdfFile.arrayBuffer();
         if (cancelled) return;
-        
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+        let pdf;
+        try {
+          pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        } catch (workerError) {
+          console.warn('PDF worker load failed, retrying without worker:', workerError);
+          pdf = await pdfjsLib.getDocument({ data: arrayBuffer, disableWorker: true }).promise;
+        }
+
         if (cancelled) return;
-        
+
         setPdfDocument(pdf);
         setNumPages(pdf.numPages);
         if (onPdfLoad) {
@@ -63,6 +91,7 @@ export const PDFViewer = ({
       } catch (error) {
         if (!cancelled) {
           console.error('Error loading PDF:', error);
+          setLoadError('PDF-tiedoston avaaminen ep?onnistui t?ll? laitteella.');
         }
       }
     };
@@ -90,9 +119,17 @@ export const PDFViewer = ({
         if (!canvas) return;
         
         const context = canvas.getContext('2d');
-        
+        if (!context) throw new Error('Canvas context unavailable');
+
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max((containerWidth || containerRef.current?.clientWidth || 0) - 16, 0);
+        const mobileFitScale = isMobileViewport && availableWidth > 0
+          ? Math.min(1, availableWidth / baseViewport.width)
+          : 1;
+        const renderScale = zoom * mobileFitScale;
+
         // Use zoom for viewport scaling (NOT CSS transform)
-        const viewport = page.getViewport({ scale: zoom });
+        const viewport = page.getViewport({ scale: renderScale });
         
         // Critical: Set canvas dimensions properly
         canvas.width = viewport.width;
@@ -101,7 +138,6 @@ export const PDFViewer = ({
         // Calculate actual DPI and store for scale calculations
         // PDF points are 72 per inch by default
         // viewport.scale tells us pixels per point
-        const baseViewport = page.getViewport({ scale: 1 });
         const actualDPI = (viewport.width / baseViewport.width) * 72;
         
         // Update canvas size for overlay with DPI info
@@ -134,6 +170,7 @@ export const PDFViewer = ({
       } catch (error) {
         if (!cancelled) {
           console.error('Error rendering page:', error);
+          setLoadError('PDF-sivun render?inti ep?onnistui t?ll? laitteella.');
         }
       } finally {
         if (!cancelled) {
@@ -150,7 +187,7 @@ export const PDFViewer = ({
         renderTask.cancel();
       }
     };
-  }, [pdfDocument, currentPage, zoom, onRenderInfoChange, canvasRef]);
+  }, [pdfDocument, currentPage, zoom, onRenderInfoChange, canvasRef, containerWidth, isMobileViewport]);
 
   const handleMouseDown = (e) => {
     // Pan with: middle mouse, right mouse, OR left mouse when no tool is selected
@@ -202,6 +239,8 @@ export const PDFViewer = ({
         <div className="flex items-start sm:items-center justify-center min-h-full p-2 sm:p-4">
           {!pdfFile ? (
             <div className="text-gray-500 text-sm">Avaa PDF-tiedosto aloittaaksesi</div>
+          ) : loadError ? (
+            <div className="max-w-sm rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</div>
           ) : (
             <div
               ref={overlayContainerRef}
