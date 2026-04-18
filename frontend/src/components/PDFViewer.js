@@ -36,10 +36,28 @@ export const PDFViewer = ({
   const [canvasSize, setCanvasSize] = useState(null);
   const [containerWidth, setContainerWidth] = useState(0);
   const [loadError, setLoadError] = useState(null);
+  const [mobilePdfUrl, setMobilePdfUrl] = useState(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  useEffect(() => {
+    if (!pdfFile) {
+      setMobilePdfUrl(null);
+      return undefined;
+    }
+
+    if (!isMobileViewport) {
+      setMobilePdfUrl(null);
+      return undefined;
+    }
+
+    const url = URL.createObjectURL(pdfFile);
+    setMobilePdfUrl(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [pdfFile, isMobileViewport]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -236,17 +254,28 @@ export const PDFViewer = ({
       <div 
         ref={containerRef}
         className="flex-1 overflow-auto relative"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
+        onMouseDown={isMobileViewport ? undefined : handleMouseDown}
+        onMouseMove={isMobileViewport ? undefined : handleMouseMove}
+        onMouseUp={isMobileViewport ? undefined : handleMouseUp}
+        onMouseLeave={isMobileViewport ? undefined : handleMouseUp}
+        onWheel={isMobileViewport ? undefined : handleWheel}
         onContextMenu={(e) => e.preventDefault()}
-        style={{ cursor: isPanning ? 'grabbing' : (currentTool ? 'crosshair' : 'grab') }}
+        style={{ cursor: isMobileViewport ? 'default' : (isPanning ? 'grabbing' : (currentTool ? 'crosshair' : 'grab')) }}
       >
         <div className="flex items-start sm:items-center justify-center min-h-full p-2 sm:p-4">
           {!pdfFile ? (
             <div className="text-gray-500 text-sm">Avaa PDF-tiedosto aloittaaksesi</div>
+          ) : isMobileViewport && mobilePdfUrl ? (
+            <div className="flex h-full min-h-[60vh] w-full flex-col gap-2">
+              <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                Mobiilissa PDF n?ytet??n kevyess? katselutilassa. Desktopin mittaustila pysyy ennallaan.
+              </div>
+              <iframe
+                title="PDF preview"
+                src={mobilePdfUrl}
+                className="h-[70vh] w-full rounded-lg border border-gray-200 bg-white"
+              />
+            </div>
           ) : loadError ? (
             <div className="max-w-sm rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{loadError}</div>
           ) : (
