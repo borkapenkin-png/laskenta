@@ -109,35 +109,7 @@ function App() {
     if (savedLeftSidebarState !== null) {
       setLeftSidebarOpen(savedLeftSidebarState === 'true');
     }
-
-    // Keyboard shortcuts for delete and undo/redo
-    const handleKeyDown = (e) => {
-      // Delete selected measurement
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMeasurementId) {
-        e.preventDefault();
-        handleDeleteMeasurement(selectedMeasurementId);
-      }
-      
-      // Undo: Ctrl/Cmd + Z
-      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      }
-      
-      // Redo: Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y
-      if ((e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) ||
-          (e.key === 'y' && (e.ctrlKey || e.metaKey))) {
-        e.preventDefault();
-        handleRedo();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [selectedMeasurementId, handleDeleteMeasurement, handleRedo, handleUndo]);
+  }, []);
 
   // Save to undo stack before making changes
   const saveToUndoStack = useCallback(() => {
@@ -304,6 +276,29 @@ function App() {
     setSelectedMeasurementId(null);
     toast.success('Mittaus poistettu');
   }, [saveToUndoStack]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedMeasurementId) {
+        e.preventDefault();
+        handleDeleteMeasurement(selectedMeasurementId);
+      }
+
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+
+      if ((e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey) ||
+          (e.key === 'y' && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedMeasurementId, handleDeleteMeasurement, handleRedo, handleUndo]);
 
   const handleCopyMeasurement = (measurement) => {
     // Save current state to undo stack before copying
