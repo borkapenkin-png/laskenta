@@ -20,6 +20,7 @@ import { MaksuerataulukkoPage } from '@/components/MaksuerataulukkoPage';
 import { QAPanel, useQAMode } from '@/components/QAPanel';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import OfferTermsEditor from '@/components/OfferTermsEditor';
+import { PinGate, PIN_SESSION_KEY } from '@/components/PinGate';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ import { exportToPDF, exportToPDFQuantitiesOnly, exportTarjousPDF, exportKoontit
 const API_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 function App() {
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [pdfFile, setPdfFile] = useState(null);
   const [pdfDocument, setPdfDocument] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,6 +90,10 @@ function App() {
   const { isQAMode, isQAPanelOpen, setIsQAPanelOpen } = useQAMode();
   const fileInputRef = useRef(null);
   const projectInputRef = useRef(null);
+
+  useEffect(() => {
+    setIsAuthorized(sessionStorage.getItem(PIN_SESSION_KEY) === 'true');
+  }, []);
 
   useEffect(() => {
     const loadedSettings = getSettings();
@@ -724,6 +730,10 @@ function App() {
   };
 
   // Show Maksuerätaulukko page
+  if (!isAuthorized) {
+    return <PinGate onUnlock={() => setIsAuthorized(true)} />;
+  }
+
   if (currentView === 'maksuerataulukko') {
     return (
       <div className="flex flex-col h-[100dvh] bg-[#F9FAFB]">
