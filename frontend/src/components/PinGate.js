@@ -20,7 +20,7 @@ export const PinGate = ({ onUnlock }) => {
       return;
     }
 
-    setError('V??r? PIN-koodi');
+    setError('Väärä PIN-koodi');
   };
 
   return (
@@ -38,7 +38,7 @@ export const PinGate = ({ onUnlock }) => {
           </div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Laskenta</h1>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Suojattu ty?tila. Anna PIN-koodi avataksesi laskentasivun.
+            Suojattu työtila. Anna PIN-koodi avataksesi laskentasivun.
           </p>
         </div>
 
@@ -67,12 +67,12 @@ export const PinGate = ({ onUnlock }) => {
           </div>
 
           <Button type="submit" className="h-12 w-full rounded-xl bg-[#0052CC] text-sm font-medium hover:bg-[#0043A8]">
-            Avaa ty?tila
+            Avaa työtila
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
-            T?m? suojaus n?kyy ennen varsinaista laskentan?kym?? ja sopii yhteen nykyisen ty?kalun visuaalisen ilmeen kanssa.
+            Tämä suojaus näkyy ennen varsinaista laskentanäkymää ja sopii yhteen nykyisen työkalun visuaalisen ilmeen kanssa.
           </div>
         </form>
       </div>

@@ -109,7 +109,7 @@ export const PDFViewer = ({
       } catch (error) {
         if (!cancelled) {
           console.error('Error loading PDF:', error);
-          setLoadError('PDF-tiedoston avaaminen ep?onnistui t?ll? laitteella.');
+          setLoadError('PDF-tiedoston avaaminen epäonnistui tällä laitteella.');
         }
       }
     };
@@ -196,7 +196,7 @@ export const PDFViewer = ({
       } catch (error) {
         if (!cancelled) {
           console.error('Error rendering page:', error);
-          setLoadError('PDF-sivun render?inti ep?onnistui t?ll? laitteella.');
+          setLoadError('PDF-sivun renderöinti epäonnistui tällä laitteella.');
         }
       } finally {
         if (!cancelled) {
@@ -268,7 +268,7 @@ export const PDFViewer = ({
           ) : isMobileViewport && mobilePdfUrl ? (
             <div className="flex h-full min-h-[60vh] w-full flex-col gap-2">
               <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
-                Mobiilissa PDF n?ytet??n kevyess? katselutilassa. Desktopin mittaustila pysyy ennallaan.
+                Mobiilissa PDF näytetään kevyessä katselutilassa. Desktopin mittaustila pysyy ennallaan.
               </div>
               <iframe
                 title="PDF preview"
